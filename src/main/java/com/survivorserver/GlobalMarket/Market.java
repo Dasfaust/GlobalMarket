@@ -144,7 +144,6 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public boolean useBukkitNames() {
-		//return bukkitItems;
 		try {
         	Class.forName("net.milkbowl.vault.item.Items");
         	Class.forName("net.milkbowl.vault.item.ItemInfo");

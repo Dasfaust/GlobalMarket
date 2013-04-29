@@ -80,7 +80,7 @@ public class InterfaceHandler {
 			p++;
 			if (slot < maxListingsPerPage) {
 				boundSlots.put(slot, listing.getId());
-				ItemStack item = new ItemStack(listing.getItem());
+				ItemStack item = listing.getItem();
 				ItemMeta meta = item.getItemMeta().clone();
 				List<String> lore = meta.getLore();
 				if (!meta.hasLore()) {
@@ -88,10 +88,8 @@ public class InterfaceHandler {
 				}
 				String price = ChatColor.WHITE + market.getLocale().get("price") + market.getEcon().format(listing.getPrice());
 				String seller = ChatColor.WHITE + market.getLocale().get("seller") + ChatColor.GRAY + ChatColor.ITALIC + listing.getSeller();
-				if (!lore.contains(price) && !lore.contains(seller)) {
-					lore.add(price);
-					lore.add(seller);
-				}
+				lore.add(price);
+				lore.add(seller);
 				if (!viewer.getViewer().equalsIgnoreCase(listing.seller)) {
 					String buyMsg = ChatColor.YELLOW + market.getLocale().get("click_to_buy");
 					if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.LEFTCLICK && viewer.getLastActionSlot() == slot) {
@@ -102,18 +100,14 @@ public class InterfaceHandler {
 							viewer.setLastAction(InterfaceAction.RIGHTCLICK);
 						}
 					}
-					if (!lore.contains(buyMsg)) {
-						lore.add(buyMsg);
-					}
+					lore.add(buyMsg);
 				}
 				if (viewer.getViewer().equalsIgnoreCase(listing.seller) || isAdmin(viewer.getViewer())) {
 					String removeMsg = ChatColor.DARK_GRAY + market.getLocale().get("shift_click_to_remove");
 					if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.SHIFTCLICK && viewer.getLastActionSlot() == slot) {
 						removeMsg = ChatColor.GREEN + market.getLocale().get("shift_click_again_to_confirm");
 					}
-					if (!lore.contains(removeMsg)) {
-						lore.add(removeMsg);
-					}
+					lore.add(removeMsg);
 				}
 				meta.setLore(lore);
 				item.setItemMeta(meta);

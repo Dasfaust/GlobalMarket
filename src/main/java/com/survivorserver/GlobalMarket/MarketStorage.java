@@ -71,8 +71,7 @@ public class MarketStorage {
 			if (!config.getListingsYML().isSet(path)) {
 				continue;
 			}
-			ItemStack item = config.getListingsYML().getItemStack(path + ".item").clone();
-			Listing listing = new Listing(market, i, item, config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
+			Listing listing = new Listing(market, i, config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
 			listings.add(listing);
 		}
 		return listings;
