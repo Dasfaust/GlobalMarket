@@ -10,7 +10,7 @@
 	  </repository>
 	  <repository>
 		<id>milkbowl-repo</id>
-		<url>http://ci.milkbowl.net/plugin/repository/everything/</url>
+		<url>http://ci.herocraftonline.com/plugin/repository/everything</url>
 	  </repository>
   </repositories>
 	<dependencies>
