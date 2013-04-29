@@ -285,6 +285,10 @@ public class Market extends JavaPlugin implements Listener {
 							player.sendMessage(ChatColor.RED + locale.get("not_a_valid_number", args[1]));
 							return true;
 						}
+						if (price < 0.01) {
+							sender.sendMessage(prefix + locale.get("price_too_low"));
+							return true;
+						}
 						if (args.length == 3) {
 							int amount = 0;
 							try {
