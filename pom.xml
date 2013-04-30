@@ -12,6 +12,10 @@
 		<id>milkbowl-repo</id>
 		<url>http://ci.herocraftonline.com/plugin/repository/everything</url>
 	  </repository>
+	  <repository>
+		<id>jackson-repo</id>
+		<url>http://repo1.maven.org/maven2</url>
+	  </repository>
   </repositories>
 	<dependencies>
 	  	<dependency>
@@ -23,6 +27,21 @@
 		<groupId>net.milkbowl.vault</groupId>
 		<artifactId>Vault</artifactId>
 		<version>1.2.26-SNAPSHOT</version>
+	</dependency>
+	<dependency>
+		<groupId>com.fasterxml.jackson.core</groupId>
+		<artifactId>jackson-core</artifactId>
+		<version>2.1.4</version>
+	</dependency>
+	<dependency>
+		<groupId>com.fasterxml.jackson.core</groupId>
+		<artifactId>jackson-databind</artifactId>
+		<version>2.1.4</version>
+	</dependency>
+	<dependency>
+		<groupId>com.fasterxml.jackson.core</groupId>
+		<artifactId>jackson-annotations</artifactId>
+		<version>2.1.4</version>
 	</dependency>
   </dependencies>
   <build>
@@ -36,7 +55,7 @@
                 <target>1.7</target>
                 <encoding>Cp1252</encoding>
         	</configuration>
-    	</plugin>
+        </plugin>
   	</plugins>
   </build>
   <properties>
