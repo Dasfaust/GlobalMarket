@@ -109,7 +109,7 @@ public class MarketServer extends Thread {
 	        	Method method = sysclass.getDeclaredMethod("addURL", new Class[] { URL.class });
 	        	method.setAccessible(true);
 	        	method.invoke(sysloader, new Object[] { urls[i] });
-	        }
+			}
 		}
 	}
 }
