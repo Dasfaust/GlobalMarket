@@ -49,7 +49,7 @@ public class MarketServer extends Thread {
 			try {
 				new ServerHandler(this, socket.accept(), market).start();
 			} catch (IOException e) {
-				market.log.warning("Could not accep client socket: " + e.getMessage());
+				market.log.warning("Could not accept client socket: " + e.getMessage());
 			}
 		}
 		closeSocket();
@@ -102,13 +102,13 @@ public class MarketServer extends Thread {
 		libraries.add(new JarFile(databind));
 		libraries.add(new JarFile(annotations));
 		for (JarFile library : libraries) {
-	        URL[] urls = { new URL("jar:" + new File(library.getName()).toURI().toURL().toExternalForm() + "!/") };
-	        for (int i = 0; i < urls.length; i++) {
-	        	URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-		        Class<URLClassLoader> sysclass = URLClassLoader.class;
-		        Method method = sysclass.getDeclaredMethod("addURL", new Class[] { URL.class });
-	            method.setAccessible(true);
-	            method.invoke(sysloader, new Object[] { urls[i] });
+			URL[] urls = { new URL("jar:" + new File(library.getName()).toURI().toURL().toExternalForm() + "!/") };
+			for (int i = 0; i < urls.length; i++) {
+				URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+	        	Class<URLClassLoader> sysclass = URLClassLoader.class;
+	        	Method method = sysclass.getDeclaredMethod("addURL", new Class[] { URL.class });
+	        	method.setAccessible(true);
+	        	method.invoke(sysloader, new Object[] { urls[i] });
 	        }
 		}
 	}
