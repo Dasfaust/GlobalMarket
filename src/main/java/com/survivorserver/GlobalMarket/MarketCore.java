@@ -30,10 +30,10 @@ public class MarketCore {
 	public void buyListing(Listing listing, String player) {
 		if (market.autoPayment()) {
 			double price = listing.getPrice();
+			market.getEcon().withdrawPlayer(player, price);
 			if (market.cutTransactions()) {
 				price = price - Double.valueOf(new DecimalFormat("#.##").format(market.getCut(price)));
 			}
-			market.getEcon().withdrawPlayer(player, price);
 			market.getEcon().depositPlayer(listing.getSeller(), price);
 			storage.storeMail(listing.getItem(), player, true);
 			storage.removeListing(listing.getId());
