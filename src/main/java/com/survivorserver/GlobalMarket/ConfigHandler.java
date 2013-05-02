@@ -107,6 +107,10 @@ public class ConfigHandler {
 		
 		localeConfig = YamlConfiguration.loadConfiguration(localeFile);
 		if (!localeConfig.getString("version").equalsIgnoreCase(market.getDescription().getVersion())) {
+			File oldLocale = new File(market.getDataFolder().getName() + "/locale_old.yml");
+			if (oldLocale.exists()) {
+				oldLocale.delete();
+			}
 			localeFile.renameTo(new File(market.getDataFolder(), "locale_old.yml"));
 			market.saveResource("locale.yml", false);
 			localeConfig = YamlConfiguration.loadConfiguration(localeFile);
