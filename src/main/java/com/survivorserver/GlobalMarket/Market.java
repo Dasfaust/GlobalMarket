@@ -90,8 +90,10 @@ public class Market extends JavaPlugin implements Listener {
 		locale = new LocaleHandler(config);
 		prefix = locale.get("cmd.prefix");
 		storageHandler = new MarketStorage(config, this);
-		server = new MarketServer(this, storageHandler);
-		server.start();
+		if (getConfig().getBoolean("server.enable")) {
+			server = new MarketServer(this, storageHandler);
+			server.start();
+		}
 		interfaceHandler = new InterfaceHandler(this, storageHandler);
 		core = new MarketCore(this, interfaceHandler, storageHandler);
 		listener = new InterfaceListener(this, interfaceHandler, storageHandler, core);
