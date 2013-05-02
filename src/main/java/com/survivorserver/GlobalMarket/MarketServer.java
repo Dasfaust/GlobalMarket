@@ -2,11 +2,14 @@ package com.survivorserver.GlobalMarket;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +30,7 @@ public class MarketServer extends Thread {
 		this.market = market;
 		enabled = market.getConfig().getBoolean("server.enable");
 		try {
+			checkLibraries();
 			loadLibraries();
 		} catch(Exception e) {
 			market.log.warning("Could not load Jackson: " + e.getMessage());
@@ -88,6 +92,24 @@ public class MarketServer extends Thread {
 	public void setDisabled() {
 		enabled = false;
 		closeSocket();
+	}
+	
+	public void checkLibraries() throws Exception {
+		List<String> libraries = new ArrayList<String>();
+		libraries.add("jackson-core");
+		libraries.add("jackson-databind");
+		libraries.add("jackson-annotations");
+		for (String library : libraries) {
+			File file = new File("lib/" + library + "-2.1.4.jar");
+			if (!file.exists()) {
+				market.log.info("Downloading " + library + "-2.1.4.jar...");
+				URL site = new URL("http://repo1.maven.org/maven2/com/fasterxml/jackson/core/" + library + "/2.1.4/" + library + "-2.1.4.jar");
+				ReadableByteChannel channel = Channels.newChannel(site.openStream());
+				FileOutputStream fos = new FileOutputStream("lib/" + library + "-2.1.4.jar");
+				fos.getChannel().transferFrom(channel,  0,  1 << 24);
+				fos.close();
+			}
+		}
 	}
 	
 	public void loadLibraries() throws Exception {
