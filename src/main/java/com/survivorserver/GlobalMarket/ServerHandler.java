@@ -65,6 +65,12 @@ public class ServerHandler extends Thread {
 					reply.put("success", server.generateSessionId(args.get(0)));
 				} else if (function.equalsIgnoreCase("getAllMail")) {
 					reply.put("success", server.storage.getAllMailFor(args.get(0)));
+				} else if (function.equalsIgnoreCase("getBalance")) {
+					if (Boolean.parseBoolean(args.get(1)) == false) {
+						reply.put("success", market.getEcon().getBalance(args.get(0)));
+					} else {
+						reply.put("success", market.getEcon().format(market.getEcon().getBalance(args.get(0))));
+					}
 				} else {
 					reply.put("failure", "Function " + function + " not found");
 				}
