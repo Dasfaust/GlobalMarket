@@ -212,9 +212,6 @@ public class Market extends JavaPlugin implements Listener {
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("mail") && sender.hasPermission("globalmarket.quickmail")) {
-				if (args.length == 2) {
-					
-				}
 				Player player = (Player) sender;
 				interfaceHandler.showMail(player);
 				return true;
@@ -225,6 +222,10 @@ public class Market extends JavaPlugin implements Listener {
 					if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
 						if (args.length < 2) {
 							sender.sendMessage(prefix + locale.get("cmd.send_syntax"));
+							return true;
+						}
+						if (args[1].equalsIgnoreCase(player.getName())) {
+							sender.sendMessage(prefix + locale.get("cant_mail_to_self"));
 							return true;
 						}
 						OfflinePlayer off = getServer().getOfflinePlayer(args[1]);
