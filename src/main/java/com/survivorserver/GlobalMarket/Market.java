@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -75,7 +74,7 @@ public class Market extends JavaPlugin implements Listener {
         if (economyProvider != null) {
             econ = economyProvider.getProvider();
         } else {
-        	log.severe("Doesn't look like Vault is loaded, disabling");
+        	log.severe("Vault has no hooked economy plugin, disabling");
         	this.setEnabled(false);
         	return;
         }
@@ -128,6 +127,17 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public LocaleHandler getLocale() {
 		return locale;
+	}
+	
+	public boolean serverEnabled() {
+		if (server != null) {
+			return true;
+		}
+		return false;
+	}
+	
+	public MarketServer server() {
+		return server;
 	}
 	
 	public double getCut(double amount) {
@@ -202,6 +212,9 @@ public class Market extends JavaPlugin implements Listener {
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("mail") && sender.hasPermission("globalmarket.quickmail")) {
+				if (args.length == 2) {
+					
+				}
 				Player player = (Player) sender;
 				interfaceHandler.showMail(player);
 				return true;

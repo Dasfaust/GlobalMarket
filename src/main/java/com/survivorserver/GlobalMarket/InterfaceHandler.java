@@ -255,6 +255,12 @@ public class InterfaceHandler {
 				prepareListings(viewer);
 			}
 		}
+		if (market.serverEnabled()) {
+			for (WebViewer viewer : market.server().getViewers()) {
+				market.log.info("Setting " + viewer.getViewer() + " to update");
+				viewer.doUpdate();
+			}
+		}
 	}
 	
 	public void closeAllInterfaces() {

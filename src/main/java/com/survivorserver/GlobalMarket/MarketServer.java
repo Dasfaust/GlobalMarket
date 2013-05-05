@@ -24,6 +24,7 @@ public class MarketServer extends Thread {
 	boolean enabled;
 	ServerSocket socket;
 	Map<String, UUID> sessions;
+	List<WebViewer> viewers;
 	
 	public MarketServer(Market market, MarketStorage storage) {
 		this.storage = storage;
@@ -39,6 +40,7 @@ public class MarketServer extends Thread {
 			return;
 		}
 		sessions = new HashMap<String, UUID>();
+		viewers = new ArrayList<WebViewer>();
 	}
 
 	@Override
@@ -57,6 +59,22 @@ public class MarketServer extends Thread {
 			}
 		}
 		closeSocket();
+	}
+	
+	public WebViewer addViewer(String name) {
+		for (WebViewer viewer : viewers) {
+			if (viewer.getViewer().equalsIgnoreCase(name)) {
+				viewer.changed = false;
+				return viewer;
+			}
+		}
+		WebViewer viewer = new WebViewer(name);
+		viewers.add(viewer);
+		return viewer;
+	}
+	
+	public List<WebViewer> getViewers() {
+		return viewers;
 	}
 	
 	public String sendMailToInventory() {

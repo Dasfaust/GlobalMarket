@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -14,27 +15,28 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServerHandler extends Thread {
-	
+
 	Market market;
 	private Socket socket;
 	MarketServer server;
-	
+
 	public ServerHandler(MarketServer server, Socket socket, Market market) {
 		this.server = server;
 		this.market = market;
 		this.socket = socket;
 	}
-	
+
 	public void run() {
 		try {
 			handleClient();
+			socket.close();
+			market.log.info("Request closed");
 		} catch(Exception e) {
 			market.log.warning("Could not handle client: " + e.getMessage());
 		}
 	}
-	
+
 	public void handleClient() throws Exception {
-		socket.setSoTimeout(10000);
 		BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		String recieved = in.readLine();
 		market.log.info("Request: " + recieved);
@@ -66,16 +68,34 @@ public class ServerHandler extends Thread {
 				} else if (function.equalsIgnoreCase("getAllMail")) {
 					reply.put("success", server.storage.getAllMailFor(args.get(0)));
 				} else if (function.equalsIgnoreCase("getBalance")) {
-					if (Boolean.parseBoolean(args.get(1)) == false) {
-						reply.put("success", market.getEcon().getBalance(args.get(0)));
-					} else {
-						reply.put("success", market.getEcon().format(market.getEcon().getBalance(args.get(0))));
+					reply.put("success", market.getEcon().getBalance(args.get(0)));
+				} else if (function.equalsIgnoreCase("format")) {
+					reply.put("success", market.getEcon().format(Double.parseDouble(args.get(0))));
+				} else if (function.equalsIgnoreCase("doPoll")) {
+					WebViewer viewer = server.addViewer(args.get(0));
+					long started = System.currentTimeMillis();
+					waiting:
+					while(viewer.changed == false) {
+						if (System.currentTimeMillis() - started >= 29500) {
+							break waiting;
+						}
+					}
+					market.log.info("Poll loop broken");
+					if (viewer.changed) {
+						reply.put("success", "Market has updated");
 					}
 				} else {
 					reply.put("failure", "Function " + function + " not found");
 				}
 			}
 		}
+		if (reply.isEmpty()) {
+			reply.put("failure", "General failure");
+		}
+		write(reply);
+	}
+	
+	public void write(Map<String, Object> reply) throws IOException {
 		PrintWriter writer = new PrintWriter(socket.getOutputStream());
 		writer.println(new ObjectMapper().writeValueAsString(reply));
 		writer.flush();
