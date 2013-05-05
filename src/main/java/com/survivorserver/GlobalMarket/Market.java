@@ -167,7 +167,11 @@ public class Market extends JavaPlugin implements Listener {
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRightClick(PlayerInteractEvent event) {
-		if (!event.isCancelled() && event.getClickedBlock() != null && event.getClickedBlock().getType() == Material.CHEST) {
+		if (!event.isCancelled() && event.getClickedBlock() != null
+				&& event.getClickedBlock().getType() == Material.CHEST
+				|| event.getClickedBlock().getType() == Material.SIGN
+				|| event.getClickedBlock().getType() == Material.SIGN_POST
+				|| event.getClickedBlock().getType() == Material.WALL_SIGN) {
 			Player player = event.getPlayer();
 			Location loc = event.getClickedBlock().getLocation();
 			int x = loc.getBlockX();
@@ -370,10 +374,13 @@ public class Market extends JavaPlugin implements Listener {
 					Player player = (Player) sender;
 					Location loc = null;
 					Block block = player.getTargetBlock(null, 4);
-					if (block.getType() == Material.CHEST) {
+					if (block.getType() == Material.CHEST
+							|| block.getType() == Material.SIGN
+							|| block.getType() == Material.SIGN_POST
+							|| block.getType() == Material.WALL_SIGN) {
 						loc = block.getLocation();
 					} else {
-						player.sendMessage(ChatColor.RED + locale.get("aim_cursor_at_chest"));
+						player.sendMessage(ChatColor.RED + locale.get("aim_cursor_at_chest_or_sign"));
 						return true;
 					}
 					int x = loc.getBlockX();
