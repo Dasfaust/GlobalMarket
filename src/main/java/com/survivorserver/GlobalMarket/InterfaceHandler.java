@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -23,11 +24,22 @@ public class InterfaceHandler {
 	MarketStorage storage;
 	List<InterfaceViewer> viewers;
 	int maxListingsPerPage = 45;
+	UUID versionId;
 	
 	public InterfaceHandler(Market market, MarketStorage storage) {
 		this.market = market;
 		this.storage = storage;
 		viewers = new ArrayList<InterfaceViewer>();
+		setVersionId();
+	}
+	
+	public void setVersionId() {
+		versionId = UUID.randomUUID();
+		//market.log.info("version id changed to " + versionId.toString());
+	}
+	
+	public UUID getVersionId() {
+		return versionId;
 	}
 	
 	public InterfaceViewer addViewer(String player, Inventory gui) {
@@ -265,12 +277,7 @@ public class InterfaceHandler {
 				prepareListings(viewer);
 			}
 		}
-		if (market.serverEnabled()) {
-			for (WebViewer viewer : market.server().getViewers()) {
-				market.log.info("Setting " + viewer.getViewer() + " to update");
-				viewer.doUpdate();
-			}
-		}
+		setVersionId();
 	}
 	
 	public void closeAllInterfaces() {

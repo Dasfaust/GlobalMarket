@@ -1,24 +1,26 @@
 package com.survivorserver.GlobalMarket;
 
+import java.util.UUID;
+
 public class WebViewer {
 	
 	String player;
-	boolean changed;
+	UUID versionId;
 	
-	public WebViewer (String player) {
+	public WebViewer (String player, UUID versionId) {
 		this.player = player;
-		changed = false;
+		this.versionId = versionId;
 	}
 	
 	public String getViewer() {
 		return player;
 	}
 	
-	public boolean hasChanged() {
-		return changed;
+	public UUID getVersionId() {
+		return versionId;
 	}
 	
-	public void doUpdate() {
-		changed = true;
+	public void setVersionId(UUID versionId) {
+		this.versionId = versionId;
 	}
 }

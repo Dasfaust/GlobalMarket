@@ -25,16 +25,18 @@ public class MarketServer extends Thread {
 	ServerSocket socket;
 	Map<String, UUID> sessions;
 	List<WebViewer> viewers;
+	InterfaceHandler handler;
 	
-	public MarketServer(Market market, MarketStorage storage) {
+	public MarketServer(Market market, MarketStorage storage, InterfaceHandler handler) {
 		this.storage = storage;
 		this.market = market;
+		this.handler = handler;
 		enabled = market.getConfig().getBoolean("server.enable");
 		try {
 			checkLibraries();
 			loadLibraries();
 		} catch(Exception e) {
-			market.log.warning("Could not load Jackson: " + e.getMessage());
+			market.log.warning("Could not load Jackson library: " + e.getMessage());
 			e.printStackTrace();
 			enabled = false;
 			return;
@@ -55,7 +57,7 @@ public class MarketServer extends Thread {
 			try {
 				new ServerHandler(this, socket.accept(), market).start();
 			} catch (IOException e) {
-				market.log.warning("Could not accept client socket: " + e.getMessage());
+				market.log.warning("Could not accept client: " + e.getMessage());
 			}
 		}
 		closeSocket();
@@ -64,17 +66,20 @@ public class MarketServer extends Thread {
 	public WebViewer addViewer(String name) {
 		for (WebViewer viewer : viewers) {
 			if (viewer.getViewer().equalsIgnoreCase(name)) {
-				viewer.changed = false;
 				return viewer;
 			}
 		}
-		WebViewer viewer = new WebViewer(name);
+		WebViewer viewer = new WebViewer(name, handler.getVersionId());
 		viewers.add(viewer);
 		return viewer;
 	}
 	
 	public List<WebViewer> getViewers() {
 		return viewers;
+	}
+	
+	public UUID currentVersion() {
+		return handler.getVersionId();
 	}
 	
 	public String sendMailToInventory() {
