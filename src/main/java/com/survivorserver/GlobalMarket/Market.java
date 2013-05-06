@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -173,6 +174,25 @@ public class Market extends JavaPlugin implements Listener {
 		searching.add(name);
 	}
 	
+	public void startSearch(Player player) {
+		player.sendMessage(ChatColor.GREEN + getLocale().get("type_your_search"));
+		final String name = player.getName();
+		if (!searching.contains(name)) {
+			addSearcher(name);
+			getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+				public void run() {
+					if (searching.contains(name)) {
+						searching.remove(name);
+						Player player = market.getServer().getPlayer(name);
+						if (player != null) {
+							player.sendMessage(prefix + getLocale().get("search_cancelled"));
+						}
+					}
+				}
+			}, 200);
+		}
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -205,6 +225,14 @@ public class Market extends JavaPlugin implements Listener {
 					event.setCancelled(true);
 					interfaceHandler.showMail(player);
 				}
+				if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
+					event.setCancelled(true);
+					if (event.getPlayer().isSneaking() && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+						startSearch(player);
+					} else {
+						interfaceHandler.showListings(player, null);
+					}
+				}
 			}
 		}
 	}
@@ -232,6 +260,7 @@ public class Market extends JavaPlugin implements Listener {
 				}
 				if (sender.hasPermission("market.util")) {
 					sender.sendMessage(prefix + locale.get("cmd.mailbox_syntax") + " " + locale.get("cmd.mailbox_descr"));
+					sender.sendMessage(prefix + locale.get("cmd.mailbox_stall") + " " + locale.get("cmd.stall_descr"));
 				}
 				sender.sendMessage(prefix + locale.get("cmd.history_syntax") + " " + locale.get("cmd.history_descr"));
 				sender.sendMessage(prefix + locale.get("cmd.send_syntax") + " " + locale.get("cmd.send_descr"));
@@ -300,17 +329,22 @@ public class Market extends JavaPlugin implements Listener {
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("listings")) {
-				Player player = (Player) sender;
-				String search = null;
-				if (args.length >= 2) {
-					search = args[1];
-					if (args.length > 2) {
-						for (int i = 2 ; i < args.length ; i++) {
-							search = search + " " + args[i];
+				if (sender.hasPermission("globalmarket.quicklist")) {
+					Player player = (Player) sender;
+					String search = null;
+					if (args.length >= 2) {
+						search = args[1];
+						if (args.length > 2) {
+							for (int i = 2 ; i < args.length ; i++) {
+								search = search + " " + args[i];
+							}
 						}
 					}
+					interfaceHandler.showListings(player, search);
+				} else {
+					sender.sendMessage(ChatColor.YELLOW + locale.get("no_permission_for_this_command"));
+					return true;
 				}
-				interfaceHandler.showListings(player, search);
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("history")) {
@@ -395,7 +429,7 @@ public class Market extends JavaPlugin implements Listener {
 				return true;
 			}
 			if (sender.hasPermission("globalmarket.util")) {
-				if (args[0].equalsIgnoreCase("mailbox")) {
+				if (args[0].equalsIgnoreCase("mailbox") || args[0].equalsIgnoreCase("stall")) {
 					Player player = (Player) sender;
 					Location loc = null;
 					Block block = player.getTargetBlock(null, 4);
@@ -417,19 +451,34 @@ public class Market extends JavaPlugin implements Listener {
 							saveConfig();
 							player.sendMessage(ChatColor.YELLOW + locale.get("mailbox_removed"));
 							return true;
+						} else if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
+							getConfig().set("stall." + x + "," + y + "," + z, null);
+							saveConfig();
+							player.sendMessage(ChatColor.YELLOW + locale.get("stall_removed"));
+							return true;
 						} else {
-							player.sendMessage(ChatColor.RED + locale.get("no_mailbox_found"));
+							player.sendMessage(ChatColor.RED + locale.get("no_stall_found"));
 							return true;
 						}
 					}
 					if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
 						sender.sendMessage(ChatColor.RED + locale.get("mailbox_already_exists"));
 						return true;
+					} else if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
+						sender.sendMessage(ChatColor.RED + locale.get("stall_already_exists"));
+						return true;
 					}
-					getConfig().set("mailbox." + x + "," + y + "," + z, true);
-					saveConfig();
-					sender.sendMessage(ChatColor.GREEN + locale.get("mailbox_added"));
-					return true;
+					if (args[0].equalsIgnoreCase("mailbox")) {
+						getConfig().set("mailbox." + x + "," + y + "," + z, true);
+						saveConfig();
+						sender.sendMessage(ChatColor.GREEN + locale.get("mailbox_added"));
+						return true;
+					} else if (args[0].equalsIgnoreCase("stall")) {
+						getConfig().set("stall." + x + "," + y + "," + z, true);
+						saveConfig();
+						sender.sendMessage(ChatColor.GREEN + locale.get("stall_added"));
+						return true;
+					}
 				}
 			}
 			sender.sendMessage(prefix + locale.get("cmd.help"));
