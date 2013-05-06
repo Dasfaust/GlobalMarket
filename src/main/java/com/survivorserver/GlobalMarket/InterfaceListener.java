@@ -45,8 +45,29 @@ public class InterfaceListener implements Listener {
 			} else {
 				if (event.getSlot() == 47) {
 					if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-						viewer.setSearch(null);
-						viewer.setLastAction(null);
+						if (viewer.getSearch() == null) {
+							Player player = (Player) event.getWhoClicked();
+							player.closeInventory();
+							handler.removeViewer(viewer);
+							player.sendMessage(ChatColor.GREEN + market.getLocale().get("type_your_search"));
+							final String name = player.getName();
+							market.addSearcher(name);
+							market.getServer().getScheduler().scheduleSyncDelayedTask(market, new Runnable() {
+								public void run() {
+									if (market.searching.contains(name)) {
+										market.searching.remove(name);
+										Player player = market.getServer().getPlayer(name);
+										if (player != null) {
+											player.sendMessage(market.prefix + market.getLocale().get("search_cancelled"));
+										}
+									}
+								}
+							}, 200);
+							return;
+						} else {
+							viewer.setSearch(null);
+							viewer.setLastAction(null);
+						}
 					}
 				}
 				if (event.getSlot() == 53) {

@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
@@ -40,6 +42,7 @@ public class Market extends JavaPlugin implements Listener {
 	LocaleHandler locale;
 	String prefix;
 	boolean bukkitItems = false;
+	List<String> searching;
 
 	public void onEnable() {
 		log = getLogger();
@@ -107,6 +110,7 @@ public class Market extends JavaPlugin implements Listener {
 			    log.info("Failed to start Metrics!");
 			}
 		}
+		searching = new ArrayList<String>();
 	}
 	
 	public Economy getEcon() {
@@ -165,21 +169,42 @@ public class Market extends JavaPlugin implements Listener {
 		return false;
 	}
 	
+	public void addSearcher(String name) {
+		searching.add(name);
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onChat(AsyncPlayerChatEvent event) {
+		Player player = event.getPlayer();
+		if (searching.contains(player.getName())) {
+			event.setCancelled(true);
+			String search = event.getMessage();
+			if (search.equalsIgnoreCase("cancel")) {
+				searching.remove(player.getName());
+				interfaceHandler.showListings(player, null);
+			} else {
+				interfaceHandler.showListings(player, search);
+				searching.remove(player.getName());
+			}
+		}
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRightClick(PlayerInteractEvent event) {
-		if (!event.isCancelled() && event.getClickedBlock() != null
-				&& event.getClickedBlock().getType() == Material.CHEST
-				|| event.getClickedBlock().getType() == Material.SIGN
-				|| event.getClickedBlock().getType() == Material.SIGN_POST
-				|| event.getClickedBlock().getType() == Material.WALL_SIGN) {
-			Player player = event.getPlayer();
-			Location loc = event.getClickedBlock().getLocation();
-			int x = loc.getBlockX();
-			int y = loc.getBlockY();
-			int z = loc.getBlockZ();
-			if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
-				event.setCancelled(true);
-				interfaceHandler.showMail(player);
+		if (!event.isCancelled() && event.getClickedBlock() != null) {
+			if (event.getClickedBlock().getType() == Material.CHEST
+					|| event.getClickedBlock().getType() == Material.SIGN
+					|| event.getClickedBlock().getType() == Material.SIGN_POST
+					|| event.getClickedBlock().getType() == Material.WALL_SIGN) {
+				Player player = event.getPlayer();
+				Location loc = event.getClickedBlock().getLocation();
+				int x = loc.getBlockX();
+				int y = loc.getBlockY();
+				int z = loc.getBlockZ();
+				if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
+					event.setCancelled(true);
+					interfaceHandler.showMail(player);
+				}
 			}
 		}
 	}

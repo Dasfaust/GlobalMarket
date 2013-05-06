@@ -67,8 +67,8 @@ public class InterfaceHandler {
 		ItemStack[] contents = new ItemStack[54];
 		if (viewer.getSearch() != null) {
 			listings = storage.getAllListings(viewer.getSearch());
-			setSearch(viewer.getSearch(), contents);
 		}
+		setSearch(viewer.getSearch(), contents);
 		int slot = 0;
 		int p = 0;
 		int n = viewer.getPage() * maxListingsPerPage;
@@ -229,14 +229,24 @@ public class InterfaceHandler {
 	}
 	
 	public void setSearch(String search, ItemStack[] contents) {
-		ItemStack searchCancel = new ItemStack(Material.PAPER);
-		ItemMeta meta = searchCancel.getItemMeta();
-		meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.cancel_search"));
-		List<String> lore = new ArrayList<String>();
-		lore.add(ChatColor.YELLOW + market.getLocale().get("interface.searching_for", search));
-		meta.setLore(lore);
-		searchCancel.setItemMeta(meta);
-		contents[47] = searchCancel;
+		ItemStack searchItem = new ItemStack(Material.PAPER);
+		if (search == null) {
+			ItemMeta meta = searchItem.getItemMeta();
+			meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.search"));
+			List<String> lore = new ArrayList<String>();
+			lore.add(ChatColor.YELLOW + market.getLocale().get("interface.start_search"));
+			meta.setLore(lore);
+			searchItem.setItemMeta(meta);
+			contents[47] = searchItem;
+		} else {
+			ItemMeta meta = searchItem.getItemMeta();
+			meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.cancel_search"));
+			List<String> lore = new ArrayList<String>();
+			lore.add(ChatColor.YELLOW + market.getLocale().get("interface.searching_for", search));
+			meta.setLore(lore);
+			searchItem.setItemMeta(meta);
+			contents[47] = searchItem;
+		}
 	}
 	
 	public void refreshViewer(InterfaceViewer viewer) {
