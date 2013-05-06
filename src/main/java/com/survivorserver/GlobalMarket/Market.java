@@ -50,6 +50,7 @@ public class Market extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(this, this);
 		tasks = new ArrayList<Integer>();
 		market = this;
+		reloadConfig();
 		if (!getConfig().isSet("server.enable")) {
 			getConfig().set("server.enable", false);
 			saveConfig();
@@ -73,7 +74,10 @@ public class Market extends JavaPlugin implements Listener {
 			getConfig().set("enable_metrics", true);
 			saveConfig();
 		}
-		saveConfig();
+		if (!getConfig().isSet("max_price")) {
+			getConfig().set("max_price", 0.0);
+			saveConfig();
+		}
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             econ = economyProvider.getProvider();
@@ -172,6 +176,10 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public void addSearcher(String name) {
 		searching.add(name);
+	}
+	
+	public double getMaxPrice() {
+		return getConfig().getDouble("max_price");
 	}
 	
 	public void startSearch(Player player) {
@@ -366,6 +374,11 @@ public class Market extends JavaPlugin implements Listener {
 						}
 						if (price < 0.01) {
 							sender.sendMessage(prefix + locale.get("price_too_low"));
+							return true;
+						}
+						double maxPrice = getMaxPrice();
+						if (maxPrice > 0 && price > maxPrice) {
+							sender.sendMessage(prefix + locale.get("price_too_high"));
 							return true;
 						}
 						if (args.length == 3) {
