@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -128,7 +129,7 @@ public class MarketStorage {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
 		meta.setTitle(market.getLocale().get("transaction_log.item_name"));
-		double cut = Double.valueOf(new DecimalFormat("#.##").format(market.getCut(amount)));
+		double cut = new BigDecimal(market.getCut(amount)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
 		// TODO: make this pretty
 		String itemName = item.getType().toString();
 		if (!market.useBukkitNames()) {
