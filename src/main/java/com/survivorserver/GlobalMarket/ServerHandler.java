@@ -74,20 +74,18 @@ public class ServerHandler extends Thread {
 				} else if (function.equalsIgnoreCase("doPoll")) {
 					WebViewer viewer = server.addViewer(args.get(0));
 					long started = System.currentTimeMillis();
-					//market.log.info(viewer.getViewer() + " connected and has version id " + viewer.getVersionId().toString());
 					waiting:
 					while(System.currentTimeMillis() - started <= 29500) {
 						if (!viewer.getVersionId().toString().equalsIgnoreCase(server.currentVersion().toString())) {
-							//market.log.info(viewer.getViewer() + "'s id is different!");
 							viewer.setVersionId(server.currentVersion());
 							reply.put("success", "doRefresh");
 							break waiting;
 						}
-					}	
-					//market.log.info("Poll loop broken");
+					}
 					if (reply.isEmpty()) {
 						reply.put("failure", "No changes");
 					}
+					viewer.updateLastSeen();
 				} else {
 					reply.put("failure", "Function " + function + " not found");
 				}

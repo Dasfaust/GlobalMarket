@@ -26,6 +26,7 @@ public class MarketServer extends Thread {
 	Map<String, UUID> sessions;
 	List<WebViewer> viewers;
 	InterfaceHandler handler;
+	Map<String, String> notifications;
 	
 	public MarketServer(Market market, MarketStorage storage, InterfaceHandler handler) {
 		this.storage = storage;
@@ -43,6 +44,7 @@ public class MarketServer extends Thread {
 		}
 		sessions = new HashMap<String, UUID>();
 		viewers = new ArrayList<WebViewer>();
+		notifications = new HashMap<String, String>();
 	}
 
 	@Override
@@ -74,12 +76,21 @@ public class MarketServer extends Thread {
 		return viewer;
 	}
 	
-	public List<WebViewer> getViewers() {
-		return viewers;
+	public boolean isConnected(String name) {
+		for (WebViewer viewer : viewers) {
+			if (viewer.getViewer().equalsIgnoreCase(name) && System.currentTimeMillis() - viewer.getLastSeen() >= 31000) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public UUID currentVersion() {
 		return handler.getVersionId();
+	}
+	
+	public void notify(String who, String message) {
+		notifications.put(who, message);
 	}
 	
 	public String sendMailToInventory() {

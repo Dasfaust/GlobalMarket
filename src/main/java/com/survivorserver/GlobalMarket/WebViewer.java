@@ -6,10 +6,12 @@ public class WebViewer {
 	
 	String player;
 	UUID versionId;
+	Long lastSeen;
 	
 	public WebViewer (String player, UUID versionId) {
 		this.player = player;
 		this.versionId = versionId;
+		updateLastSeen();
 	}
 	
 	public String getViewer() {
@@ -22,5 +24,13 @@ public class WebViewer {
 	
 	public void setVersionId(UUID versionId) {
 		this.versionId = versionId;
+	}
+	
+	public Long getLastSeen() {
+		return lastSeen;
+	}
+	
+	public void updateLastSeen() {
+		lastSeen = System.currentTimeMillis();
 	}
 }
