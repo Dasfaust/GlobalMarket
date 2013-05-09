@@ -108,6 +108,9 @@ public class MarketCore {
 	public void showHistory(Player player) {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
+		if (meta == null) {
+			meta = (BookMeta) market.getServer().getItemFactory().getItemMeta(book.getType());
+		}
 		meta.setTitle(market.getLocale().get("history.item_name"));
 		meta.setAuthor("Server");
 		Map<String, Long> history = storage.getHistory(player.getName(), 15);

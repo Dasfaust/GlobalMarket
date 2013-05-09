@@ -128,6 +128,9 @@ public class MarketStorage {
 	public void storePayment(ItemStack item, String player, double amount, boolean notify) {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
+		if (meta == null) {
+			meta = (BookMeta) market.getServer().getItemFactory().getItemMeta(book.getType());
+		}
 		meta.setTitle(market.getLocale().get("transaction_log.item_name"));
 		double cut = new BigDecimal(market.getCut(amount)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
 		// TODO: make this pretty

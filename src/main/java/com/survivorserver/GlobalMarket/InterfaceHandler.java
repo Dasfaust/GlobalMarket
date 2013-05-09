@@ -93,7 +93,14 @@ public class InterfaceHandler {
 			if (slot < maxListingsPerPage) {
 				boundSlots.put(slot, listing.getId());
 				ItemStack item = listing.getItem();
-				ItemMeta meta = item.getItemMeta().clone();
+				if (item == null) {
+					market.log.severe("The item in listing " + listing.getId() + " is null");
+					continue;
+				}
+				ItemMeta meta = item.getItemMeta();
+				if (meta == null) {
+					meta = market.getServer().getItemFactory().getItemMeta(item.getType());
+				}
 				List<String> lore = meta.getLore();
 				if (!meta.hasLore()) {
 					lore = new ArrayList<String>();
@@ -163,8 +170,15 @@ public class InterfaceHandler {
 			p++;
 			if (slot < maxListingsPerPage) {
 				boundSlots.put(slot, entry.getKey());
+				if (entry.getValue() == null) {
+					market.log.severe("The item in " + viewer.getViewer() + "'s mail id " + entry.getKey() + " is null");
+					continue;
+				}
 				ItemStack item = new ItemStack(entry.getValue());
-				ItemMeta meta = item.getItemMeta().clone();
+				ItemMeta meta = item.getItemMeta();
+				if (meta == null) {
+					meta = market.getServer().getItemFactory().getItemMeta(item.getType());
+				}
 				List<String> lore = meta.getLore();
 				if (!meta.hasLore()) {
 					lore = new ArrayList<String>();
@@ -210,6 +224,9 @@ public class InterfaceHandler {
 	public void setNextPage(ItemStack[] contents, InterfaceViewer viewer) {
 		ItemStack nextPage = new ItemStack(Material.PAPER, viewer.getPage() + 1);
 		ItemMeta nextMeta = nextPage.getItemMeta();
+		if (nextMeta == null) {
+			nextMeta = market.getServer().getItemFactory().getItemMeta(nextPage.getType());
+		}
 		nextMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.page", (viewer.getPage() + 1)));
 		List<String> nextLore = new ArrayList<String>();
 		nextLore.add(ChatColor.YELLOW + market.getLocale().get("interface.next_page"));
@@ -221,6 +238,9 @@ public class InterfaceHandler {
 	public void setCurPage(ItemStack[] contents, InterfaceViewer viewer) {
 		ItemStack curPage = new ItemStack(Material.PAPER, viewer.getPage());
 		ItemMeta curMeta = curPage.getItemMeta();
+		if (curMeta == null) {
+			curMeta = market.getServer().getItemFactory().getItemMeta(curPage.getType());
+		}
 		curMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.page", viewer.getPage()));
 		List<String> curLore = new ArrayList<String>();
 		curLore.add(ChatColor.YELLOW + market.getLocale().get("interface.cur_page"));
@@ -232,6 +252,9 @@ public class InterfaceHandler {
 	public void setPrevPage(ItemStack[] contents, InterfaceViewer viewer) {
 		ItemStack prevPage = new ItemStack(Material.PAPER, viewer.getPage() - 1);
 		ItemMeta prevMeta = prevPage.getItemMeta();
+		if (prevMeta == null) {
+			prevMeta = market.getServer().getItemFactory().getItemMeta(prevPage.getType());
+		}
 		prevMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.page", (viewer.getPage() - 1)));
 		List<String> prevLore = new ArrayList<String>();
 		prevLore.add(ChatColor.YELLOW + market.getLocale().get("interface.prev_page"));
@@ -244,6 +267,9 @@ public class InterfaceHandler {
 		ItemStack searchItem = new ItemStack(Material.PAPER);
 		if (search == null) {
 			ItemMeta meta = searchItem.getItemMeta();
+			if (meta == null) {
+				meta = market.getServer().getItemFactory().getItemMeta(searchItem.getType());
+			}
 			meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.search"));
 			List<String> lore = new ArrayList<String>();
 			lore.add(ChatColor.YELLOW + market.getLocale().get("interface.start_search"));
@@ -252,6 +278,9 @@ public class InterfaceHandler {
 			contents[47] = searchItem;
 		} else {
 			ItemMeta meta = searchItem.getItemMeta();
+			if (meta == null) {
+				meta = market.getServer().getItemFactory().getItemMeta(searchItem.getType());
+			}
 			meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.cancel_search"));
 			List<String> lore = new ArrayList<String>();
 			lore.add(ChatColor.YELLOW + market.getLocale().get("interface.searching_for", search));
