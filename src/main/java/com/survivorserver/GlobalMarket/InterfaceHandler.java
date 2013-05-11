@@ -93,14 +93,12 @@ public class InterfaceHandler {
 			if (slot < maxListingsPerPage) {
 				boundSlots.put(slot, listing.getId());
 				ItemStack item = listing.getItem();
-				if (item == null) {
-					market.log.severe("The item in listing " + listing.getId() + " is null");
+				if (item == null || item.getType() == Material.AIR) {
+					storage.removeListing(listing.getId());
+					market.log.warning("The item in listing " + listing.getId() + " is null, removing");
 					continue;
 				}
-				ItemMeta meta = item.getItemMeta();
-				if (meta == null) {
-					meta = market.getServer().getItemFactory().getItemMeta(item.getType());
-				}
+				ItemMeta meta = item.getItemMeta().clone();
 				List<String> lore = meta.getLore();
 				if (!meta.hasLore()) {
 					lore = new ArrayList<String>();
@@ -170,15 +168,13 @@ public class InterfaceHandler {
 			p++;
 			if (slot < maxListingsPerPage) {
 				boundSlots.put(slot, entry.getKey());
-				if (entry.getValue() == null) {
-					market.log.severe("The item in " + viewer.getViewer() + "'s mail id " + entry.getKey() + " is null");
+				if (entry.getValue() == null || entry.getValue().getType() == Material.AIR) {
+					storage.removeMail(viewer.getViewer(), entry.getKey());
+					market.log.warning("The item in " + viewer.getViewer() + "'s mail id " + entry.getKey() + " is null");
 					continue;
 				}
 				ItemStack item = new ItemStack(entry.getValue());
-				ItemMeta meta = item.getItemMeta();
-				if (meta == null) {
-					meta = market.getServer().getItemFactory().getItemMeta(item.getType());
-				}
+				ItemMeta meta = item.getItemMeta().clone();
 				List<String> lore = meta.getLore();
 				if (!meta.hasLore()) {
 					lore = new ArrayList<String>();
