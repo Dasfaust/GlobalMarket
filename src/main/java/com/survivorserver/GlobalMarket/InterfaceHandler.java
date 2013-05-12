@@ -181,10 +181,12 @@ public class InterfaceHandler {
 				}
 				if (meta instanceof BookMeta) {
 					BookMeta bookMeta = (BookMeta) meta;
-					if (bookMeta.getTitle().equalsIgnoreCase(market.getLocale().get("transaction_log.item_name"))) {
-						double amount = storage.getPaymentAmount(entry.getKey(), viewer.getViewer());
-						if (amount > 0) {
-							lore.add(ChatColor.WHITE + market.getLocale().get("amount") + market.getEcon().format(amount));
+					if (bookMeta.hasTitle()) {
+						if (bookMeta.getTitle().equalsIgnoreCase(market.getLocale().get("transaction_log.item_name"))) {
+							double amount = storage.getPaymentAmount(entry.getKey(), viewer.getViewer());
+							if (amount > 0) {
+								lore.add(ChatColor.WHITE + market.getLocale().get("amount") + market.getEcon().format(amount));
+							}
 						}
 					}
 				}

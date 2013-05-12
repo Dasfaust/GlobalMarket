@@ -30,7 +30,7 @@ public class ServerHandler extends Thread {
 		try {
 			handleClient();
 			socket.close();
-			market.log.info("Request closed");
+			//market.log.info("Request closed");
 		} catch(Exception e) {
 			market.log.warning("Could not handle client: " + e.getMessage());
 		}
@@ -39,7 +39,7 @@ public class ServerHandler extends Thread {
 	public void handleClient() throws Exception {
 		BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		String recieved = in.readLine();
-		market.log.info("Request: " + recieved);
+		//market.log.info("Request: " + recieved);
 		Map<String, Object> reply = new HashMap<String, Object>();
 		ObjectMapper mapper = new ObjectMapper();
 		JsonFactory factory = mapper.getFactory();
