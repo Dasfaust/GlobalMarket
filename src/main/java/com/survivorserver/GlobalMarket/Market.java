@@ -78,6 +78,10 @@ public class Market extends JavaPlugin implements Listener {
 			getConfig().set("max_price", 0.0);
 			saveConfig();
 		}
+		if (!getConfig().isSet("creation_fee")) {
+			getConfig().set("creation_fee", 0.05);
+			saveConfig();
+		}
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             econ = economyProvider.getProvider();
@@ -154,6 +158,14 @@ public class Market extends JavaPlugin implements Listener {
 			return 0;
 		}
 		return amount * getConfig().getDouble("cut_amount");
+	}
+	
+	public double getCreationFee(double amount) {
+		double fee = getConfig().getDouble("creation_fee");
+		if (fee > 0) {
+			return amount * fee;
+		}
+		return 0;
 	}
 	
 	public boolean autoPayment() {
@@ -381,6 +393,7 @@ public class Market extends JavaPlugin implements Listener {
 							sender.sendMessage(prefix + locale.get("price_too_high"));
 							return true;
 						}
+						double fee = getCreationFee(price);
 						if (args.length == 3) {
 							int amount = 0;
 							try {
@@ -393,6 +406,15 @@ public class Market extends JavaPlugin implements Listener {
 								player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
 								return true;
 							}
+							if (fee > 0) {
+								if (econ.has(sender.getName(), fee)) {
+									econ.withdrawPlayer(sender.getName(), fee);
+									storageHandler.incrementSpent(sender.getName(), fee);
+								} else {
+									sender.sendMessage(ChatColor.RED + locale.get("you_cant_pay_this_fee"));
+									return true;
+								}
+							}
 							ItemStack toList = player.getItemInHand().clone();
 							if (player.getItemInHand().getAmount() == amount) {
 								player.setItemInHand(new ItemStack(Material.AIR));
@@ -401,7 +423,11 @@ public class Market extends JavaPlugin implements Listener {
 							}
 							toList.setAmount(amount);
 							storageHandler.storeListing(toList, player.getName(), price);
-							player.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
+							if (fee > 0) {
+								player.sendMessage(ChatColor.GREEN + locale.get("item_listed_with_fee", fee));
+							} else {
+								player.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
+							}
 							// TODO: make this pretty
 							String itemName = toList.getType().toString();
 							if (!useBukkitNames()) {
@@ -412,10 +438,23 @@ public class Market extends JavaPlugin implements Listener {
 							}
 							storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName + "x" + toList.getAmount(), price));
 						} else {
+							if (fee > 0) {
+								if (econ.has(sender.getName(), fee)) {
+									econ.withdrawPlayer(sender.getName(), fee);
+									storageHandler.incrementSpent(sender.getName(), fee);
+								} else {
+									sender.sendMessage(ChatColor.RED + locale.get("you_cant_pay_this_fee"));
+									return true;
+								}
+							}
 							ItemStack toList = player.getItemInHand().clone();
 							player.setItemInHand(new ItemStack(Material.AIR));
 							storageHandler.storeListing(toList, player.getName(), price);
-							player.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
+							if (fee > 0) {
+								player.sendMessage(ChatColor.GREEN + locale.get("item_listed_with_fee", fee));
+							} else {
+								player.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
+							}
 							// TODO: make this pretty
 							String itemName = toList.getType().toString();
 							if (!useBukkitNames()) {
