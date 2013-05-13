@@ -1,6 +1,6 @@
 name: GlobalMarket
 main: com.survivorserver.GlobalMarket.Market
-version: 1.2.0
+version: ${version}
 commands:
     market:
         description: Market commands

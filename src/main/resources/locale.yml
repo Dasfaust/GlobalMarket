@@ -1,4 +1,4 @@
-version: 1.2.0
+version: ${version}
 you_have_new_mail: "You have new mail!"
 player_context_required: "All commands require a player context!"
 cmd:

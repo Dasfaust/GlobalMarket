@@ -162,10 +162,7 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public double getCreationFee(double amount) {
 		double fee = getConfig().getDouble("creation_fee");
-		if (fee > 0) {
-			return amount * fee;
-		}
-		return 0;
+		return amount * fee;
 	}
 	
 	public boolean autoPayment() {
