@@ -49,6 +49,7 @@ public class InterfaceListener implements Listener {
 							Player player = (Player) event.getWhoClicked();
 							player.closeInventory();
 							handler.removeViewer(viewer);
+							market.startSearch(player);
 							return;
 						} else {
 							viewer.setSearch(null);
