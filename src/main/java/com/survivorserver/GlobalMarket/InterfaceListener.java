@@ -89,7 +89,7 @@ public class InterfaceListener implements Listener {
 					Listing listing = storage.getListing(viewer.getBoundSlots().get(event.getSlot()));
 					if (listing != null) {
 						if (viewer.getViewer().equalsIgnoreCase(listing.getSeller()) || handler.isAdmin(viewer.getViewer())) {
-							core.removeListing(listing, viewer.getViewer());
+							core.removeListing(listing, (Player) event.getWhoClicked());
 						}
 					}
 				}
@@ -101,7 +101,7 @@ public class InterfaceListener implements Listener {
 					if (listing != null) {
 						if (!listing.getSeller().equalsIgnoreCase(event.getWhoClicked().getName())) {
 							if (market.getEcon().has(event.getWhoClicked().getName(), listing.price)) {
-								core.buyListing(listing, event.getWhoClicked().getName());
+								core.buyListing(listing, (Player) event.getWhoClicked());
 							}
 						}
 					}

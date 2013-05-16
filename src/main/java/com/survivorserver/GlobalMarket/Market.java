@@ -44,6 +44,7 @@ public class Market extends JavaPlugin implements Listener {
 	String prefix;
 	boolean bukkitItems = false;
 	List<String> searching;
+	MarketQueue queue;
 
 	public void onEnable() {
 		log = getLogger();
@@ -53,35 +54,40 @@ public class Market extends JavaPlugin implements Listener {
 		reloadConfig();
 		if (!getConfig().isSet("server.enable")) {
 			getConfig().set("server.enable", false);
-			saveConfig();
 		}
 		if (!getConfig().isSet("automatic_payments")) {
 			getConfig().set("automatic_payments", false);
-			saveConfig();
 		}
 		if (!getConfig().isSet("enable_cut")) {
 			getConfig().set("enable_cut", true);
-			saveConfig();
 		}
 		if (!getConfig().isSet("cut_amount")) {
 			getConfig().set("cut_amount", (double) 0.05);
-			saveConfig();
 		} else if (getConfig().getDouble("cut_amount") >= 1.0) {
 			getConfig().set("cut_amount", (double) 0.05);
-			saveConfig();
 		}
 		if (!getConfig().isSet("enable_metrics")) {
 			getConfig().set("enable_metrics", true);
-			saveConfig();
 		}
 		if (!getConfig().isSet("max_price")) {
 			getConfig().set("max_price", 0.0);
-			saveConfig();
 		}
 		if (!getConfig().isSet("creation_fee")) {
 			getConfig().set("creation_fee", 0.05);
-			saveConfig();
 		}
+		if (!getConfig().isSet("queue.trade_time")) {
+			getConfig().set("queue.trade_time", 0);
+		}
+		if (!getConfig().isSet("queue.mail_time")) {
+			getConfig().set("queue.mail_time", 30);
+		}
+		if (!getConfig().isSet("queue.queue_on_buy")) {
+			getConfig().set("queue.queue_mail_on_buy", true);
+		}
+		if (!getConfig().isSet("queue.queue_on_cancel")) {
+			getConfig().set("queue.queue_mail_on_cancel", true);
+		}
+		saveConfig();
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             econ = economyProvider.getProvider();
@@ -108,6 +114,7 @@ public class Market extends JavaPlugin implements Listener {
 		}
 		core = new MarketCore(this, interfaceHandler, storageHandler);
 		listener = new InterfaceListener(this, interfaceHandler, storageHandler, core);
+		queue = new MarketQueue(this, storageHandler);
 		getServer().getPluginManager().registerEvents(listener, this);
 		tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new ExpireTask(this, storageHandler, core), 0, 72000));
 		tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new CleanTask(this, interfaceHandler), 0, 20));
@@ -208,6 +215,26 @@ public class Market extends JavaPlugin implements Listener {
 				}
 			}, 200);
 		}
+	}
+	
+	public MarketQueue getQueue() {
+		return queue;
+	}
+	
+	public int getTradeTime() {
+		return getConfig().getInt("queue.trade_time");
+	}
+	
+	public int getMailTime() {
+		return getConfig().getInt("queue.mail_time");
+	}
+	
+	public boolean queueOnBuy() {
+		return getConfig().getBoolean("queue.queue_mail_on_buy");
+	}
+	
+	public boolean queueOnCancel() {
+		return getConfig().getBoolean("queue.queue_mail_on_cancel");
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -328,13 +355,23 @@ public class Market extends JavaPlugin implements Listener {
 								player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
 							}
 							toList.setAmount(amount);
-							storageHandler.storeMail(toList, args[1], true);
-							sender.sendMessage(prefix + locale.get("item_sent"));
+							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
+								queue.queueMail(toList, args[1]);
+								sender.sendMessage(prefix + locale.get("item_will_send"));
+							} else {
+								storageHandler.storeMail(toList, args[1], true);
+								sender.sendMessage(prefix + locale.get("item_sent"));
+							}
 						} else {
 							ItemStack toList = player.getItemInHand().clone();
+							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
+								queue.queueMail(toList, args[1]);
+								sender.sendMessage(prefix + locale.get("item_will_send"));
+							} else {
+								storageHandler.storeMail(toList, args[1], true);
+								sender.sendMessage(prefix + locale.get("item_sent"));
+							}
 							player.setItemInHand(new ItemStack(Material.AIR));
-							storageHandler.storeMail(toList, args[1], true);
-							sender.sendMessage(prefix + locale.get("item_sent"));
 						}
 					} else {
 						sender.sendMessage(prefix + locale.get("hold_an_item") + " " + locale.get("cmd.send_syntax"));
@@ -419,11 +456,15 @@ public class Market extends JavaPlugin implements Listener {
 								player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
 							}
 							toList.setAmount(amount);
-							storageHandler.storeListing(toList, player.getName(), price);
-							if (fee > 0) {
-								player.sendMessage(ChatColor.GREEN + locale.get("item_listed_with_fee", fee));
+							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
+								queue.queueListing(toList, player.getName(), price);
+								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
 							} else {
-								player.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
+								storageHandler.storeListing(toList, player.getName(), price);
+								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
+							}
+							if (fee > 0) {
+								player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
 							}
 							// TODO: make this pretty
 							String itemName = toList.getType().toString();
@@ -445,13 +486,17 @@ public class Market extends JavaPlugin implements Listener {
 								}
 							}
 							ItemStack toList = player.getItemInHand().clone();
-							player.setItemInHand(new ItemStack(Material.AIR));
-							storageHandler.storeListing(toList, player.getName(), price);
-							if (fee > 0) {
-								player.sendMessage(ChatColor.GREEN + locale.get("item_listed_with_fee", fee));
+							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
+								queue.queueListing(toList, player.getName(), price);
+								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
 							} else {
-								player.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
+								storageHandler.storeListing(toList, player.getName(), price);
+								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 							}
+							if (fee > 0) {
+								player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
+							}
+							player.setItemInHand(new ItemStack(Material.AIR));
 							// TODO: make this pretty
 							String itemName = toList.getType().toString();
 							if (!useBukkitNames()) {

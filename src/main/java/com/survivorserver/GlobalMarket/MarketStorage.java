@@ -10,10 +10,13 @@ import java.util.Map.Entry;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+
+import com.survivorserver.GlobalMarket.MarketQueue.QueueType;
 
 public class MarketStorage {
 
@@ -276,6 +279,50 @@ public class MarketStorage {
 			return 0;
 		}
 		return config.getHistoryYML().getDouble("earned." + player);
+	}
+	
+	public int getQueueIndex() {
+		if (!config.getQueueYML().isSet("index")) {
+			config.getQueueYML().set("index", 0);
+		}
+		return config.getQueueYML().getInt("index");
+	}
+	
+	public void incrementQueueIndex() {
+		int index = getQueueIndex() + 1;
+		config.getQueueYML().set("index", index);
+	}
+	
+	public void storeQueueItem(QueueType type, Object... args) {
+		int id = getQueueIndex();
+		String path = "queue." + id;
+		config.getQueueYML().set(path + ".type", type.toString());
+		for (int i = 0; i < args.length; i++) {
+			config.getQueueYML().set(path + "." + i, args[i]);
+		}
+		config.getQueueYML().set(path + ".time", System.currentTimeMillis());
+		incrementQueueIndex();
+		config.saveQueueYML();
+	}
+	
+	public Map<Integer, List<Object>> getAllQueueItems() {
+		Map<Integer, List<Object>> items = new HashMap<Integer, List<Object>>();
+		for (int i = 0; i < getQueueIndex(); i++) {
+			if (config.getQueueYML().isSet("queue." + i)) {
+				List<Object> obs = new ArrayList<Object>();
+				ConfigurationSection section = config.getQueueYML().getConfigurationSection("queue." + i);
+				for (String key : section.getKeys(false)) {
+					obs.add(section.get(key));
+				}
+				items.put(i, obs);
+			}
+		}
+		return items;
+	}
+	
+	public void removeQueueItem(int id) {
+		config.getQueueYML().set("queue." + id, null);
+		config.saveQueueYML();
 	}
 	
 	public boolean isInDisplayName(String search, ItemStack item) {

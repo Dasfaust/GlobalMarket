@@ -17,6 +17,8 @@ public class ConfigHandler {
 	private File historyFile;
 	private FileConfiguration localeConfig;
 	private File localeFile;
+	private FileConfiguration queueConfig;
+	private File queueFile;
 	
 	public ConfigHandler(Market market) {
 		this.market = market;
@@ -133,6 +135,31 @@ public class ConfigHandler {
 			getLocaleYML().save(localeFile);
 		} catch(Exception e) {
 			market.getLogger().log(Level.SEVERE, "Coult not save locale: ", e);
+		}
+	}
+	
+	public void reloadQueueYML() {
+		if (queueFile == null) {
+			queueFile = new File(market.getDataFolder(), "queue.yml");
+		}
+		queueConfig = YamlConfiguration.loadConfiguration(queueFile);
+	}
+	
+	public FileConfiguration getQueueYML() {
+		if (queueConfig == null) {
+			reloadQueueYML();
+		}
+		return queueConfig;
+	}
+	
+	public void saveQueueYML() {
+		if (queueConfig == null) {
+			return;
+		}
+		try {
+			getQueueYML().save(queueFile);
+		} catch(Exception e) {
+			market.getLogger().log(Level.SEVERE, "Coult not save queue: ", e);
 		}
 	}
 }
