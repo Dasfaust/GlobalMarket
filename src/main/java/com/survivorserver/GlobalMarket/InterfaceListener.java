@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -27,7 +28,7 @@ public class InterfaceListener implements Listener {
 		this.core = core;
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGH)
 	public void handleClickEvent(InventoryClickEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getWhoClicked().getName());
 		if (viewer != null) {
@@ -143,7 +144,7 @@ public class InterfaceListener implements Listener {
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGH)
 	public void handleInventoryClose(InventoryCloseEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getPlayer().getName());
 		if (viewer != null) {
