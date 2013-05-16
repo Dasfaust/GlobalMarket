@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -287,6 +288,16 @@ public class Market extends JavaPlugin implements Listener {
 				}
 				if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
 					event.setCancelled(true);
+					if (event.getClickedBlock().getType() == Material.SIGN
+							|| event.getClickedBlock().getType() == Material.SIGN_POST
+							|| event.getClickedBlock().getType() == Material.WALL_SIGN) {
+						Sign sign = (Sign) event.getClickedBlock().getState();
+						String line = sign.getLine(3);
+						if (line != null && line.length() > 0) {
+							interfaceHandler.showListings(player, line);
+							return;
+						}
+					}
 					if (event.getPlayer().isSneaking() && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 						startSearch(player);
 					} else {
