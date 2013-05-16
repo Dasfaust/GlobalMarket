@@ -109,6 +109,16 @@ public class MarketStorage {
 		return listings;
 	}
 	
+	public int getNumListings(String seller) {
+		int n = 0;
+		for (Listing listing : getAllListings(seller)) {
+			if (listing.getSeller().equalsIgnoreCase(seller)) {
+				n++;
+			}
+		}
+		return n;
+	}
+	
 	public Listing getListing(int id) {
 		String path = "listings." + id;
 		return new Listing(market, id, config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));

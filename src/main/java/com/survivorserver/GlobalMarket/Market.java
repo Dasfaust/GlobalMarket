@@ -87,6 +87,9 @@ public class Market extends JavaPlugin implements Listener {
 		if (!getConfig().isSet("queue.queue_on_cancel")) {
 			getConfig().set("queue.queue_mail_on_cancel", true);
 		}
+		if (!getConfig().isSet("max_listings_per_player")) {
+			getConfig().set("max_listings_per_player", 0);
+		}
 		saveConfig();
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
@@ -235,6 +238,10 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public boolean queueOnCancel() {
 		return getConfig().getBoolean("queue.queue_mail_on_cancel");
+	}
+	
+	public int maxListings() {
+		return getConfig().getInt("max_listings_per_player");
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -428,6 +435,10 @@ public class Market extends JavaPlugin implements Listener {
 							return true;
 						}
 						double fee = getCreationFee(price);
+						if (maxListings() > 0 && storageHandler.getNumHistory(sender.getName()) >= maxListings() && !sender.hasPermission("globalmarket.nolimit")) {
+							sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
+							return true;
+						}
 						if (args.length == 3) {
 							int amount = 0;
 							try {
