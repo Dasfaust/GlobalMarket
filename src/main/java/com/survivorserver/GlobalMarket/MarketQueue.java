@@ -57,6 +57,7 @@ public class MarketQueue implements Runnable {
 						Long time = (Long) item.get(item.size() - 1);
 						if ((System.currentTimeMillis() - time) / 1000 >= market.getMailTime()) {
 							storage.storeMail(((ItemStack) item.get(1)), ((String) item.get(2)), true);
+							storage.removeQueueItem(set.getKey());
 						}
 					}
 				}
