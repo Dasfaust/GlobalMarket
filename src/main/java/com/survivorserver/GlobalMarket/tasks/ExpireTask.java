@@ -21,7 +21,7 @@ public class ExpireTask implements Runnable {
 	public void run() {
 		for (Listing listing : storage.getAllListings()) {
 			long diff = System.currentTimeMillis() - listing.getTime()*1000;
-			if ((diff / (24 * 60 * 60 * 1000)) >= 7) {
+			if ((diff / (60 * 60 * 1000)) >= market.getExpireTime()) {
 				core.removeListing(listing, "Server");
 			}
 		}

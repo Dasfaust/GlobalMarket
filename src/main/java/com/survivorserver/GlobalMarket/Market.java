@@ -90,6 +90,9 @@ public class Market extends JavaPlugin implements Listener {
 		if (!getConfig().isSet("max_listings_per_player")) {
 			getConfig().set("max_listings_per_player", 0);
 		}
+		if (!getConfig().isSet("expire_time")) {
+			getConfig().set("expire_time", 168);
+		}
 		saveConfig();
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
@@ -119,7 +122,9 @@ public class Market extends JavaPlugin implements Listener {
 		listener = new InterfaceListener(this, interfaceHandler, storageHandler, core);
 		queue = new MarketQueue(this, storageHandler);
 		getServer().getPluginManager().registerEvents(listener, this);
-		tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new ExpireTask(this, storageHandler, core), 0, 72000));
+		if (getExpireTime() > 0) {
+			tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new ExpireTask(this, storageHandler, core), 0, 72000));
+		}
 		tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new CleanTask(this, interfaceHandler), 0, 20));
 		if (getConfig().getBoolean("enable_metrics")) {
 			try {
@@ -242,6 +247,10 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public int maxListings() {
 		return getConfig().getInt("max_listings_per_player");
+	}
+	
+	public int getExpireTime() {
+		return getConfig().getInt("expire_time");
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
