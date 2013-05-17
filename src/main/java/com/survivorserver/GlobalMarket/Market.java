@@ -274,6 +274,8 @@ public class Market extends JavaPlugin implements Listener {
 	public void onRightClick(PlayerInteractEvent event) {
 		if (!event.isCancelled() && event.getClickedBlock() != null) {
 			if (event.getClickedBlock().getType() == Material.CHEST
+					// Trapped chest
+					|| event.getClickedBlock().getTypeId() == 146
 					|| event.getClickedBlock().getType() == Material.SIGN
 					|| event.getClickedBlock().getType() == Material.SIGN_POST
 					|| event.getClickedBlock().getType() == Material.WALL_SIGN) {
@@ -559,6 +561,8 @@ public class Market extends JavaPlugin implements Listener {
 					Location loc = null;
 					Block block = player.getTargetBlock(null, 4);
 					if (block.getType() == Material.CHEST
+							// Trapped chest
+							|| block.getTypeId() == 146
 							|| block.getType() == Material.SIGN
 							|| block.getType() == Material.SIGN_POST
 							|| block.getType() == Material.WALL_SIGN) {
