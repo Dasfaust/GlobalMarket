@@ -28,8 +28,8 @@ public class InterfaceListener implements Listener {
 		this.core = core;
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH)
-	public void handleClickEvent(InventoryClickEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public synchronized void handleClickEvent(InventoryClickEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getWhoClicked().getName());
 		if (viewer != null) {
 			event.setCancelled(true);
@@ -72,6 +72,10 @@ public class InterfaceListener implements Listener {
 				}
 			}
 			handler.refreshViewer(viewer);
+		} else if (event.getInventory().getTitle().equalsIgnoreCase(market.getLocale().get("interface.listings_title"))
+				|| event.getInventory().getTitle().equalsIgnoreCase(market.getLocale().get("interface.mail_title"))) {
+			event.setCancelled(true);
+			event.getWhoClicked().closeInventory();
 		}
 	}
 	
@@ -144,8 +148,8 @@ public class InterfaceListener implements Listener {
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH)
-	public void handleInventoryClose(InventoryCloseEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public synchronized void handleInventoryClose(InventoryCloseEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getPlayer().getName());
 		if (viewer != null) {
 			handler.removeViewer(viewer);

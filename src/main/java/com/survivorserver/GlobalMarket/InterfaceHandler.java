@@ -63,11 +63,11 @@ public class InterfaceHandler {
 		return null;
 	}
 	
-	public void removeViewer(InterfaceViewer viewer) {
+	public synchronized void removeViewer(InterfaceViewer viewer) {
 		viewers.remove(viewer);
 	}
 	
-	public void openGui(InterfaceViewer viewer) {
+	public synchronized void openGui(InterfaceViewer viewer) {
 		market.getServer().getPlayer(viewer.getViewer()).openInventory(viewer.getGui());
 	}
 	
