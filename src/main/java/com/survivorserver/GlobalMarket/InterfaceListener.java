@@ -129,12 +129,14 @@ public class InterfaceListener implements Listener {
 			if (playerInv.firstEmpty() >= 0) {
 				if (event.getCurrentItem() != null && event.getCurrentItem().getItemMeta() instanceof BookMeta) {
 					BookMeta meta = (BookMeta) event.getCurrentItem().getItemMeta();
-					if (meta.getTitle().equalsIgnoreCase(market.getLocale().get("transaction_log.item_name"))) {
-						double amount = storage.getPaymentAmount(viewer.getBoundSlots().get(event.getSlot()), viewer.getViewer());
-						if (amount > 0) {
-							market.getEcon().depositPlayer(viewer.getViewer(), amount);
-							storage.nullifyPayment(viewer.getBoundSlots().get(event.getSlot()), viewer.getViewer());
-							((Player) event.getWhoClicked()).sendMessage(ChatColor.GREEN + market.getLocale().get("picked_up_your_earnings", market.getEcon().format(market.getEcon().getBalance(viewer.getViewer()))));
+					if (meta.hasTitle()) {
+						if (meta.getTitle().equalsIgnoreCase(market.getLocale().get("transaction_log.item_name"))) {
+							double amount = storage.getPaymentAmount(viewer.getBoundSlots().get(event.getSlot()), viewer.getViewer());
+							if (amount > 0) {
+								market.getEcon().depositPlayer(viewer.getViewer(), amount);
+								storage.nullifyPayment(viewer.getBoundSlots().get(event.getSlot()), viewer.getViewer());
+								((Player) event.getWhoClicked()).sendMessage(ChatColor.GREEN + market.getLocale().get("picked_up_your_earnings", market.getEcon().format(market.getEcon().getBalance(viewer.getViewer()))));
+							}
 						}
 					}
 				}
