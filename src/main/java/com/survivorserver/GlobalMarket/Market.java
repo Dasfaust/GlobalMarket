@@ -373,6 +373,10 @@ public class Market extends JavaPlugin implements Listener {
 								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_number", args[2]));
 								return true;
 							}
+							if (amount <= 0) {
+								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_amount", args[2]));
+								return true;
+							}
 							if (player.getItemInHand().getAmount() < amount) {
 								player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
 								return true;
@@ -467,6 +471,10 @@ public class Market extends JavaPlugin implements Listener {
 								amount = Integer.parseInt(args[2]);
 							} catch(Exception e) {
 								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_number", args[2]));
+								return true;
+							}
+							if (amount <= 0) {
+								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_amount", args[2]));
 								return true;
 							}
 							if (player.getItemInHand().getAmount() < amount) {
