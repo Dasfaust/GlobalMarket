@@ -445,7 +445,7 @@ public class Market extends JavaPlugin implements Listener {
 						}
 						OfflinePlayer off = getServer().getOfflinePlayer(args[1]);
 						if (!off.hasPlayedBefore()) {
-							sender.sendMessage(prefix + locale.get("player_not_found"));
+							sender.sendMessage(prefix + locale.get("player_not_found", args[1]));
 							return true;
 						}
 						args[1] = off.getName();
