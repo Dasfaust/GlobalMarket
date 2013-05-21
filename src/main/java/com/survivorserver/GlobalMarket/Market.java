@@ -1,7 +1,10 @@
 package com.survivorserver.GlobalMarket;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
@@ -14,6 +17,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,6 +27,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -94,6 +100,27 @@ public class Market extends JavaPlugin implements Listener {
 		if (!getConfig().isSet("expire_time")) {
 			getConfig().set("expire_time", 168);
 		}
+		if (!getConfig().isSet("blacklist.item_name")) {
+			List<String> blacklisted = new ArrayList<String>();
+			blacklisted.add("Transaction Log");
+			getConfig().set("blacklist.item_name", blacklisted);
+		}
+		if (!getConfig().isSet("blacklist.item_id")) {
+			Map<Integer, Integer> blacklisted = new HashMap<Integer, Integer>();
+			blacklisted.put(0, 0);
+			getConfig().set("blacklist.item_id", blacklisted);
+		}
+		if (!getConfig().isSet("blacklist.enchant_id")) {
+			List<String> blacklisted = new ArrayList<String>();
+			getConfig().set("blacklist.enchant_id", blacklisted);
+		}
+		if (!getConfig().isSet("blacklist.lore")) {
+			List<String> blacklisted = new ArrayList<String>();
+			getConfig().set("blacklist.lore", blacklisted);
+		}
+		if (!getConfig().isSet("blacklist.use_with_mail")) {
+			getConfig().set("blacklist.use_with_mail", false);
+		}
 		saveConfig();
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
@@ -117,7 +144,7 @@ public class Market extends JavaPlugin implements Listener {
 		interfaceHandler = new InterfaceHandler(this, storageHandler);
 		if (getConfig().getBoolean("server.enable")) {
 			server = new MarketServer(this, storageHandler, interfaceHandler);
-			server.start();
+			//server.start();
 		}
 		core = new MarketCore(this, interfaceHandler, storageHandler);
 		listener = new InterfaceListener(this, interfaceHandler, storageHandler, core);
@@ -254,6 +281,57 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getInt("expire_time");
 	}
 	
+	public boolean itemBlacklisted(ItemStack item) {
+		Map<String, Object> blacklisted = getConfig().getConfigurationSection("blacklist.item_id").getValues(true);
+		if (blacklisted.containsKey(Integer.toString(item.getTypeId()))) {
+			if ((Integer) blacklisted.get(Integer.toString(item.getTypeId())) == item.getDurability()) {
+				return true;
+			}
+		}
+		if (item.hasItemMeta()) {
+			ItemMeta meta = item.getItemMeta();
+			List<String> bl = getConfig().getStringList("blacklist.item_name");
+			if (meta.hasDisplayName()) {
+				for (String str : bl) {
+					if (meta.getDisplayName().equalsIgnoreCase(str)) {
+						return true;
+					}
+				}
+			}
+			if (meta instanceof BookMeta) {
+				if (((BookMeta) meta).hasTitle()) {
+					for (String str : bl) {
+						if (((BookMeta) meta).getTitle().equalsIgnoreCase(str)) {
+							return true;
+						}
+					}
+				}
+			}
+			if (meta.hasEnchants()) {
+				List<Integer> ebl = getConfig().getIntegerList("blacklist.enchant_id");
+				for (Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
+					if (ebl.contains(entry.getKey().getId())) {
+						return true;
+					}
+				}
+			}
+			if (meta.hasLore()) {
+				List<String> lbl = getConfig().getStringList("blacklist.enchant_id");
+				List<String> lore = meta.getLore();
+				for (String str : lbl) {
+					if (lore.contains(str)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean blacklistMail() {
+		return getConfig().getBoolean("blacklist.use_with_mail");
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -351,6 +429,12 @@ public class Market extends JavaPlugin implements Listener {
 				if (sender.hasPermission("globalmarket.send")) {
 					Player player = (Player) sender;
 					if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
+						if (blacklistMail()) {
+							if (itemBlacklisted(player.getItemInHand())) {
+								sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted_from_mail"));
+								return true;
+							}
+						}
 						if (args.length < 2) {
 							sender.sendMessage(prefix + locale.get("cmd.send_syntax"));
 							return true;
@@ -444,6 +528,10 @@ public class Market extends JavaPlugin implements Listener {
 				if (sender.hasPermission("globalmarket.create")) {
 					Player player = (Player) sender;
 					if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
+						if (itemBlacklisted(player.getItemInHand())) {
+							sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted"));
+							return true;
+						}
 						double price = 0;
 						try {
 							price = Double.parseDouble(args[1]);
