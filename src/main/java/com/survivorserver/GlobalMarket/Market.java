@@ -284,7 +284,8 @@ public class Market extends JavaPlugin implements Listener {
 	public boolean itemBlacklisted(ItemStack item) {
 		Map<String, Object> blacklisted = getConfig().getConfigurationSection("blacklist.item_id").getValues(true);
 		if (blacklisted.containsKey(Integer.toString(item.getTypeId()))) {
-			if ((Integer) blacklisted.get(Integer.toString(item.getTypeId())) == item.getDurability()) {
+			int damage = (Integer) blacklisted.get(Integer.toString(item.getTypeId()));
+			if (damage == item.getDurability() || damage == -1) {
 				return true;
 			}
 		}
