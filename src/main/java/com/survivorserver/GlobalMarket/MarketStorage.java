@@ -99,6 +99,7 @@ public class MarketStorage {
 				}
 			}
 			if (itemName.toLowerCase().contains(search.toLowerCase())
+					|| isItemId(search, item.getTypeId())
 					|| isInDisplayName(search.toLowerCase(), item)
 					|| isInEnchants(search.toLowerCase(), item)
 					|| isInLore(search.toLowerCase(), item)
@@ -108,7 +109,7 @@ public class MarketStorage {
 		}
 		return listings;
 	}
-	
+
 	public int getNumListings(String seller) {
 		int n = 0;
 		for (Listing listing : getAllListings(seller)) {
@@ -333,6 +334,13 @@ public class MarketStorage {
 	public void removeQueueItem(int id) {
 		config.getQueueYML().set("queue." + id, null);
 		config.saveQueueYML();
+	}
+	
+	public boolean isItemId(String search, int typeId) {
+		if (search.equalsIgnoreCase(Integer.toString(typeId))) {
+			return true;
+		}
+		return false;
 	}
 	
 	public boolean isInDisplayName(String search, ItemStack item) {
