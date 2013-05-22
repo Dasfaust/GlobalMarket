@@ -296,11 +296,25 @@ public class InterfaceHandler {
 	}
 	
 	public void updateAllViewers() {
+		List<InterfaceViewer> inactive = new ArrayList<InterfaceViewer>();
 		for (InterfaceViewer viewer : viewers) {
+			Player player = market.getServer().getPlayer(viewer.getViewer());
+			if (player == null) {
+				inactive.add(viewer);
+				continue;
+			} else if (player.getOpenInventory() == null) {
+				inactive.add(viewer);
+				continue;
+			}
 			if (viewer.getViewType() == ViewType.MAIL) {
 				prepareMail(viewer);
 			} else {
 				prepareListings(viewer);
+			}
+		}
+		if (!inactive.isEmpty()) {
+			for (InterfaceViewer viewer : inactive) {
+				removeViewer(viewer);
 			}
 		}
 		setVersionId();
