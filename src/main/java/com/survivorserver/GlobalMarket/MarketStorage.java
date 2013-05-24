@@ -103,7 +103,7 @@ public class MarketStorage {
 					|| isInDisplayName(search.toLowerCase(), item)
 					|| isInEnchants(search.toLowerCase(), item)
 					|| isInLore(search.toLowerCase(), item)
-					|| seller.contains(search.toLowerCase())) {
+					|| seller.toLowerCase().contains(search.toLowerCase())) {
 				listings.add(new Listing(market, i, item, seller, config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time")));
 			}
 		}

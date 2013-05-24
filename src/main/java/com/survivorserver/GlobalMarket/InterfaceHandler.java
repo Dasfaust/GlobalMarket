@@ -74,7 +74,7 @@ public class InterfaceHandler {
 		Map<Integer, Integer> boundSlots = new HashMap<Integer, Integer>();
 		Inventory gui = viewer.getGui();
 		gui.clear();
-		List<Listing> listings = storage.getAllListings();;
+		List<Listing> listings = storage.getAllListings();
 		ItemStack[] contents = new ItemStack[54];
 		if (viewer.getSearch() != null) {
 			listings = storage.getAllListings(viewer.getSearch());

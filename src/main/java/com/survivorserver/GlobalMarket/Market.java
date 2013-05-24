@@ -466,7 +466,7 @@ public class Market extends JavaPlugin implements Listener {
 								player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
 								return true;
 							}
-							ItemStack toList = player.getItemInHand().clone();
+							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (player.getItemInHand().getAmount() == amount) {
 								player.setItemInHand(new ItemStack(Material.AIR));
 							} else {
@@ -481,7 +481,7 @@ public class Market extends JavaPlugin implements Listener {
 								sender.sendMessage(prefix + locale.get("item_sent"));
 							}
 						} else {
-							ItemStack toList = player.getItemInHand().clone();
+							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
 								queue.queueMail(toList, args[1]);
 								sender.sendMessage(prefix + locale.get("item_will_send"));
@@ -579,7 +579,7 @@ public class Market extends JavaPlugin implements Listener {
 									return true;
 								}
 							}
-							ItemStack toList = player.getItemInHand().clone();
+							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (player.getItemInHand().getAmount() == amount) {
 								player.setItemInHand(new ItemStack(Material.AIR));
 							} else {
@@ -615,7 +615,7 @@ public class Market extends JavaPlugin implements Listener {
 									return true;
 								}
 							}
-							ItemStack toList = player.getItemInHand().clone();
+							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
 								queue.queueListing(toList, player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
