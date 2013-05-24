@@ -8,8 +8,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 import com.survivorserver.GlobalMarket.InterfaceViewer.ViewType;
@@ -155,6 +157,26 @@ public class InterfaceListener implements Listener {
 		InterfaceViewer viewer = handler.findViewer(event.getPlayer().getName());
 		if (viewer != null) {
 			handler.removeViewer(viewer);
+		}
+		// Ugly fix for item duping via shift+click and esc. Oh well, we'll have to wait until Bukkit fixes this
+		ItemStack[] items = event.getPlayer().getInventory().getContents();
+		for (int i = 0; i < items.length; i++) {
+			if (items[i] != null) {
+				if (items[i].hasItemMeta()) {
+					ItemMeta meta = items[i].getItemMeta();
+					if (meta.hasLore()) {
+						boolean marketItem = false;
+						for (String lore : meta.getLore()) {
+							if (lore.contains(market.getLocale().get("price"))) {
+								marketItem = true;
+							}
+						}
+						if (marketItem) {
+							event.getPlayer().getInventory().remove(items[i]);
+						}
+					}
+				}
+			}
 		}
 	}
 }
