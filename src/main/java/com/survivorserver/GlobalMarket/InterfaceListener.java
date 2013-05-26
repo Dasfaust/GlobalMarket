@@ -33,51 +33,56 @@ public class InterfaceListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public synchronized void handleClickEvent(InventoryClickEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getWhoClicked().getName());
-		if (viewer != null) {
+		if (event.getInventory().getTitle().equalsIgnoreCase(market.getLocale().get("interface.listings_title"))
+				|| event.getInventory().getTitle().equalsIgnoreCase(market.getLocale().get("interface.mail_title"))) {
 			event.setCancelled(true);
-			if (event.getSlot() < 45 && !event.isRightClick()) {
-				if (viewer.getViewType() == ViewType.MAIL) {
-					handleMailAction(event, viewer);
-				}
-				if (viewer.getViewType() == ViewType.LISTINGS) {
-					handleListingsAction(event, viewer);
-				}
-			} else if (event.isRightClick()) {
-				viewer.setLastAction(null);
-				viewer.setLastActionSlot(-1);
-			} else {
-				if (event.getSlot() == 47) {
-					if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-						if (viewer.getSearch() == null) {
-							Player player = (Player) event.getWhoClicked();
-							player.closeInventory();
-							handler.removeViewer(viewer);
-							market.startSearch(player);
-							return;
-						} else {
-							viewer.setSearch(null);
+			if (viewer != null) {
+				if (event.getSlot() < 45 && !event.isRightClick()) {
+					if (viewer.getViewType() == ViewType.MAIL) {
+						if (isMarketItem(event.getCurrentItem())) {
+							handleMailAction(event, viewer);
+						}
+					}
+					if (viewer.getViewType() == ViewType.LISTINGS) {
+						if (isMarketItem(event.getCurrentItem())) {
+							handleListingsAction(event, viewer);
+						}
+					}
+				} else if (event.isRightClick()) {
+					viewer.setLastAction(null);
+					viewer.setLastActionSlot(-1);
+				} else {
+					if (event.getSlot() == 47) {
+						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+							if (viewer.getSearch() == null) {
+								Player player = (Player) event.getWhoClicked();
+								player.closeInventory();
+								handler.removeViewer(viewer);
+								market.startSearch(player);
+								return;
+							} else {
+								viewer.setSearch(null);
+								viewer.setLastAction(null);
+							}
+						}
+					}
+					if (event.getSlot() == 53) {
+						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+							viewer.setPage(viewer.getPage() + 1);
+							viewer.setLastAction(null);
+						}
+					}
+					if (event.getSlot() == 45) {
+						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+							viewer.setPage(viewer.getPage() - 1);
 							viewer.setLastAction(null);
 						}
 					}
 				}
-				if (event.getSlot() == 53) {
-					if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-						viewer.setPage(viewer.getPage() + 1);
-						viewer.setLastAction(null);
-					}
-				}
-				if (event.getSlot() == 45) {
-					if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-						viewer.setPage(viewer.getPage() - 1);
-						viewer.setLastAction(null);
-					}
-				}
+				handler.refreshViewer(viewer);
+			} else {
+				event.getWhoClicked().closeInventory();
 			}
-			handler.refreshViewer(viewer);
-		} else if (event.getInventory().getTitle().equalsIgnoreCase(market.getLocale().get("interface.listings_title"))
-				|| event.getInventory().getTitle().equalsIgnoreCase(market.getLocale().get("interface.mail_title"))) {
-			event.setCancelled(true);
-			event.getWhoClicked().closeInventory();
 		}
 	}
 	
@@ -162,21 +167,24 @@ public class InterfaceListener implements Listener {
 		ItemStack[] items = event.getPlayer().getInventory().getContents();
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] != null) {
-				if (items[i].hasItemMeta()) {
-					ItemMeta meta = items[i].getItemMeta();
-					if (meta.hasLore()) {
-						boolean marketItem = false;
-						for (String lore : meta.getLore()) {
-							if (lore.contains(market.getLocale().get("price"))) {
-								marketItem = true;
-							}
-						}
-						if (marketItem) {
-							event.getPlayer().getInventory().remove(items[i]);
-						}
+				if (isMarketItem(items[i])) {
+					event.getPlayer().getInventory().remove(items[i]);
+				}
+			}
+		}
+	}
+	
+	public boolean isMarketItem(ItemStack item) {
+		if (item.hasItemMeta()) {
+			ItemMeta meta = item.getItemMeta();
+			if (meta.hasLore()) {
+				for (String lore : meta.getLore()) {
+					if (lore.contains(market.getLocale().get("price")) || lore.contains(market.getLocale().get("click_to_retrieve"))) {
+						return true;
 					}
 				}
 			}
 		}
+		return false;
 	}
 }
