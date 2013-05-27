@@ -175,12 +175,14 @@ public class InterfaceListener implements Listener {
 	}
 	
 	public boolean isMarketItem(ItemStack item) {
-		if (item.hasItemMeta()) {
-			ItemMeta meta = item.getItemMeta();
-			if (meta.hasLore()) {
-				for (String lore : meta.getLore()) {
-					if (lore.contains(market.getLocale().get("price")) || lore.contains(market.getLocale().get("click_to_retrieve"))) {
-						return true;
+		if (item != null) {
+			if (item.hasItemMeta()) {
+				ItemMeta meta = item.getItemMeta();
+				if (meta.hasLore()) {
+					for (String lore : meta.getLore()) {
+						if (lore.contains(market.getLocale().get("price")) || lore.contains(market.getLocale().get("click_to_retrieve"))) {
+							return true;
+						}
 					}
 				}
 			}
