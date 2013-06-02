@@ -5,8 +5,6 @@ import java.sql.ResultSet;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 
-import com.survivorserver.GlobalMarket.sql.DBWriter;
-import com.survivorserver.GlobalMarket.sql.SQLResult;
 
 public class PriceHandler {
 	
@@ -33,14 +31,13 @@ public class PriceHandler {
 			}
 		}
 		try {
-			SQLResult r = db.query("SELECT * FROM prices_data WHERE item_id=" + item.getTypeId() + " AND item_data=" + item.getData().getData());
-			ResultSet rs = r.getResultSet();
+			ResultSet rs = db.query("SELECT * FROM prices_data WHERE item_id=" + item.getTypeId() + " AND item_data=" + item.getData().getData());
 			if (rs.isBeforeFirst()) {
 				int totalAmount = 0;
 				double totalPrice = 0;
 				while(rs.next()) {
-					totalAmount += Integer.valueOf(r.getString("amount"));
-					totalPrice += Double.valueOf(r.getString("price"));
+					totalAmount += Integer.valueOf(rs.getString("amount"));
+					totalPrice += Double.valueOf(rs.getString("price"));
 				}
 				double av = totalPrice / totalAmount;
 				return ChatColor.GREEN + itemName + " Pricing:\nAverage price per item: " + market.getEcon().format(av) + "\nAverage price per stack: " + market.getEcon().format(av * item.getMaxStackSize());
