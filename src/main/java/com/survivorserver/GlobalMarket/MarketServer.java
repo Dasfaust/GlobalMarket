@@ -2,14 +2,11 @@ package com.survivorserver.GlobalMarket;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +31,7 @@ public class MarketServer extends Thread {
 		this.handler = handler;
 		enabled = market.getConfig().getBoolean("server.enable");
 		try {
-			checkLibraries();
+			//checkLibraries();
 			loadLibraries();
 		} catch(Exception e) {
 			market.log.warning("Could not load Jackson library: " + e.getMessage());
@@ -128,7 +125,7 @@ public class MarketServer extends Thread {
 		closeSocket();
 	}
 	
-	public void checkLibraries() throws Exception {
+	/*public void checkLibraries() throws Exception {
 		List<String> libraries = new ArrayList<String>();
 		libraries.add("jackson-core");
 		libraries.add("jackson-databind");
@@ -144,7 +141,7 @@ public class MarketServer extends Thread {
 				fos.close();
 			}
 		}
-	}
+	}*/
 	
 	public void loadLibraries() throws Exception {
 		List<JarFile> libraries = new ArrayList<JarFile>();
