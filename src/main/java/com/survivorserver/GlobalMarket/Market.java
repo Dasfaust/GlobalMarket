@@ -52,6 +52,7 @@ public class Market extends JavaPlugin implements Listener {
 	boolean bukkitItems = false;
 	List<String> searching;
 	MarketQueue queue;
+	PriceHandler prices;
 
 	public void onEnable() {
 		log = getLogger();
@@ -163,6 +164,7 @@ public class Market extends JavaPlugin implements Listener {
 			}
 		}
 		searching = new ArrayList<String>();
+		prices = new PriceHandler(this);
 	}
 	
 	public Economy getEcon() {
@@ -331,6 +333,10 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public boolean blacklistMail() {
 		return getConfig().getBoolean("blacklist.use_with_mail");
+	}
+	
+	public PriceHandler getPrices() {
+		return prices;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -523,6 +529,14 @@ public class Market extends JavaPlugin implements Listener {
 				Player player = (Player) sender;
 				core.showHistory(player);
 				sender.sendMessage(ChatColor.GREEN + locale.get("check_your_inventory"));
+				return true;
+			}
+			if (args[0].equalsIgnoreCase("pc")) {
+				Player player = (Player) sender;
+				if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR) {
+					ItemStack item = player.getItemInHand();
+					sender.sendMessage(prices.getPricesInformation(item));
+				}
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("create")) {

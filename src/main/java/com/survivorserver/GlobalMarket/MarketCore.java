@@ -56,6 +56,7 @@ public class MarketCore {
 			notifyPlayer(listing.getSeller(), ChatColor.GREEN + market.getLocale().get("you_sold_your_listing", itemName + "x" + listing.getItem().getAmount()));
 			storage.incrementEarned(listing.getSeller(), price);
 			storage.incrementSpent(player.getName(), price);
+			market.getPrices().storePriceInformation(listing.getItem().getTypeId(), listing.getItem().getData().getData(), listing.getItem().getAmount(), price);
 		} else {
 			market.getEcon().withdrawPlayer(player.getName(), listing.getPrice());
 			storage.storePayment(listing.getItem(), listing.getSeller(), listing.getPrice(), true);
@@ -79,6 +80,7 @@ public class MarketCore {
 			storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
 			storage.incrementEarned(listing.getSeller(), listing.getPrice() - market.getCut(listing.getPrice()));
 			storage.incrementSpent(player.getName(), listing.getPrice());
+			market.getPrices().storePriceInformation(listing.getItem().getTypeId(), listing.getItem().getData().getData(), listing.getItem().getAmount(), listing.getPrice());
 		}
 	}
 	
