@@ -108,7 +108,7 @@ public class MarketCore {
 		}
 	}
 	
-	public void removeListing(Listing listing, String player) {
+	public synchronized void removeListing(Listing listing, String player) {
 		storage.storeMail(listing.getItem(), listing.getSeller(), true);
 		storage.removeListing(listing.getId());
 		handler.updateAllViewers();

@@ -1,11 +1,13 @@
 package com.survivorserver.GlobalMarket.tasks;
 
+import org.bukkit.scheduler.BukkitRunnable;
+
 import com.survivorserver.GlobalMarket.Listing;
 import com.survivorserver.GlobalMarket.Market;
 import com.survivorserver.GlobalMarket.MarketCore;
 import com.survivorserver.GlobalMarket.MarketStorage;
 
-public class ExpireTask implements Runnable {
+public class ExpireTask extends BukkitRunnable {
 
 	Market market;
 	MarketStorage storage;
@@ -19,10 +21,12 @@ public class ExpireTask implements Runnable {
 	
 	@Override
 	public void run() {
-		for (Listing listing : storage.getAllListings()) {
-			long diff = System.currentTimeMillis() - listing.getTime()*1000;
+		for (Listing listing : storage.getListings()) {
+			long diff = System.currentTimeMillis() - listing.getTime() * 1000;
 			if ((diff / (60 * 60 * 1000)) >= market.getExpireTime()) {
 				core.removeListing(listing, "Server");
+			} else {
+				break;
 			}
 		}
 	}

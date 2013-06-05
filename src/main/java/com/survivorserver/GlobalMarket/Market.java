@@ -151,8 +151,8 @@ public class Market extends JavaPlugin implements Listener {
 		listener = new InterfaceListener(this, interfaceHandler, storageHandler, core);
 		queue = new MarketQueue(this, storageHandler);
 		getServer().getPluginManager().registerEvents(listener, this);
-		if (getExpireTime() > 0) {
-			tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new ExpireTask(this, storageHandler, core), 0, 72000));
+		if (getConfig().getDouble("expire_time") > 0) {
+			new ExpireTask(this, storageHandler, core).runTaskTimerAsynchronously(this, 0, 72000);
 		}
 		tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new CleanTask(this, interfaceHandler), 0, 20));
 		if (getConfig().getBoolean("enable_metrics")) {
@@ -279,8 +279,8 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getInt("max_listings_per_player");
 	}
 	
-	public int getExpireTime() {
-		return getConfig().getInt("expire_time");
+	public double getExpireTime() {
+		return getConfig().getDouble("expire_time");
 	}
 	
 	public boolean itemBlacklisted(ItemStack item) {

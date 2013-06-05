@@ -28,7 +28,7 @@ public class MarketStorage {
 		this.market = market;
 	}
 	
-	public void storeListing(ItemStack item, String player, double price) {
+	public synchronized void storeListing(ItemStack item, String player, double price) {
 		int id = getListingsIndex() + 1;
 		String path = "listings." + id;
 		config.getListingsYML().set(path + ".item", item);
@@ -77,6 +77,20 @@ public class MarketStorage {
 			}
 			Listing listing = new Listing(market, i, config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
 			listings.add(listing);
+		}
+		return listings;
+	}
+	
+	public synchronized List<Listing> getListings() {
+		List<Listing> listings = new ArrayList<Listing>();
+		for (int i = 0; i <= getListingsIndex(); i++) {
+			String path = "listings." + i;
+			if (!config.getListingsYML().isSet(path)) {
+				continue;
+			}
+			String seller = config.getListingsYML().getString(path + ".seller");
+			ItemStack item = config.getListingsYML().getItemStack(path + ".item").clone();
+			listings.add(new Listing(market, i, item, seller, config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time")));
 		}
 		return listings;
 	}
@@ -316,7 +330,7 @@ public class MarketStorage {
 		config.saveQueueYML();
 	}
 	
-	public Map<Integer, List<Object>> getAllQueueItems() {
+	public synchronized Map<Integer, List<Object>> getAllQueueItems() {
 		Map<Integer, List<Object>> items = new HashMap<Integer, List<Object>>();
 		for (int i = 0; i < getQueueIndex(); i++) {
 			if (config.getQueueYML().isSet("queue." + i)) {
@@ -331,7 +345,7 @@ public class MarketStorage {
 		return items;
 	}
 	
-	public void removeQueueItem(int id) {
+	public synchronized void removeQueueItem(int id) {
 		config.getQueueYML().set("queue." + id, null);
 		config.saveQueueYML();
 	}

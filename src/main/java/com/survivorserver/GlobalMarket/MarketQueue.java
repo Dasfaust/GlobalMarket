@@ -5,8 +5,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
-public class MarketQueue implements Runnable {
+public class MarketQueue extends BukkitRunnable {
 	
 	Market market;
 	MarketStorage storage;
@@ -14,7 +15,7 @@ public class MarketQueue implements Runnable {
 	public MarketQueue(Market market, MarketStorage storage) {
 		this.market = market;
 		this.storage = storage;
-		market.getServer().getScheduler().scheduleSyncRepeatingTask(market, this, 0, 1200);
+		this.runTaskTimerAsynchronously(market, 0, 1200);
 	}
 	
 	public enum QueueType {
