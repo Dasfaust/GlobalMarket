@@ -559,12 +559,12 @@ public class Market extends JavaPlugin implements Listener {
 							return true;
 						}
 						double maxPrice = getMaxPrice();
-						if (maxPrice > 0 && price > maxPrice) {
+						if (maxPrice > 0 && price > maxPrice && !sender.hasPermission("globalmarket.nolimit.maxprice")) {
 							sender.sendMessage(prefix + locale.get("price_too_high"));
 							return true;
 						}
 						double fee = getCreationFee(price);
-						if (maxListings() > 0 && storageHandler.getNumListings(sender.getName()) >= maxListings() && !sender.hasPermission("globalmarket.nolimit")) {
+						if (maxListings() > 0 && storageHandler.getNumListings(sender.getName()) >= maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
 							sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 							return true;
 						}
