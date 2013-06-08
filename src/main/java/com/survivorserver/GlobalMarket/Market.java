@@ -405,10 +405,6 @@ public class Market extends JavaPlugin implements Listener {
 
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("market")) {
-			if (sender instanceof ConsoleCommandSender) {
-				sender.sendMessage(prefix + locale.get("player_context_required"));
-				return true;
-			}
 			if (args.length < 1 || args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("?")) {
 				sender.sendMessage(prefix + locale.get("cmd.help_legend"));
 				sender.sendMessage(prefix + locale.get("cmd.listings_syntax") + " " + locale.get("cmd.listings_descr"));
@@ -425,6 +421,16 @@ public class Market extends JavaPlugin implements Listener {
 				if (sender.hasPermission("market.admin")) {
 					sender.sendMessage(prefix + locale.get("cmd.reload_syntax") + " " + locale.get("cmd.reload_descr"));
 				}
+				return true;
+			}
+			if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("globalmarket.admin")) {
+				reloadConfig();
+				config.reloadLocaleYML();
+				sender.sendMessage(prefix + market.getLocale().get("config_reloaded"));
+				return true;
+			}
+			if (sender instanceof ConsoleCommandSender) {
+				sender.sendMessage(prefix + locale.get("player_context_required"));
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("mail") && sender.hasPermission("globalmarket.quickmail")) {
@@ -658,12 +664,6 @@ public class Market extends JavaPlugin implements Listener {
 					sender.sendMessage(ChatColor.YELLOW + locale.get("no_permission_for_this_command"));
 					return true;
 				}
-				return true;
-			}
-			if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("globalmarket.admin")) {
-				reloadConfig();
-				config.reloadLocaleYML();
-				sender.sendMessage(prefix + market.getLocale().get("config_reloaded"));
 				return true;
 			}
 			if (sender.hasPermission("globalmarket.util")) {
