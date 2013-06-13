@@ -34,6 +34,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.survivorserver.GlobalMarket.tasks.CleanTask;
 import com.survivorserver.GlobalMarket.tasks.ExpireTask;
+import com.survivorserver.GlobalMarket.tasks.SaveTask;
 
 public class Market extends JavaPlugin implements Listener {
 
@@ -139,6 +140,7 @@ public class Market extends JavaPlugin implements Listener {
         	bukkitItems = true;
         }
 		config = new ConfigHandler(this);
+		tasks.add(new SaveTask(config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 		locale = new LocaleHandler(config);
 		prefix = locale.get("cmd.prefix");
 		storageHandler = new MarketStorage(config, this);
@@ -734,6 +736,6 @@ public class Market extends JavaPlugin implements Listener {
 		for(int i = 0; i < tasks.size(); i++) {
 			getServer().getScheduler().cancelTask(tasks.get(i));
 		}
-		config.save(false);
+		config.save();
 	}
 }

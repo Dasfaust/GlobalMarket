@@ -35,25 +35,10 @@ public class ConfigHandler {
 		// Queue
 		queueFile = new File(market.getDataFolder(), "queue.yml");
 		queueConfig = YamlConfiguration.loadConfiguration(queueFile);
-		
-		market.getServer().getScheduler().scheduleSyncRepeatingTask(market, new Runnable() {
-			public void run() {
-				save(true);
-			}
-		}, 0, 1200);
 	}
 	
-	public void save(boolean async) {
-		String listings = listingsConfig.saveToString();
-		String mail = mailConfig.saveToString();
-		String history = historyConfig.saveToString();
-		String queue = queueConfig.saveToString();
-		SaveTask save = new SaveTask(this, listings, mail, history, queue);
-		if (async) {
-			save.runTaskAsynchronously(market);
-		} else {
-			save.run();
-		}
+	public void save() {
+		new SaveTask(this).run();
 	}
 	
 	/*public void reloadListingsYML() {

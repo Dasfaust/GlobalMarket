@@ -9,36 +9,28 @@ import com.survivorserver.GlobalMarket.ConfigHandler;
 public class SaveTask extends BukkitRunnable {
 
 	ConfigHandler config;
-	String listings;
-	String mail;
-	String history;
-	String queue;
 	
-	public SaveTask(ConfigHandler config, String listings, String mail, String history, String queue) {
+	public SaveTask(ConfigHandler config) {
 		this.config = config;
-		this.listings = listings;
-		this.mail = mail;
-		this.history = history;
-		this.queue = queue;
 	}
 	
 	@Override
 	public void run() {
 		try {
 			FileWriter writer = new FileWriter(config.getListingsFile());
-			writer.write(listings);
+			writer.write(config.getListingsYML().saveToString());
 			writer.close();
 			
 			writer = new FileWriter(config.getMailFile());
-			writer.write(mail);
+			writer.write(config.getMailYML().saveToString());
 			writer.close();
 			
 			writer = new FileWriter(config.getHistoryFile());
-			writer.write(history);
+			writer.write(config.getHistoryYML().saveToString());
 			writer.close();
 			
 			writer = new FileWriter(config.getQueueFile());
-			writer.write(queue);
+			writer.write(config.getQueueYML().saveToString());
 			writer.close();
 		} catch(Exception e) {
 			System.out.println("Could not save Market data: " + e.getMessage());
