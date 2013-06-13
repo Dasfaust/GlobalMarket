@@ -36,7 +36,7 @@ public class MarketStorage {
 		config.getListingsYML().set(path + ".price", price);
 		config.getListingsYML().set(path + ".time", (System.currentTimeMillis() / 1000));
 		incrementListingsIndex();
-		config.saveListingsYML();
+		//config.saveListingsYML();
 		market.interfaceHandler.updateAllViewers();
 	}
 	
@@ -65,7 +65,7 @@ public class MarketStorage {
 			return;
 		}
 		config.getListingsYML().set(path, null);
-		config.saveListingsYML();
+		//config.saveListingsYML();
 	}
 	
 	public List<Listing> getAllListings() {
@@ -202,13 +202,13 @@ public class MarketStorage {
 			return;
 		}
 		config.getMailYML().set(player + "." + id + ".amount", null);
-		config.saveMailYML();
+		//config.saveMailYML();
 	}
 	
 	public int getMailIndex(String player) {
 		if (!config.getMailYML().isSet("index." + player)) {
 			config.getMailYML().set("index." + player, 0);
-			config.saveMailYML();
+			//config.saveMailYML();
 		}
 		return config.getMailYML().getInt("index." + player);
 	}
@@ -216,7 +216,7 @@ public class MarketStorage {
 	public void incrementMailIndex(String player) {
 		int index = getMailIndex(player) + 1;
 		config.getMailYML().set("index." + player, index);
-		config.saveMailYML();
+		//config.saveMailYML();
 	}
 	
 	public int getNumMail(String player) {
@@ -251,7 +251,7 @@ public class MarketStorage {
 			return;
 		}
 		config.getMailYML().set(path, null);
-		config.saveMailYML();
+		//config.saveMailYML();
 	}
 	
 	public int getNumHistory(String player) {
@@ -265,7 +265,7 @@ public class MarketStorage {
 		int id = getNumHistory(player) + 1;
 		config.getHistoryYML().set(player + "." + id + ".info", info);
 		config.getHistoryYML().set(player + "." + id + ".time", (System.currentTimeMillis() / 1000));
-		config.saveHistoryYML();
+		//config.saveHistoryYML();
 	}
 	
 	public Map<String, Long> getHistory(String player, int stop) {
@@ -327,7 +327,7 @@ public class MarketStorage {
 		}
 		config.getQueueYML().set(path + ".time", System.currentTimeMillis());
 		incrementQueueIndex();
-		config.saveQueueYML();
+		//config.saveQueueYML();
 	}
 	
 	public synchronized Map<Integer, List<Object>> getAllQueueItems() {
@@ -347,7 +347,7 @@ public class MarketStorage {
 	
 	public synchronized void removeQueueItem(int id) {
 		config.getQueueYML().set("queue." + id, null);
-		config.saveQueueYML();
+		//config.saveQueueYML();
 	}
 	
 	public boolean isItemId(String search, int typeId) {

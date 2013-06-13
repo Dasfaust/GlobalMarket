@@ -734,5 +734,6 @@ public class Market extends JavaPlugin implements Listener {
 		for(int i = 0; i < tasks.size(); i++) {
 			getServer().getScheduler().cancelTask(tasks.get(i));
 		}
+		config.save(false);
 	}
 }

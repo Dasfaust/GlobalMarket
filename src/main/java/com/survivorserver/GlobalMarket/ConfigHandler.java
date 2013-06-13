@@ -5,6 +5,7 @@ import java.util.logging.Level;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import com.survivorserver.GlobalMarket.tasks.SaveTask;
 
 public class ConfigHandler {
 	
@@ -22,23 +23,54 @@ public class ConfigHandler {
 	
 	public ConfigHandler(Market market) {
 		this.market = market;
+		// Listings
+		listingsFile = new File(market.getDataFolder(), "listings.yml");
+		listingsConfig = YamlConfiguration.loadConfiguration(listingsFile);
+		// Mail
+		mailFile = new File(market.getDataFolder(), "mail.yml");
+		mailConfig = YamlConfiguration.loadConfiguration(mailFile);
+		// History
+		historyFile = new File(market.getDataFolder(), "history.yml");
+		historyConfig = YamlConfiguration.loadConfiguration(historyFile);
+		// Queue
+		queueFile = new File(market.getDataFolder(), "queue.yml");
+		queueConfig = YamlConfiguration.loadConfiguration(queueFile);
+		
+		market.getServer().getScheduler().scheduleSyncRepeatingTask(market, new Runnable() {
+			public void run() {
+				save(true);
+			}
+		}, 0, 1200);
 	}
 	
-	public void reloadListingsYML() {
+	public void save(boolean async) {
+		String listings = listingsConfig.saveToString();
+		String mail = mailConfig.saveToString();
+		String history = historyConfig.saveToString();
+		String queue = queueConfig.saveToString();
+		SaveTask save = new SaveTask(this, listings, mail, history, queue);
+		if (async) {
+			save.runTaskAsynchronously(market);
+		} else {
+			save.run();
+		}
+	}
+	
+	/*public void reloadListingsYML() {
 		if (listingsFile == null) {
 			listingsFile = new File(market.getDataFolder(), "listings.yml");
 		}
 		listingsConfig = YamlConfiguration.loadConfiguration(listingsFile);
-	}
+	}*/
 	
 	public FileConfiguration getListingsYML() {
-		if (listingsConfig == null) {
+		/*if (listingsConfig == null) {
 			reloadListingsYML();
-		}
+		}*/
 		return listingsConfig;
 	}
 	
-	public void saveListingsYML() {
+	/*public void saveListingsYML() {
 		if (listingsConfig == null) {
 			return;
 		}
@@ -47,23 +79,23 @@ public class ConfigHandler {
 		} catch(Exception e) {
 			market.getLogger().log(Level.SEVERE, "Coult not save listings: ", e);
 		}
-	}
+	}*/
 	
-	public void reloadMailYML() {
+	/*public void reloadMailYML() {
 		if (mailFile == null) {
 			mailFile = new File(market.getDataFolder(), "mail.yml");
 		}
 		mailConfig = YamlConfiguration.loadConfiguration(mailFile);
-	}
+	}*/
 	
 	public FileConfiguration getMailYML() {
-		if (mailConfig == null) {
+		/*if (mailConfig == null) {
 			reloadMailYML();
-		}
+		}*/
 		return mailConfig;
 	}
 	
-	public void saveMailYML() {
+	/*public void saveMailYML() {
 		if (mailConfig == null) {
 			return;
 		}
@@ -72,23 +104,23 @@ public class ConfigHandler {
 		} catch(Exception e) {
 			market.getLogger().log(Level.SEVERE, "Coult not save mail: ", e);
 		}
-	}
+	}*/
 	
-	public void reloadHistoryYML() {
+	/*public void reloadHistoryYML() {
 		if (historyFile == null) {
 			historyFile = new File(market.getDataFolder(), "history.yml");
 		}
 		historyConfig = YamlConfiguration.loadConfiguration(historyFile);
-	}
+	}*/
 	
 	public FileConfiguration getHistoryYML() {
-		if (historyConfig == null) {
+		/*if (historyConfig == null) {
 			reloadHistoryYML();
-		}
+		}*/
 		return historyConfig;
 	}
 	
-	public void saveHistoryYML() {
+	/*public void saveHistoryYML() {
 		if (historyConfig == null) {
 			return;
 		}
@@ -97,7 +129,7 @@ public class ConfigHandler {
 		} catch(Exception e) {
 			market.getLogger().log(Level.SEVERE, "Coult not save history: ", e);
 		}
-	}
+	}*/
 	
 	public void reloadLocaleYML() {
 		if (localeFile == null) {
@@ -138,21 +170,21 @@ public class ConfigHandler {
 		}
 	}
 	
-	public void reloadQueueYML() {
+	/*public void reloadQueueYML() {
 		if (queueFile == null) {
 			queueFile = new File(market.getDataFolder(), "queue.yml");
 		}
 		queueConfig = YamlConfiguration.loadConfiguration(queueFile);
-	}
+	}*/
 	
 	public FileConfiguration getQueueYML() {
-		if (queueConfig == null) {
+		/*if (queueConfig == null) {
 			reloadQueueYML();
-		}
+		}*/
 		return queueConfig;
 	}
 	
-	public void saveQueueYML() {
+	/*public void saveQueueYML() {
 		if (queueConfig == null) {
 			return;
 		}
@@ -161,5 +193,21 @@ public class ConfigHandler {
 		} catch(Exception e) {
 			market.getLogger().log(Level.SEVERE, "Coult not save queue: ", e);
 		}
+	}*/
+	
+	public File getListingsFile() {
+		return listingsFile;
+	}
+	
+	public File getMailFile() {
+		return mailFile;
+	}
+	
+	public File getHistoryFile() {
+		return historyFile;
+	}
+	
+	public File getQueueFile() {
+		return queueFile;
 	}
 }
