@@ -639,14 +639,10 @@ public class Market extends JavaPlugin implements Listener {
 							}
 							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-								for (int i = 0; i < 1000; i++) {
-									queue.queueListing(toList, player.getName(), price);
-								}
+								queue.queueListing(toList, player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
 							} else {
-								for (int i = 0; i < 1000; i++) {
-									storageHandler.storeListing(toList, player.getName(), price);
-								}
+								storageHandler.storeListing(toList, player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 							}
 							if (fee > 0) {
