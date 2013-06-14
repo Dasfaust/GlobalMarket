@@ -140,7 +140,7 @@ public class Market extends JavaPlugin implements Listener {
         	bukkitItems = true;
         }
 		config = new ConfigHandler(this);
-		tasks.add(new SaveTask(config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
+		tasks.add(new SaveTask(log, config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 		locale = new LocaleHandler(config);
 		prefix = locale.get("cmd.prefix");
 		storageHandler = new MarketStorage(config, this);
@@ -639,10 +639,14 @@ public class Market extends JavaPlugin implements Listener {
 							}
 							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-								queue.queueListing(toList, player.getName(), price);
+								for (int i = 0; i < 1000; i++) {
+									queue.queueListing(toList, player.getName(), price);
+								}
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
 							} else {
-								storageHandler.storeListing(toList, player.getName(), price);
+								for (int i = 0; i < 1000; i++) {
+									storageHandler.storeListing(toList, player.getName(), price);
+								}
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 							}
 							if (fee > 0) {

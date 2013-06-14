@@ -70,14 +70,19 @@ public class MarketStorage {
 	
 	public List<Listing> getAllListings() {
 		List<Listing> listings = new ArrayList<Listing>();
-		for (int i = getListingsIndex(); i >= 1; i--) {
+		for (String l : config.getListingsYML().getConfigurationSection("listings").getKeys(false)) {
+			String path = "listings." + l;
+			Listing listing = new Listing(market, Integer.parseInt(l), config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
+			listings.add(listing);
+		}
+		/*for (int i = getListingsIndex(); i >= 1; i--) {
 			String path = "listings." + i;
 			if (!config.getListingsYML().isSet(path)) {
 				continue;
 			}
 			Listing listing = new Listing(market, i, config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
 			listings.add(listing);
-		}
+		}*/
 		return listings;
 	}
 	

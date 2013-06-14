@@ -38,7 +38,7 @@ public class ConfigHandler {
 	}
 	
 	public void save() {
-		new SaveTask(this).run();
+		new SaveTask(market.getLogger(), this).run();
 	}
 	
 	/*public void reloadListingsYML() {
