@@ -3,6 +3,7 @@ package com.survivorserver.GlobalMarket;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,10 +69,13 @@ public class MarketStorage {
 	
 	public List<Listing> getAllListings() {
 		List<Listing> listings = new ArrayList<Listing>();
-		for (String l : config.getListingsYML().getConfigurationSection("listings").getKeys(false)) {
-			String path = "listings." + l;
-			Listing listing = new Listing(market, Integer.parseInt(l), config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
-			listings.add(listing);
+		if (config.getListingsYML().isSet("listings")) {
+			for (String l : config.getListingsYML().getConfigurationSection("listings").getKeys(false)) {
+				String path = "listings." + l;
+				Listing listing = new Listing(market, Integer.parseInt(l), config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
+				listings.add(listing);
+			}
+			Collections.reverse(listings);
 		}
 		return listings;
 	}

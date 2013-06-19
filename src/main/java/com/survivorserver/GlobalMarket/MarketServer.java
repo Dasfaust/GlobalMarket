@@ -114,7 +114,9 @@ public class MarketServer extends Thread {
 	
 	public void closeSocket() {
 		try {
-			socket.close();
+			if (socket != null) {
+				socket.close();
+			}
 		} catch (IOException e) {
 			market.log.warning("Could not close server: " + e.getMessage());
 		}
