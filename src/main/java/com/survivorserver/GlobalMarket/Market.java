@@ -418,7 +418,9 @@ public class Market extends JavaPlugin implements Listener {
 					sender.sendMessage(prefix + locale.get("cmd.mailbox_syntax") + " " + locale.get("cmd.mailbox_descr"));
 					sender.sendMessage(prefix + locale.get("cmd.stall_syntax") + " " + locale.get("cmd.stall_descr"));
 				}
-				sender.sendMessage(prefix + locale.get("cmd.history_syntax") + " " + locale.get("cmd.history_descr"));
+				if (sender.hasPermission("globalmarket.history")) {
+					sender.sendMessage(prefix + locale.get("cmd.history_syntax") + " " + locale.get("cmd.history_descr"));
+				}
 				sender.sendMessage(prefix + locale.get("cmd.send_syntax") + " " + locale.get("cmd.send_descr"));
 				if (sender.hasPermission("market.admin")) {
 					sender.sendMessage(prefix + locale.get("cmd.reload_syntax") + " " + locale.get("cmd.reload_descr"));
@@ -533,11 +535,13 @@ public class Market extends JavaPlugin implements Listener {
 				}
 				return true;
 			}
-			if (args[0].equalsIgnoreCase("history")) {
-				Player player = (Player) sender;
-				core.showHistory(player);
-				sender.sendMessage(ChatColor.GREEN + locale.get("check_your_inventory"));
-				return true;
+			if (sender.hasPermission("globalmarket.history")) {
+				if (args[0].equalsIgnoreCase("history")) {
+					Player player = (Player) sender;
+					core.showHistory(player);
+					sender.sendMessage(ChatColor.GREEN + locale.get("check_your_inventory"));
+					return true;
+				}
 			}
 			if (args[0].equalsIgnoreCase("pc")) {
 				Player player = (Player) sender;
