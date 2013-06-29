@@ -51,6 +51,7 @@ public class InterfaceListener implements Listener {
 				} else if (event.isRightClick()) {
 					viewer.setLastAction(null);
 					viewer.setLastActionSlot(-1);
+					viewer.setLastListing(null);
 				} else {
 					if (event.getSlot() == 47) {
 						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
@@ -87,31 +88,36 @@ public class InterfaceListener implements Listener {
 	}
 	
 	public void handleListingsAction(InventoryClickEvent event, InterfaceViewer viewer) {
+		Listing listing = storage.getListing(viewer.getBoundSlots().get(event.getSlot()));
 		if (viewer.getLastAction() == null) {
 			if (event.isShiftClick()) {
 				viewer.setLastAction(InterfaceAction.SHIFTCLICK);
 				viewer.setLastActionSlot(event.getSlot());
+				viewer.setLastListing(listing);
 			} else if (event.isLeftClick()) {
 				viewer.setLastAction(InterfaceAction.LEFTCLICK);
 				viewer.setLastActionSlot(event.getSlot());
+				viewer.setLastListing(listing);
 			}
 		} else if (viewer.getLastActionSlot() == event.getSlot()) {
 			if (event.isShiftClick() && viewer.getLastAction() == InterfaceAction.SHIFTCLICK) {
 				if (viewer.getBoundSlots().containsKey(event.getSlot())) {
-					Listing listing = storage.getListing(viewer.getBoundSlots().get(event.getSlot()));
 					if (listing != null) {
-						if (viewer.getViewer().equalsIgnoreCase(listing.getSeller()) || handler.isAdmin(viewer.getViewer())) {
+						if ((viewer.getViewer().equalsIgnoreCase(listing.getSeller()) || 
+								handler.isAdmin(viewer.getViewer())) &&
+								(viewer.getLastListing() != null && viewer.getLastListing().getId() == listing.getId())) {
 							core.removeListing(listing, (Player) event.getWhoClicked());
 						}
 					}
 				}
 				viewer.setLastAction(null);
 				viewer.setLastActionSlot(-1);
+				viewer.setLastListing(null);
 			} else if (event.isLeftClick() && viewer.getLastAction() == InterfaceAction.LEFTCLICK) {
 				if (viewer.getBoundSlots().containsKey(event.getSlot())) {
-					Listing listing = storage.getListing(viewer.getBoundSlots().get(event.getSlot()));
 					if (listing != null) {
-						if (!listing.getSeller().equalsIgnoreCase(event.getWhoClicked().getName())) {
+						if (!listing.getSeller().equalsIgnoreCase(event.getWhoClicked().getName()) &&
+								(viewer.getLastListing() != null && viewer.getLastListing().getId() == listing.getId())) {
 							if (market.getEcon().has(event.getWhoClicked().getName(), listing.price)) {
 								core.buyListing(listing, (Player) event.getWhoClicked());
 							}
@@ -120,13 +126,16 @@ public class InterfaceListener implements Listener {
 				}
 				viewer.setLastAction(null);
 				viewer.setLastActionSlot(-1);
+				viewer.setLastListing(null);
 			} else {
 				viewer.setLastAction(null);
 				viewer.setLastActionSlot(-1);
+				viewer.setLastListing(null);
 			}
 		} else {
 			viewer.setLastAction(null);
 			viewer.setLastActionSlot(-1);
+			viewer.setLastListing(null);
 		}
 	}
 	

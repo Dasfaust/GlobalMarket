@@ -108,7 +108,7 @@ public class InterfaceHandler {
 				lore.add(seller);
 				if (!viewer.getViewer().equalsIgnoreCase(listing.seller)) {
 					String buyMsg = ChatColor.YELLOW + market.getLocale().get("click_to_buy");
-					if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.LEFTCLICK && viewer.getLastActionSlot() == slot) {
+					if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.LEFTCLICK && viewer.getLastActionSlot() == slot && (viewer.getLastListing() != null && viewer.getLastListing().getId() == listing.getId())) {
 						if (market.getEcon().has(viewer.getViewer(), listing.price)) {
 							buyMsg = ChatColor.GREEN + market.getLocale().get("click_again_to_confirm");
 						} else {
@@ -120,7 +120,7 @@ public class InterfaceHandler {
 				}
 				if (viewer.getViewer().equalsIgnoreCase(listing.seller) || isAdmin(viewer.getViewer())) {
 					String removeMsg = ChatColor.DARK_GRAY + market.getLocale().get("shift_click_to_remove");
-					if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.SHIFTCLICK && viewer.getLastActionSlot() == slot) {
+					if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.SHIFTCLICK && viewer.getLastActionSlot() == slot && (viewer.getLastListing() != null && viewer.getLastListing().getId() == listing.getId())) {
 						removeMsg = ChatColor.GREEN + market.getLocale().get("shift_click_again_to_confirm");
 					}
 					lore.add(removeMsg);

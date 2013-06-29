@@ -14,6 +14,7 @@ public class InterfaceViewer {
 	int lastActionSlot = 0;
 	ViewType viewType;
 	String search;
+	Listing lastClicked;
 	
 	public InterfaceViewer(String player, Inventory gui) {
 		this.player = player;
@@ -58,6 +59,14 @@ public class InterfaceViewer {
 	
 	public void setLastActionSlot(int slot) {
 		this.lastActionSlot = slot;
+	}
+	
+	public void setLastListing(Listing listing) {
+		lastClicked = listing;
+	}
+	
+	public Listing getLastListing() {
+		return lastClicked;
 	}
 	
 	public void setViewType(ViewType viewType) {
