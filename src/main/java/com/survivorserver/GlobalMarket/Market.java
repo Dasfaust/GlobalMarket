@@ -61,69 +61,38 @@ public class Market extends JavaPlugin implements Listener {
 		tasks = new ArrayList<Integer>();
 		market = this;
 		reloadConfig();
-		if (!getConfig().isSet("server.enable")) {
-			getConfig().set("server.enable", false);
-		}
-		if (!getConfig().isSet("automatic_payments")) {
-			getConfig().set("automatic_payments", false);
-		}
-		if (!getConfig().isSet("enable_cut")) {
-			getConfig().set("enable_cut", true);
-		}
-		if (!getConfig().isSet("cut_amount")) {
-			getConfig().set("cut_amount", (double) 0.05);
-		} else if (getConfig().getDouble("cut_amount") >= 1.0) {
-			getConfig().set("cut_amount", (double) 0.05);
-		}
-		if (!getConfig().isSet("enable_metrics")) {
-			getConfig().set("enable_metrics", true);
-		}
-		if (!getConfig().isSet("max_price")) {
-			getConfig().set("max_price", 0.0);
-		}
-		if (!getConfig().isSet("creation_fee")) {
-			getConfig().set("creation_fee", 0.05);
-		}
-		if (!getConfig().isSet("queue.trade_time")) {
-			getConfig().set("queue.trade_time", 0);
-		}
-		if (!getConfig().isSet("queue.mail_time")) {
-			getConfig().set("queue.mail_time", 30);
-		}
-		if (!getConfig().isSet("queue.queue_on_buy")) {
-			getConfig().set("queue.queue_mail_on_buy", true);
-		}
-		if (!getConfig().isSet("queue.queue_on_cancel")) {
-			getConfig().set("queue.queue_mail_on_cancel", true);
-		}
-		if (!getConfig().isSet("max_listings_per_player")) {
-			getConfig().set("max_listings_per_player", 0);
-		}
-		if (!getConfig().isSet("expire_time")) {
-			getConfig().set("expire_time", 168);
-		}
-		if (!getConfig().isSet("blacklist.item_name")) {
-			List<String> blacklisted = new ArrayList<String>();
-			blacklisted.add("Transaction Log");
-			getConfig().set("blacklist.item_name", blacklisted);
-		}
-		if (!getConfig().isSet("blacklist.item_id")) {
-			Map<Integer, Integer> blacklisted = new HashMap<Integer, Integer>();
-			blacklisted.put(0, 0);
-			getConfig().set("blacklist.item_id", blacklisted);
-		}
-		if (!getConfig().isSet("blacklist.enchant_id")) {
-			List<String> blacklisted = new ArrayList<String>();
-			getConfig().set("blacklist.enchant_id", blacklisted);
-		}
-		if (!getConfig().isSet("blacklist.lore")) {
-			List<String> blacklisted = new ArrayList<String>();
-			getConfig().set("blacklist.lore", blacklisted);
-		}
-		if (!getConfig().isSet("blacklist.use_with_mail")) {
-			getConfig().set("blacklist.use_with_mail", false);
-		}
+		getConfig().addDefault("server.enable", false);
+		getConfig().addDefault("automatic_payments", false);
+		getConfig().addDefault("enable_cut", true);
+		getConfig().addDefault("cut_amount", 0.05);
+		getConfig().addDefault("enable_metrics", true);
+		getConfig().addDefault("max_price", 0.0);
+		getConfig().addDefault("creation_fee", 0.0);
+		getConfig().addDefault("queue.trade_time", 0);
+		getConfig().addDefault("queue.mail_time", 0);
+		getConfig().addDefault("queue.queue_mail_on_buy", true);
+		getConfig().addDefault("queue.queue_on_cancel", true);
+		getConfig().addDefault("max_listings_per_player", 0);
+		getConfig().addDefault("expire_time", 168);
+		
+		List<String> b1 = new ArrayList<String>();
+		b1.add("Transaction Log");
+		b1.add("Market History");
+		getConfig().addDefault("blacklist.item_name", b1);
+		
+		Map<Integer, Integer> b2 = new HashMap<Integer, Integer>();
+		b2.put(0, 0);
+		getConfig().set("blacklist.item_id", b2);
+		getConfig().addDefault("blacklist.item_id", b2);
+		
+		List<String> b3 = new ArrayList<String>();
+		getConfig().addDefault("blacklist.enchant_id", b3);
+		getConfig().addDefault("blacklist.enchant_lore", b3);
+		getConfig().addDefault("blacklist.use_with_mail", false);
+		
+		getConfig().options().copyDefaults(true);
 		saveConfig();
+		
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             econ = economyProvider.getProvider();
