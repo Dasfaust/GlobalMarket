@@ -49,8 +49,9 @@ public class ConfigHandler {
 			save = true;
 		} catch(Exception e) {
 			market.log.severe("An error occurred while loading "
-					+ currentFile.getName() + ": ");
-			market.log.severe("Will not save files until this issue is resolved");
+					+ currentFile.getName() + ":");
+			e.printStackTrace();
+			market.log.severe("Can't save files until this issue is resolved");
 		}
 	}
 	
