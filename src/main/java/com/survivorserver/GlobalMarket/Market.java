@@ -392,6 +392,9 @@ public class Market extends JavaPlugin implements Listener {
 		if (storageHandler.getNumMail(player.getName()) > 0) {
 			player.sendMessage(prefix + locale.get("you_have_new_mail"));
 		}
+		if (player.hasPermission("globalmarket.admin")) {
+			new UpdateCheck(this, player.getName());
+		}
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
