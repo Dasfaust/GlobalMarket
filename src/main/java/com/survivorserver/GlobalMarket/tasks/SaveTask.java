@@ -24,22 +24,22 @@ public class SaveTask extends BukkitRunnable {
 	public void run() {
 		try {
 			Writer out = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(config.getListingsFile()), "UTF-8"));
+					new FileOutputStream(config.getListingsFile())));
 			out.write(config.getListingsYML().saveToString());
 			out.close();		
 			
 			out = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(config.getMailFile()), "UTF-8"));
+					new FileOutputStream(config.getMailFile())));
 			out.write(config.getMailYML().saveToString());
 			out.close();
 			
 			out = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(config.getHistoryFile()), "UTF-8"));
+					new FileOutputStream(config.getHistoryFile())));
 			out.write(config.getHistoryYML().saveToString());
 			out.close();
 			
 			out = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(config.getQueueFile()), "UTF-8"));
+					new FileOutputStream(config.getQueueFile())));
 			out.write(config.getQueueYML().saveToString());
 			out.close();
 		} catch(Exception e) {
