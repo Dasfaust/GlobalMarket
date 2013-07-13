@@ -98,7 +98,7 @@ selling_too_many_items: "You have too many items for sale"
 item_is_blacklisted: "You can't sell this item"
 item_is_blacklisted_from_mail: "You can't send this item"
 prices:
-    no_data: "No data available for %s. Please note that price data will not be available until the item is traded"
+    no_data: "No data available for %s. Please note that price data will not be available until the item has been"
     header: "%s Pricing:"
     price_per_item: "Average price per item: %s"
     price_per_stack: "Average price per stack: %s"
