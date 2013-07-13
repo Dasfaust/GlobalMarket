@@ -381,10 +381,10 @@ public class Market extends JavaPlugin implements Listener {
 				sender.sendMessage(prefix + locale.get("cmd.help_legend"));
 				sender.sendMessage(prefix + locale.get("cmd.listings_syntax") + " " + locale.get("cmd.listings_descr"));
 				sender.sendMessage(prefix + locale.get("cmd.create_syntax") + " " + locale.get("cmd.create_descr"));
-				if (sender.hasPermission("market.quickmail")) {
+				if (sender.hasPermission("globalmarket.quickmail")) {
 					sender.sendMessage(prefix + locale.get("cmd.mail_syntax") + " " + locale.get("cmd.mail_descr"));
 				}
-				if (sender.hasPermission("market.util")) {
+				if (sender.hasPermission("globalmarket.util")) {
 					sender.sendMessage(prefix + locale.get("cmd.mailbox_syntax") + " " + locale.get("cmd.mailbox_descr"));
 					sender.sendMessage(prefix + locale.get("cmd.stall_syntax") + " " + locale.get("cmd.stall_descr"));
 				}
@@ -392,7 +392,7 @@ public class Market extends JavaPlugin implements Listener {
 					sender.sendMessage(prefix + locale.get("cmd.history_syntax") + " " + locale.get("cmd.history_descr"));
 				}
 				sender.sendMessage(prefix + locale.get("cmd.send_syntax") + " " + locale.get("cmd.send_descr"));
-				if (sender.hasPermission("market.admin")) {
+				if (sender.hasPermission("globalmarket.admin")) {
 					sender.sendMessage(prefix + locale.get("cmd.reload_syntax") + " " + locale.get("cmd.reload_descr"));
 				}
 				return true;
