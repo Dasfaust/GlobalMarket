@@ -83,6 +83,7 @@ public class ConfigHandler {
 		if (defaults != null) {
 			YamlConfiguration def = YamlConfiguration.loadConfiguration(defaults);
 			localeConfig.setDefaults(def);
+			localeConfig.set("version", def.get("version"));
 		}
 	}
 	

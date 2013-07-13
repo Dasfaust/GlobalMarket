@@ -1,9 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
@@ -80,14 +78,14 @@ public class Market extends JavaPlugin implements Listener {
 		b1.add("Market History");
 		getConfig().addDefault("blacklist.item_name", b1);
 		
-		Map<Integer, Integer> b2 = new HashMap<Integer, Integer>();
-		b2.put(0, 0);
-		getConfig().set("blacklist.item_id", b2);
-		getConfig().addDefault("blacklist.item_id", b2);
+		getConfig().addDefault("blacklist.item_id.0", 0);
 		
 		List<String> b3 = new ArrayList<String>();
 		getConfig().addDefault("blacklist.enchant_id", b3);
-		getConfig().addDefault("blacklist.enchant_lore", b3);
+		
+		List<String> b4 = new ArrayList<String>();
+		getConfig().addDefault("blacklist.enchant_lore", b4);
+		
 		getConfig().addDefault("blacklist.use_with_mail", false);
 		
 		getConfig().options().copyDefaults(true);
@@ -255,13 +253,10 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public boolean itemBlacklisted(ItemStack item) {
-		if (getConfig().isSet("blacklist.item_id")) {
-			Map<String, Object> blacklisted = getConfig().getConfigurationSection("blacklist.item_id").getValues(true);
-			if (blacklisted != null && blacklisted.containsKey(Integer.toString(item.getTypeId()))) {
-				int damage = (Integer) blacklisted.get(Integer.toString(item.getTypeId()));
-				if (damage == item.getDurability() || damage == -1) {
-					return true;
-				}
+		if (getConfig().isSet("blacklist.item_id." + item.getTypeId())) {
+			String path = "blacklist.item_id." + item.getTypeId();
+			if (getConfig().getInt(path) == -1 || getConfig().getInt(path) == item.getData().getData()) {
+				return true;
 			}
 		}
 		if (item.hasItemMeta()) {
