@@ -28,20 +28,24 @@ public class MarketCore {
 	}
 	
 	public void buyListing(Listing listing, Player player) {
+		double price = listing.getPrice();
+		market.getEcon().withdrawPlayer(player.getName(), price);
+		if (market.cutTransactions()) {
+			price = price - new BigDecimal(market.getCut(price)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+		}
 		if (market.autoPayment()) {
-			double price = listing.getPrice();
-			market.getEcon().withdrawPlayer(player.getName(), price);
-			if (market.cutTransactions()) {
-				price = price - new BigDecimal(market.getCut(price)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();;
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				market.getEcon().depositPlayer(listing.getSeller(), price);
 			}
-			market.getEcon().depositPlayer(listing.getSeller(), price);
 			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
 				market.getQueue().queueMail(listing.getItem(), player.getName());
 				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
 			} else {
 				storage.storeMail(listing.getItem(), player.getName(), true);
 			}
-			storage.removeListing(listing.getId());
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				storage.removeListing(listing.getId());
+			}
 			handler.updateAllViewers();
 			// TODO: make this pretty
 			String itemName = listing.getItem().getType().toString();
@@ -52,23 +56,31 @@ public class MarketCore {
 				}
 			}
 			storage.storeHistory(player.getName(), market.getLocale().get("history.item_listed", itemName + "x" + listing.getItem().getAmount(), price));
-			storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), price));
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), price));
+			}
 			notifyPlayer(listing.getSeller(), ChatColor.GREEN + market.getLocale().get("you_sold_your_listing", itemName + "x" + listing.getItem().getAmount()));
-			storage.incrementEarned(listing.getSeller(), price);
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				storage.incrementEarned(listing.getSeller(), price);
+			}
 			storage.incrementSpent(player.getName(), price);
 			if (market.enablePrices()) {
 				market.getPrices().storePriceInformation(listing.getItem(), listing.getPrice());
 			}
 		} else {
 			market.getEcon().withdrawPlayer(player.getName(), listing.getPrice());
-			storage.storePayment(listing.getItem(), listing.getSeller(), listing.getPrice(), true);
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				storage.storePayment(listing.getItem(), listing.getSeller(), listing.getPrice(), true);
+			}
 			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
 				market.getQueue().queueMail(listing.getItem(), player.getName());
 				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
 			} else {
 				storage.storeMail(listing.getItem(), player.getName(), true);
 			}
-			storage.removeListing(listing.getId());
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				storage.removeListing(listing.getId());
+			}
 			handler.updateAllViewers();
 			// TODO: make this pretty
 			String itemName = listing.getItem().getType().toString();
@@ -79,55 +91,71 @@ public class MarketCore {
 				}
 			}
 			storage.storeHistory(player.getName(), market.getLocale().get("history.item_listed", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
-			storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
-			storage.incrementEarned(listing.getSeller(), listing.getPrice() - market.getCut(listing.getPrice()));
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
+			}
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				storage.incrementEarned(listing.getSeller(), listing.getPrice() - market.getCut(listing.getPrice()));
+			}
 			storage.incrementSpent(player.getName(), listing.getPrice());
 			if (market.enablePrices()) {
 				market.getPrices().storePriceInformation(listing.getItem(), listing.getPrice());
 			}
 		}
+		String infAccount = market.getInfiniteAccount();
+		if (infAccount.length() >= 1) {
+			market.getEcon().depositPlayer(infAccount, price);
+		}
 	}
 	
 	public void removeListing(Listing listing, Player player) {
-		if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-			market.getQueue().queueMail(listing.getItem(), listing.getSeller());
-			player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
-		} else {
-			storage.storeMail(listing.getItem(), listing.getSeller(), true);
+		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
+				market.getQueue().queueMail(listing.getItem(), listing.getSeller());
+				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
+			} else {
+					storage.storeMail(listing.getItem(), listing.getSeller(), true);
+			}
 		}
 		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
-		// TODO: make this pretty
-		String itemName = listing.getItem().getType().toString();
-		if (!market.useBukkitNames()) {
-			net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(listing.getItem().getTypeId());
-			if (itemInfo != null) {
-				itemName = itemInfo.getName();
+		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+			// TODO: make this pretty
+			String itemName = listing.getItem().getType().toString();
+			if (!market.useBukkitNames()) {
+				net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(listing.getItem().getTypeId());
+				if (itemInfo != null) {
+					itemName = itemInfo.getName();
+				}
 			}
-		}
-		if (listing.getSeller().equalsIgnoreCase(player.getName())) {
-			storage.storeHistory(player.getName(), market.getLocale().get("history.listing_removed", "You", itemName + "x" + listing.getItem().getAmount()));
-		} else {
-			storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player.getName(), itemName + "x" + listing.getItem().getAmount()));
+			if (listing.getSeller().equalsIgnoreCase(player.getName())) {
+				storage.storeHistory(player.getName(), market.getLocale().get("history.listing_removed", "You", itemName + "x" + listing.getItem().getAmount()));
+			} else {
+				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player.getName(), itemName + "x" + listing.getItem().getAmount()));
+			}
 		}
 	}
 	
 	public synchronized void removeListing(Listing listing, String player) {
-		storage.storeMail(listing.getItem(), listing.getSeller(), true);
+		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+			storage.storeMail(listing.getItem(), listing.getSeller(), true);
+		}
 		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
-		// TODO: make this pretty
-		String itemName = listing.getItem().getType().toString();
-		if (!market.useBukkitNames()) {
-			net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(listing.getItem().getTypeId());
-			if (itemInfo != null) {
-				itemName = itemInfo.getName();
+		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+			// TODO: make this pretty
+			String itemName = listing.getItem().getType().toString();
+			if (!market.useBukkitNames()) {
+				net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(listing.getItem().getTypeId());
+				if (itemInfo != null) {
+					itemName = itemInfo.getName();
+				}
 			}
-		}
-		if (listing.getSeller().equalsIgnoreCase(player)) {
-			storage.storeHistory(player, market.getLocale().get("history.listing_removed", "You", itemName + "x" + listing.getItem().getAmount()));
-		} else {
-			storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player, itemName + "x" + listing.getItem().getAmount()));
+			if (listing.getSeller().equalsIgnoreCase(player)) {
+				storage.storeHistory(player, market.getLocale().get("history.listing_removed", "You", itemName + "x" + listing.getItem().getAmount()));
+			} else {
+				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player, itemName + "x" + listing.getItem().getAmount()));
+			}
 		}
 	}
 	

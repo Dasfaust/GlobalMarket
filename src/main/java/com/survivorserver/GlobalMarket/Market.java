@@ -73,6 +73,8 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("max_listings_per_player", 0);
 		getConfig().addDefault("expire_time", 168);
 		getConfig().addDefault("price_check.enable", true);
+		getConfig().addDefault("infinite.seller", "Server");
+		getConfig().addDefault("infinite.account", "");
 		
 		List<String> b1 = new ArrayList<String>();
 		b1.add("Transaction Log");
@@ -373,6 +375,14 @@ public class Market extends JavaPlugin implements Listener {
 			item.setType(Material.AIR);
 		}
 	}
+	
+	public String getInfiniteSeller() {
+		return getConfig().getString("infinite.seller");
+	}
+	
+	public String getInfiniteAccount() {
+		return getConfig().getString("infinite.account");
+	}
 
 	@EventHandler
 	public void onLogin(PlayerJoinEvent event) {
@@ -561,7 +571,13 @@ public class Market extends JavaPlugin implements Listener {
 							sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 							return true;
 						}
-						if (args.length == 3) {
+						boolean infinite = false;
+						for (int i = 0; i < args.length; i++) {
+							if (args[i].equalsIgnoreCase("-inf") && sender.hasPermission("globalmarket.infinitelistings")) {
+								infinite = true;
+							}
+						}
+						if ((args.length == 3 && !infinite) || (args.length == 4 && infinite)) {
 							int amount = 0;
 							try {
 								amount = Integer.parseInt(args[2]);
@@ -573,7 +589,7 @@ public class Market extends JavaPlugin implements Listener {
 								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_amount", args[2]));
 								return true;
 							}
-							if (player.getItemInHand().getAmount() < amount) {
+							if (!infinite && player.getItemInHand().getAmount() < amount) {
 								player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
 								return true;
 							}
@@ -588,16 +604,20 @@ public class Market extends JavaPlugin implements Listener {
 							}
 							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (player.getItemInHand().getAmount() == amount) {
-								player.setItemInHand(new ItemStack(Material.AIR));
+								if (!infinite) {
+									player.setItemInHand(new ItemStack(Material.AIR));
+								}
 							} else {
-								player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
+								if (!infinite) {
+									player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
+								}
 							}
 							toList.setAmount(amount);
 							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
 								queue.queueListing(toList, player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
 							} else {
-								storageHandler.storeListing(toList, player.getName(), price);
+								storageHandler.storeListing(toList, infinite ? getInfiniteSeller() : player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 							}
 							if (fee > 0) {
@@ -627,13 +647,15 @@ public class Market extends JavaPlugin implements Listener {
 								queue.queueListing(toList, player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
 							} else {
-								storageHandler.storeListing(toList, player.getName(), price);
+								storageHandler.storeListing(toList, infinite ? getInfiniteSeller() : player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 							}
 							if (fee > 0) {
 								player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
 							}
-							player.setItemInHand(new ItemStack(Material.AIR));
+							if (!infinite) {
+								player.setItemInHand(new ItemStack(Material.AIR));
+							}
 							// TODO: make this pretty
 							String itemName = toList.getType().toString();
 							if (!useBukkitNames()) {

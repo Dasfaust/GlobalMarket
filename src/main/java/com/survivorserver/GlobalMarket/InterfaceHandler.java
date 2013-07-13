@@ -125,6 +125,9 @@ public class InterfaceHandler {
 					}
 					lore.add(removeMsg);
 				}
+				if (listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+					lore.add(ChatColor.LIGHT_PURPLE + market.getLocale().get("interface.infinite"));
+				}
 				meta.setLore(lore);
 				item.setItemMeta(meta);
 				contents[slot] = item;
