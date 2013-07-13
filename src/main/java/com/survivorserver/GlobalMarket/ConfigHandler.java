@@ -20,25 +20,46 @@ public class ConfigHandler {
 	private File localeFile;
 	private FileConfiguration queueConfig;
 	private File queueFile;
+	public boolean save = false;
 	
 	public ConfigHandler(Market market) {
 		this.market = market;
+		load();
+	}
+	
+	private void load() {
+		File currentFile = null;
+		try {
+			listingsFile = new File(market.getDataFolder(), "listings.yml");
+			listingsConfig = YamlConfiguration.loadConfiguration(listingsFile);
+			currentFile = listingsFile;
 
-		listingsFile = new File(market.getDataFolder(), "listings.yml");
-		listingsConfig = YamlConfiguration.loadConfiguration(listingsFile);
+			mailFile = new File(market.getDataFolder(), "mail.yml");
+			mailConfig = YamlConfiguration.loadConfiguration(mailFile);
+			currentFile = mailFile;
 
-		mailFile = new File(market.getDataFolder(), "mail.yml");
-		mailConfig = YamlConfiguration.loadConfiguration(mailFile);
-
-		historyFile = new File(market.getDataFolder(), "history.yml");
-		historyConfig = YamlConfiguration.loadConfiguration(historyFile);
-		
-		queueFile = new File(market.getDataFolder(), "queue.yml");
-		queueConfig = YamlConfiguration.loadConfiguration(queueFile);
+			historyFile = new File(market.getDataFolder(), "history.yml");
+			historyConfig = YamlConfiguration.loadConfiguration(historyFile);
+			currentFile = historyFile;
+			
+			queueFile = new File(market.getDataFolder(), "queue.yml");
+			queueConfig = YamlConfiguration.loadConfiguration(queueFile);
+			currentFile = queueFile;
+			
+			save = true;
+		} catch(Exception e) {
+			market.log.severe("An error occurred while loading "
+					+ currentFile.getName() + ": ");
+			market.log.severe("GlobalMarket will not save files until this issue is resolved");
+		}
 	}
 	
 	public void save() {
 		new SaveTask(market.getLogger(), this).run();
+	}
+	
+	public boolean canSave() {
+		return save;
 	}
 	
 	public FileConfiguration getListingsYML() {
