@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
@@ -82,7 +83,14 @@ public class InterfaceListener implements Listener {
 				}
 				handler.refreshViewer(viewer);
 			} else {
+				if (isMarketItem(event.getCurrentItem())) {
+					event.getInventory().remove(event.getCurrentItem());
+					if (event.getCursor() != null) {
+						event.getCursor().setType(Material.AIR);
+					}
+				}
 				event.getWhoClicked().closeInventory();
+				event.setCancelled(true);
 			}
 		}
 	}
@@ -180,6 +188,23 @@ public class InterfaceListener implements Listener {
 					event.getPlayer().getInventory().remove(items[i]);
 				}
 			}
+		}
+		items = event.getPlayer().getInventory().getArmorContents();
+		for (int i = 0; i < items.length; i++) {
+			if (items[i] != null) {
+				if (isMarketItem(items[i])) {
+					event.getPlayer().getInventory().remove(items[i]);
+				}
+			}
+		}
+	}
+	
+	@EventHandler
+	public synchronized void handleItemPickup(ItemSpawnEvent event) {
+		// More fixing for item duping
+		ItemStack item = event.getEntity().getItemStack();
+		if (item != null && isMarketItem(item)) {
+			event.getEntity().remove();
 		}
 	}
 	

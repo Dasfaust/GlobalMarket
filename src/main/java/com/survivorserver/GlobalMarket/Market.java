@@ -140,14 +140,13 @@ public class Market extends JavaPlugin implements Listener {
         	bukkitItems = true;
         }
 		config = new ConfigHandler(this);
-		tasks.add(new SaveTask(log, config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 		locale = new LocaleHandler(config);
 		prefix = locale.get("cmd.prefix");
 		storageHandler = new MarketStorage(config, this);
 		interfaceHandler = new InterfaceHandler(this, storageHandler);
 		if (getConfig().getBoolean("server.enable")) {
 			server = new MarketServer(this, storageHandler, interfaceHandler);
-			//server.start();
+			server.start();
 		}
 		core = new MarketCore(this, interfaceHandler, storageHandler);
 		listener = new InterfaceListener(this, interfaceHandler, storageHandler, core);
@@ -167,6 +166,7 @@ public class Market extends JavaPlugin implements Listener {
 		}
 		searching = new ArrayList<String>();
 		prices = new PriceHandler(this);
+		tasks.add(new SaveTask(log, config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 	}
 	
 	public Economy getEcon() {
@@ -396,6 +396,10 @@ public class Market extends JavaPlugin implements Listener {
 					}
 				}
 			}
+		}
+		ItemStack item = event.getPlayer().getItemInHand();
+		if (item != null && listener.isMarketItem(item)) {
+			item.setType(Material.AIR);
 		}
 	}
 
