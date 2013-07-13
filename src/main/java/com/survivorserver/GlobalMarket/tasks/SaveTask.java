@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket.tasks;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -22,33 +23,39 @@ public class SaveTask extends BukkitRunnable {
 	
 	@Override
 	public void run() {
+		File currentFile = null;
 		if (config.canSave()) {
 			try {
+				currentFile = config.getListingsFile();
 				Writer out = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(config.getListingsFile())));
+						new FileOutputStream(currentFile)));
 				out.write(config.getListingsYML().saveToString());
 				out.close();		
 				
+				currentFile = config.getMailFile();
 				out = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(config.getMailFile())));
+						new FileOutputStream(currentFile)));
 				out.write(config.getMailYML().saveToString());
 				out.close();
 				
+				currentFile = config.getHistoryFile();
 				out = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(config.getHistoryFile())));
+						new FileOutputStream(currentFile)));
 				out.write(config.getHistoryYML().saveToString());
 				out.close();
 				
+				currentFile = config.getQueueFile();
 				out = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream(config.getQueueFile())));
+						new FileOutputStream(currentFile)));
 				out.write(config.getQueueYML().saveToString());
 				out.close();
 			} catch(Exception e) {
-				log.severe("Could not save Market data: ");
+				log.severe("Could not save "
+						+ currentFile.getName() + ":");
 				e.printStackTrace();
 			}
 		} else {
-			log.severe("Could not save Market data. Was it loaded correctly?");
+			log.severe("Can't save Market data! Was it loaded correctly?");
 		}
 	}
 }

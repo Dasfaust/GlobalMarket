@@ -30,27 +30,27 @@ public class ConfigHandler {
 	private void load() {
 		File currentFile = null;
 		try {
+			currentFile = listingsFile;
 			listingsFile = new File(market.getDataFolder(), "listings.yml");
 			listingsConfig = YamlConfiguration.loadConfiguration(listingsFile);
-			currentFile = listingsFile;
 
+			currentFile = mailFile;
 			mailFile = new File(market.getDataFolder(), "mail.yml");
 			mailConfig = YamlConfiguration.loadConfiguration(mailFile);
-			currentFile = mailFile;
 
+			currentFile = historyFile;
 			historyFile = new File(market.getDataFolder(), "history.yml");
 			historyConfig = YamlConfiguration.loadConfiguration(historyFile);
-			currentFile = historyFile;
 			
+			currentFile = queueFile;
 			queueFile = new File(market.getDataFolder(), "queue.yml");
 			queueConfig = YamlConfiguration.loadConfiguration(queueFile);
-			currentFile = queueFile;
-			
+
 			save = true;
 		} catch(Exception e) {
 			market.log.severe("An error occurred while loading "
 					+ currentFile.getName() + ": ");
-			market.log.severe("GlobalMarket will not save files until this issue is resolved");
+			market.log.severe("Will not save files until this issue is resolved");
 		}
 	}
 	
