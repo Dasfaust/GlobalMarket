@@ -410,6 +410,7 @@ public class Market extends JavaPlugin implements Listener {
 			if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("globalmarket.admin")) {
 				reloadConfig();
 				config.reloadLocaleYML();
+				locale.setSelected();
 				sender.sendMessage(prefix + market.getLocale().get("config_reloaded"));
 				return true;
 			}

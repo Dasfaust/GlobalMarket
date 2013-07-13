@@ -85,7 +85,6 @@ public class ConfigHandler {
 		localeConfig.options().copyDefaults(true);
 		localeConfig.set("version", def.get("version"));
 		saveLocaleYML();
-		market.getLocale().setSelected();
 	}
 	
 	public FileConfiguration getLocaleYML() {
