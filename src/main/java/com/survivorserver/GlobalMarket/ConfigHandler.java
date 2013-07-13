@@ -31,21 +31,25 @@ public class ConfigHandler {
 	private void load() {
 		File currentFile = null;
 		try {
-			currentFile = listingsFile;
 			listingsFile = new File(market.getDataFolder(), "listings.yml");
-			listingsConfig = YamlConfiguration.loadConfiguration(listingsFile);
+			currentFile = listingsFile;
+			listingsConfig = new YamlConfiguration();
+			listingsConfig.load(listingsFile);
 
-			currentFile = mailFile;
 			mailFile = new File(market.getDataFolder(), "mail.yml");
-			mailConfig = YamlConfiguration.loadConfiguration(mailFile);
+			currentFile = mailFile;
+			mailConfig = new YamlConfiguration();
+			mailConfig.load(mailFile);
 
-			currentFile = historyFile;
 			historyFile = new File(market.getDataFolder(), "history.yml");
-			historyConfig = YamlConfiguration.loadConfiguration(historyFile);
+			currentFile = historyFile;
+			historyConfig = new YamlConfiguration();
+			historyConfig.load(historyFile);
 			
-			currentFile = queueFile;
 			queueFile = new File(market.getDataFolder(), "queue.yml");
-			queueConfig = YamlConfiguration.loadConfiguration(queueFile);
+			currentFile = queueFile;
+			queueConfig = new YamlConfiguration();
+			queueConfig.load(queueFile);
 
 			save = true;
 		} catch(Exception e) {
