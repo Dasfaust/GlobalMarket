@@ -72,6 +72,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("queue.queue_on_cancel", true);
 		getConfig().addDefault("max_listings_per_player", 0);
 		getConfig().addDefault("expire_time", 168);
+		getConfig().addDefault("price_check.enable", true);
 		
 		List<String> b1 = new ArrayList<String>();
 		b1.add("Transaction Log");
@@ -132,7 +133,9 @@ public class Market extends JavaPlugin implements Listener {
 			}
 		}
 		searching = new ArrayList<String>();
-		prices = new PriceHandler(this);
+		if (enablePrices()) {
+			prices = new PriceHandler(this);
+		}
 		tasks.add(new SaveTask(log, config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 	}
 	
@@ -307,6 +310,10 @@ public class Market extends JavaPlugin implements Listener {
 		return prices;
 	}
 	
+	public boolean enablePrices() {
+		return getConfig().getBoolean("price_check.enable");
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -383,6 +390,9 @@ public class Market extends JavaPlugin implements Listener {
 				sender.sendMessage(prefix + locale.get("cmd.create_syntax") + " " + locale.get("cmd.create_descr"));
 				if (sender.hasPermission("globalmarket.quickmail")) {
 					sender.sendMessage(prefix + locale.get("cmd.mail_syntax") + " " + locale.get("cmd.mail_descr"));
+				}
+				if (sender.hasPermission("globalmarket.pricecheck")) {
+					sender.sendMessage(prefix + locale.get("cmd.pc_syntax") + " " + locale.get("cmd.pc_descr"));
 				}
 				if (sender.hasPermission("globalmarket.util")) {
 					sender.sendMessage(prefix + locale.get("cmd.mailbox_syntax") + " " + locale.get("cmd.mailbox_descr"));
@@ -513,7 +523,7 @@ public class Market extends JavaPlugin implements Listener {
 					return true;
 				}
 			}
-			if (args[0].equalsIgnoreCase("pc")) {
+			if (args[0].equalsIgnoreCase("pricecheck") || args[0].equalsIgnoreCase("pc")) {
 				Player player = (Player) sender;
 				if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR) {
 					ItemStack item = player.getItemInHand();

@@ -80,11 +80,11 @@ public class ConfigHandler {
 		localeFile = new File(market.getDataFolder(), "locale.yml");
 		localeConfig = YamlConfiguration.loadConfiguration(localeFile);
 		InputStream defaults = market.getResource("locale.yml");
-		if (defaults != null) {
-			YamlConfiguration def = YamlConfiguration.loadConfiguration(defaults);
-			localeConfig.setDefaults(def);
-			localeConfig.set("version", def.get("version"));
-		}
+		YamlConfiguration def = YamlConfiguration.loadConfiguration(defaults);
+		localeConfig.addDefaults(def);
+		localeConfig.options().copyDefaults(true);
+		localeConfig.set("version", def.get("version"));
+		saveLocaleYML();
 	}
 	
 	public FileConfiguration getLocaleYML() {
