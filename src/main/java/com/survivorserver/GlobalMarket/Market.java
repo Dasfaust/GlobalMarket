@@ -52,6 +52,7 @@ public class Market extends JavaPlugin implements Listener {
 	List<String> searching;
 	MarketQueue queue;
 	PriceHandler prices;
+	String infiniteSeller;
 
 	public void onEnable() {
 		log = getLogger();
@@ -139,6 +140,7 @@ public class Market extends JavaPlugin implements Listener {
 			prices = new PriceHandler(this);
 		}
 		tasks.add(new SaveTask(log, config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
+		infiniteSeller = getConfig().getString("infinite.seller");
 	}
 	
 	public Economy getEcon() {
@@ -377,7 +379,7 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public String getInfiniteSeller() {
-		return getConfig().getString("infinite.seller");
+		return infiniteSeller;
 	}
 	
 	public String getInfiniteAccount() {
@@ -421,6 +423,7 @@ public class Market extends JavaPlugin implements Listener {
 				reloadConfig();
 				config.reloadLocaleYML();
 				locale.setSelected();
+				infiniteSeller = getConfig().getString("infinite.seller");
 				sender.sendMessage(prefix + market.getLocale().get("config_reloaded"));
 				return true;
 			}

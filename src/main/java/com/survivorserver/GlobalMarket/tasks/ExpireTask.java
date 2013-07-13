@@ -22,11 +22,13 @@ public class ExpireTask extends BukkitRunnable {
 	@Override
 	public void run() {
 		for (Listing listing : storage.getListings()) {
-			long diff = System.currentTimeMillis() - listing.getTime() * 1000;
-			if ((diff / (60 * 60 * 1000)) >= market.getExpireTime()) {
-				core.removeListing(listing, "Server");
-			} else {
-				break;
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				long diff = System.currentTimeMillis() - listing.getTime() * 1000;
+				if ((diff / (60 * 60 * 1000)) >= market.getExpireTime()) {
+					core.removeListing(listing, "Server");
+				} else {
+					break;
+				}
 			}
 		}
 	}
