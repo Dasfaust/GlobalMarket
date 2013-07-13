@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.logging.Level;
 
 import org.bukkit.configuration.file.FileConfiguration;
@@ -76,23 +77,12 @@ public class ConfigHandler {
 	}
 	
 	public void reloadLocaleYML() {
-		if (localeFile == null) {
-			localeFile = new File(market.getDataFolder(), "locale.yml");
-			if (!localeFile.exists()) {
-				market.saveResource("locale.yml", false);
-			}
-		}
-		
+		localeFile = new File(market.getDataFolder(), "locale.yml");
 		localeConfig = YamlConfiguration.loadConfiguration(localeFile);
-		if (!localeConfig.getString("version").equalsIgnoreCase(market.getDescription().getVersion())) {
-			File oldLocale = new File(market.getDataFolder().getName() + "/locale_old.yml");
-			if (oldLocale.exists()) {
-				oldLocale.delete();
-			}
-			localeFile.renameTo(new File(market.getDataFolder(), "locale_old.yml"));
-			market.saveResource("locale.yml", false);
-			localeConfig = YamlConfiguration.loadConfiguration(localeFile);
-			market.log.warning("Locale version didn't match, loaded new file and moved the old one to \"local_old.yml\"");
+		InputStream defaults = market.getResource("locale.yml");
+		if (defaults != null) {
+			YamlConfiguration def = YamlConfiguration.loadConfiguration(defaults);
+			localeConfig.setDefaults(def);
 		}
 	}
 	
