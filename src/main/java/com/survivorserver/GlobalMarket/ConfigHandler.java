@@ -33,21 +33,33 @@ public class ConfigHandler {
 		try {
 			listingsFile = new File(market.getDataFolder(), "listings.yml");
 			currentFile = listingsFile;
+			if (!listingsFile.exists()) {
+				listingsFile.createNewFile();
+			}
 			listingsConfig = new YamlConfiguration();
 			listingsConfig.load(listingsFile);
 
 			mailFile = new File(market.getDataFolder(), "mail.yml");
 			currentFile = mailFile;
+			if (!mailFile.exists()) {
+				mailFile.createNewFile();
+			}
 			mailConfig = new YamlConfiguration();
 			mailConfig.load(mailFile);
 
 			historyFile = new File(market.getDataFolder(), "history.yml");
 			currentFile = historyFile;
+			if (!historyFile.exists()) {
+				historyFile.createNewFile();
+			}
 			historyConfig = new YamlConfiguration();
 			historyConfig.load(historyFile);
 			
 			queueFile = new File(market.getDataFolder(), "queue.yml");
 			currentFile = queueFile;
+			if (!queueFile.exists()) {
+				queueFile.createNewFile();
+			}
 			queueConfig = new YamlConfiguration();
 			queueConfig.load(queueFile);
 
