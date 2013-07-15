@@ -29,11 +29,11 @@ public class MarketCore {
 	
 	public void buyListing(Listing listing, Player player) {
 		double price = listing.getPrice();
-		market.getEcon().withdrawPlayer(player.getName(), price);
 		if (market.cutTransactions()) {
 			price = price - new BigDecimal(market.getCut(price)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
 		}
 		if (market.autoPayment()) {
+			market.getEcon().withdrawPlayer(player.getName(), listing.getPrice());
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 				market.getEcon().depositPlayer(listing.getSeller(), price);
 			}
