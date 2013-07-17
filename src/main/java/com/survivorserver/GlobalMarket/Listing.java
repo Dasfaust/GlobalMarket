@@ -17,14 +17,7 @@ public class Listing {
 		this.seller = seller;
 		this.price = price;
 		this.time = time;
-		// TODO: figure this one out
-		clientName = item.getType().toString();
-		if (!market.useBukkitNames()) {
-			net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(item.getTypeId());
-			if (itemInfo != null) {
-				clientName = itemInfo.getName();
-			}
-		}
+		clientName = market.getItemName(item);
 	}
 	
 	public int getId() {

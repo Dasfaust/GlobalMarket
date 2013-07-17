@@ -47,14 +47,7 @@ public class MarketCore {
 				storage.removeListing(listing.getId());
 			}
 			handler.updateAllViewers();
-			// TODO: make this pretty
-			String itemName = listing.getItem().getType().toString();
-			if (!market.useBukkitNames()) {
-				net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(listing.getItem().getTypeId());
-				if (itemInfo != null) {
-					itemName = itemInfo.getName();
-				}
-			}
+			String itemName = market.getItemName(listing.getItem());
 			storage.storeHistory(player.getName(), market.getLocale().get("history.item_listed", itemName + "x" + listing.getItem().getAmount(), price));
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), price));
@@ -82,14 +75,7 @@ public class MarketCore {
 				storage.removeListing(listing.getId());
 			}
 			handler.updateAllViewers();
-			// TODO: make this pretty
-			String itemName = listing.getItem().getType().toString();
-			if (!market.useBukkitNames()) {
-				net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(listing.getItem().getTypeId());
-				if (itemInfo != null) {
-					itemName = itemInfo.getName();
-				}
-			}
+			String itemName = market.getItemName(listing.getItem());
 			storage.storeHistory(player.getName(), market.getLocale().get("history.item_listed", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
@@ -120,14 +106,7 @@ public class MarketCore {
 		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			// TODO: make this pretty
-			String itemName = listing.getItem().getType().toString();
-			if (!market.useBukkitNames()) {
-				net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(listing.getItem().getTypeId());
-				if (itemInfo != null) {
-					itemName = itemInfo.getName();
-				}
-			}
+			String itemName = market.getItemName(listing.getItem());
 			if (listing.getSeller().equalsIgnoreCase(player.getName())) {
 				storage.storeHistory(player.getName(), market.getLocale().get("history.listing_removed", "You", itemName + "x" + listing.getItem().getAmount()));
 			} else {
@@ -143,14 +122,7 @@ public class MarketCore {
 		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			// TODO: make this pretty
-			String itemName = listing.getItem().getType().toString();
-			if (!market.useBukkitNames()) {
-				net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(listing.getItem().getTypeId());
-				if (itemInfo != null) {
-					itemName = itemInfo.getName();
-				}
-			}
+			String itemName = market.getItemName(listing.getItem());
 			if (listing.getSeller().equalsIgnoreCase(player)) {
 				storage.storeHistory(player, market.getLocale().get("history.listing_removed", "You", itemName + "x" + listing.getItem().getAmount()));
 			} else {
@@ -195,5 +167,9 @@ public class MarketCore {
 		meta.setPages(pages);
 		book.setItemMeta(meta);
 		player.getInventory().addItem(book);
+	}
+	
+	public double getRoundedCut(double price) {
+		return price - new BigDecimal(market.getCut(price)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
 	}
 }

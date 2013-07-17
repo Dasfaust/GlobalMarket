@@ -103,14 +103,7 @@ public class MarketStorage {
 			}
 			String seller = config.getListingsYML().getString(path + ".seller");
 			ItemStack item = config.getListingsYML().getItemStack(path + ".item").clone();
-			// TODO: make this pretty
-			String itemName = item.getType().toString();
-			if (!market.useBukkitNames()) {
-				net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(item.getTypeId());
-				if (itemInfo != null) {
-					itemName = itemInfo.getName();
-				}
-			}
+			String itemName = market.getItemName(item);
 			if (itemName.toLowerCase().contains(search.toLowerCase())
 					|| isItemId(search, item.getTypeId())
 					|| isInDisplayName(search.toLowerCase(), item)
@@ -160,14 +153,7 @@ public class MarketStorage {
 		}
 		meta.setTitle(market.getLocale().get("transaction_log.item_name"));
 		double cut = new BigDecimal(market.getCut(amount)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
-		// TODO: make this pretty
-		String itemName = item.getType().toString();
-		if (!market.useBukkitNames()) {
-			net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(item.getTypeId());
-			if (itemInfo != null) {
-				itemName = itemInfo.getName();
-			}
-		}
+		String itemName = market.getItemName(item);
 		String logStr = market.getLocale().get("transaction_log.title") + "\n\n" +
 						market.getLocale().get("transaction_log.item_sold", itemName + "x" + item.getAmount()) + "\n\n" +
 						market.getLocale().get("transaction_log.sale_price", amount) + "\n\n" +

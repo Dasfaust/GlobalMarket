@@ -194,16 +194,6 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getBoolean("enable_cut");
 	}
 	
-	public boolean useBukkitNames() {
-		try {
-        	Class.forName("net.milkbowl.vault.item.Items");
-        	Class.forName("net.milkbowl.vault.item.ItemInfo");
-        } catch(Exception e) {
-        	return true;
-        }
-		return false;
-	}
-	
 	public void addSearcher(String name) {
 		searching.add(name);
 	}
@@ -318,6 +308,27 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getBoolean("price_check.enable");
 	}
 	
+	public String getInfiniteSeller() {
+		return infiniteSeller;
+	}
+	
+	public String getInfiniteAccount() {
+		return getConfig().getString("infinite.account");
+	}
+
+	public String getItemName(ItemStack item) {
+		String itemName = item.getType().toString();
+		try {
+			Class.forName("net.milkbowl.vault.item.Items");
+        	Class.forName("net.milkbowl.vault.item.ItemInfo");
+			net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(item.getTypeId());
+			if (itemInfo != null) {
+				itemName = itemInfo.getName();
+			}
+		} catch(Exception ignored) { }
+		return itemName;
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -378,14 +389,6 @@ public class Market extends JavaPlugin implements Listener {
 		}
 	}
 	
-	public String getInfiniteSeller() {
-		return infiniteSeller;
-	}
-	
-	public String getInfiniteAccount() {
-		return getConfig().getString("infinite.account");
-	}
-
 	@EventHandler
 	public void onLogin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
@@ -629,14 +632,7 @@ public class Market extends JavaPlugin implements Listener {
 							if (fee > 0) {
 								player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
 							}
-							// TODO: make this pretty
-							String itemName = toList.getType().toString();
-							if (!useBukkitNames()) {
-								net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(toList.getTypeId());
-								if (itemInfo != null) {
-									itemName = itemInfo.getName();
-								}
-							}
+							String itemName = getItemName(toList);
 							storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName + "x" + toList.getAmount(), price));
 						} else {
 							if (fee > 0) {
@@ -662,14 +658,7 @@ public class Market extends JavaPlugin implements Listener {
 							if (!infinite) {
 								player.setItemInHand(new ItemStack(Material.AIR));
 							}
-							// TODO: make this pretty
-							String itemName = toList.getType().toString();
-							if (!useBukkitNames()) {
-								net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(toList.getTypeId());
-								if (itemInfo != null) {
-									itemName = itemInfo.getName();
-								}
-							}
+							String itemName = getItemName(toList);
 							storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName + "x" + toList.getAmount(), price));
 						}
 					} else {

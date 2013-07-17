@@ -36,13 +36,7 @@ public class PriceHandler {
 	}
 	
 	public String getPricesInformation(ItemStack item) {
-		String itemName = item.getType().toString();
-		if (!market.useBukkitNames()) {
-			net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(item.getTypeId());
-			if (itemInfo != null) {
-				itemName = itemInfo.getName();
-			}
-		}
+		String itemName = market.getItemName(item);
 		try {
 			ResultSet rs = db.query("SELECT * FROM prices_data WHERE item_id=" + item.getTypeId() + " AND item_data=" + item.getData().getData());
 			if (rs.isBeforeFirst()) {
