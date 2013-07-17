@@ -76,6 +76,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("price_check.enable", true);
 		getConfig().addDefault("infinite.seller", "Server");
 		getConfig().addDefault("infinite.account", "");
+		getConfig().addDefault("notify_on_update", true);
 		
 		List<String> b1 = new ArrayList<String>();
 		b1.add("Transaction Log");
@@ -396,7 +397,9 @@ public class Market extends JavaPlugin implements Listener {
 			player.sendMessage(prefix + locale.get("you_have_new_mail"));
 		}
 		if (player.hasPermission("globalmarket.admin")) {
-			new UpdateCheck(this, player.getName());
+			if (getConfig().getBoolean("notify_on_update")) {
+				new UpdateCheck(this, player.getName());
+			}
 		}
 	}
 
