@@ -168,8 +168,4 @@ public class MarketCore {
 		book.setItemMeta(meta);
 		player.getInventory().addItem(book);
 	}
-	
-	public double getRoundedCut(double price) {
-		return price - new BigDecimal(market.getCut(price)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
-	}
 }
