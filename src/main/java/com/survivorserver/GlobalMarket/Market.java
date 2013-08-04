@@ -437,8 +437,10 @@ public class Market extends JavaPlugin implements Listener {
 				if (sender.hasPermission("globalmarket.pricecheck")) {
 					sender.sendMessage(prefix + locale.get("cmd.pc_syntax") + " " + locale.get("cmd.pc_descr"));
 				}
-				if (sender.hasPermission("globalmarket.util")) {
+				if (sender.hasPermission("globalmarket.util.mailbox")) {
 					sender.sendMessage(prefix + locale.get("cmd.mailbox_syntax") + " " + locale.get("cmd.mailbox_descr"));
+				}
+				if (sender.hasPermission("globalmarket.util.stall")) {
 					sender.sendMessage(prefix + locale.get("cmd.stall_syntax") + " " + locale.get("cmd.stall_descr"));
 				}
 				if (sender.hasPermission("globalmarket.history")) {
@@ -695,7 +697,7 @@ public class Market extends JavaPlugin implements Listener {
 				}
 				return true;
 			}
-			if (sender.hasPermission("globalmarket.util")) {
+			if (sender.hasPermission("globalmarket.util.mailbox") || sender.hasPermission("globalmarket.util.stall")) {
 				if (args[0].equalsIgnoreCase("mailbox") || args[0].equalsIgnoreCase("stall")) {
 					Player player = (Player) sender;
 					Location loc = null;
@@ -714,39 +716,53 @@ public class Market extends JavaPlugin implements Listener {
 					int x = loc.getBlockX();
 					int y = loc.getBlockY();
 					int z = loc.getBlockZ();
-					if (args.length == 2 && args[1].equalsIgnoreCase("remove")) {
-						if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
-							getConfig().set("mailbox." + x + "," + y + "," + z, null);
+					if (args[0].equalsIgnoreCase("mailbox")) {
+						if (sender.hasPermission("globalmarket.util.mailbox")) {
+							if (args.length == 2 && args[1].equalsIgnoreCase("remove")) {
+								if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
+									getConfig().set("mailbox." + x + "," + y + "," + z, null);
+									saveConfig();
+									player.sendMessage(ChatColor.YELLOW + locale.get("mailbox_removed"));
+									return true;
+								} else {
+									player.sendMessage(ChatColor.RED + locale.get("no_mailbox_found"));
+									return true;
+								}
+							}
+							if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
+								sender.sendMessage(ChatColor.RED + locale.get("mailbox_already_exists"));
+								return true;
+							}
+							getConfig().set("mailbox." + x + "," + y + "," + z, true);
 							saveConfig();
-							player.sendMessage(ChatColor.YELLOW + locale.get("mailbox_removed"));
-							return true;
-						} else if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
-							getConfig().set("stall." + x + "," + y + "," + z, null);
-							saveConfig();
-							player.sendMessage(ChatColor.YELLOW + locale.get("stall_removed"));
-							return true;
+							sender.sendMessage(ChatColor.GREEN + locale.get("mailbox_added"));
 						} else {
-							player.sendMessage(ChatColor.RED + locale.get("no_stall_found"));
-							return true;
+							sender.sendMessage(locale.get("no_permission_for_this_command"));
 						}
 					}
-					if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
-						sender.sendMessage(ChatColor.RED + locale.get("mailbox_already_exists"));
-						return true;
-					} else if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
-						sender.sendMessage(ChatColor.RED + locale.get("stall_already_exists"));
-						return true;
-					}
-					if (args[0].equalsIgnoreCase("mailbox")) {
-						getConfig().set("mailbox." + x + "," + y + "," + z, true);
-						saveConfig();
-						sender.sendMessage(ChatColor.GREEN + locale.get("mailbox_added"));
-						return true;
-					} else if (args[0].equalsIgnoreCase("stall")) {
-						getConfig().set("stall." + x + "," + y + "," + z, true);
-						saveConfig();
-						sender.sendMessage(ChatColor.GREEN + locale.get("stall_added"));
-						return true;
+					if (args[0].equalsIgnoreCase("stall")) {
+						if (sender.hasPermission("globalmarket.util.stall")) {
+							if (args.length == 2 && args[1].equalsIgnoreCase("remove")) {
+								if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
+									getConfig().set("stall." + x + "," + y + "," + z, null);
+									saveConfig();
+									player.sendMessage(ChatColor.YELLOW + locale.get("stall_removed"));
+									return true;
+								} else {
+									player.sendMessage(ChatColor.RED + locale.get("no_stall_found"));
+									return true;
+								}
+							}
+							if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
+								sender.sendMessage(ChatColor.RED + locale.get("stall_already_exists"));
+								return true;
+							}
+							getConfig().set("stall." + x + "," + y + "," + z, true);
+							saveConfig();
+							sender.sendMessage(ChatColor.GREEN + locale.get("stall_added"));
+						} else {
+							sender.sendMessage(locale.get("no_permission_for_this_command"));
+						}
 					}
 				}
 			}
