@@ -609,7 +609,7 @@ public class Market extends JavaPlugin implements Listener {
 						}
 						boolean infinite = false;
 						for (int i = 0; i < args.length; i++) {
-							if (args[i].equalsIgnoreCase("-inf") && (sender.hasPermission("globalmarket.infinitelistings") || sender.hasPermission("globalmarket.infinite"))) {
+							if (args[i].equalsIgnoreCase("-inf") && sender.hasPermission("globalmarket.infinite")) {
 								infinite = true;
 							}
 						}
