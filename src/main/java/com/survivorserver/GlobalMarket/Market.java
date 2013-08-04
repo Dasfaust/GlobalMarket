@@ -6,6 +6,8 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -46,6 +48,7 @@ public class Market extends JavaPlugin implements Listener {
 	MarketCore core;
 	InterfaceListener listener;
 	Economy econ;
+	Permission perms;
 	LocaleHandler locale;
 	String prefix;
 	boolean bukkitItems = false;
@@ -103,6 +106,10 @@ public class Market extends JavaPlugin implements Listener {
         	log.severe("Vault has no hooked economy plugin, disabling");
         	this.setEnabled(false);
         	return;
+        }
+        RegisteredServiceProvider<net.milkbowl.vault.permission.Permission> permsProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+        if (permsProvider != null) {
+        	perms = permsProvider.getProvider();
         }
         try {
         	Class.forName("net.milkbowl.vault.item.Items");
@@ -183,6 +190,14 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public double getCreationFee(double amount) {
+		double fee = getConfig().getDouble("creation_fee");
+		return amount * fee;
+	}
+	
+	public double getCreationFee(Player player, double amount) {
+		if (player.hasPermission("globalmarket.nofee")) {
+			return 0;
+		}
 		double fee = getConfig().getDouble("creation_fee");
 		return amount * fee;
 	}
@@ -328,6 +343,13 @@ public class Market extends JavaPlugin implements Listener {
 			}
 		} catch(Exception ignored) { }
 		return itemName;
+	}
+	
+	public boolean hasCut(Player buyer, String seller) {
+		if (perms != null) {
+			return perms.playerHas(buyer.getWorld(), seller, "globalmarket.nocut");
+		}
+		return false;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -578,7 +600,7 @@ public class Market extends JavaPlugin implements Listener {
 							sender.sendMessage(prefix + locale.get("price_too_high"));
 							return true;
 						}
-						double fee = getCreationFee(price);
+						double fee = getCreationFee(player, price);
 						if (maxListings() > 0 && storageHandler.getNumListings(sender.getName()) >= maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
 							sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 							return true;

@@ -29,7 +29,7 @@ public class MarketCore {
 	
 	public void buyListing(Listing listing, Player player) {
 		double price = listing.getPrice();
-		if (market.cutTransactions()) {
+		if (market.cutTransactions() && !market.hasCut(player, listing.getSeller())) {
 			price = price - new BigDecimal(market.getCut(price)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
 		}
 		if (market.autoPayment()) {
