@@ -41,23 +41,22 @@ import com.survivorserver.GlobalMarket.tasks.SaveTask;
 public class Market extends JavaPlugin implements Listener {
 
 	Logger log;
-	ArrayList<Integer> tasks;
+	private ArrayList<Integer> tasks;
 	static Market market;
-	ConfigHandler config;
-	MarketStorage storageHandler;
-	MarketServer server;
-	InterfaceHandler interfaceHandler;
-	MarketCore core;
-	InterfaceListener listener;
-	Economy econ;
-	Permission perms;
-	LocaleHandler locale;
-	String prefix;
-	boolean bukkitItems = false;
-	List<String> searching;
-	MarketQueue queue;
-	PriceHandler prices;
+	private ConfigHandler config;
+	private MarketStorage storageHandler;
+	private MarketServer server;
+	private InterfaceHandler interfaceHandler;
+	private MarketCore core;
+	private InterfaceListener listener;
+	private Economy econ;
+	private Permission perms;
+	private LocaleHandler locale;
+	private List<String> searching;
+	private MarketQueue queue;
+	private PriceHandler prices;
 	String infiniteSeller;
+	String prefix;
 
 	public void onEnable() {
 		log = getLogger();
@@ -119,7 +118,6 @@ public class Market extends JavaPlugin implements Listener {
         	Class.forName("net.milkbowl.vault.item.ItemInfo");
         } catch(Exception e) {
         	log.warning("You have an old or corrupt version of Vault that's missing the Vault Items API. Defaulting to Bukkit item names. Please consider updating Vault!");
-        	bukkitItems = true;
         }
 		config = new ConfigHandler(this);
 		locale = new LocaleHandler(config);
@@ -172,6 +170,14 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public LocaleHandler getLocale() {
 		return locale;
+	}
+	
+	public ConfigHandler getConfigHandler() {
+		return config;
+	}
+	
+	public InterfaceHandler getInterfaceHandler() {
+		return interfaceHandler;
 	}
 	
 	public boolean serverEnabled() {

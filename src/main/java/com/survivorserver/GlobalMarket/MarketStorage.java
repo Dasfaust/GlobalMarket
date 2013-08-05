@@ -37,7 +37,7 @@ public class MarketStorage {
 		config.getListingsYML().set(path + ".price", price);
 		config.getListingsYML().set(path + ".time", (System.currentTimeMillis() / 1000));
 		incrementListingsIndex();
-		market.interfaceHandler.updateAllViewers();
+		market.getInterfaceHandler().updateAllViewers();
 	}
 	
 	public int getNumListings() {
