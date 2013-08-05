@@ -1,5 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -67,6 +69,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("automatic_payments", false);
 		getConfig().addDefault("enable_cut", true);
 		getConfig().addDefault("cut_amount", 0.05);
+		getConfig().addDefault("cut_account", "");
 		getConfig().addDefault("enable_metrics", true);
 		getConfig().addDefault("max_price", 0.0);
 		getConfig().addDefault("creation_fee", 0.0);
@@ -186,7 +189,12 @@ public class Market extends JavaPlugin implements Listener {
 		if (amount < 10 || !getConfig().getBoolean("enable_cut")) {
 			return 0;
 		}
-		return amount * getConfig().getDouble("cut_amount");
+		double cut = new BigDecimal(amount * getConfig().getDouble("cut_amount")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+		String cutAccount = getConfig().getString("cut_account");
+		if (cutAccount.length() >= 1) {
+			econ.depositPlayer(cutAccount, cut);
+		}
+		return cut;
 	}
 	
 	public double getCreationFee(double amount) {

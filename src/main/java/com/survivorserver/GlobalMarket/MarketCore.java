@@ -1,7 +1,5 @@
 package com.survivorserver.GlobalMarket;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,7 +28,7 @@ public class MarketCore {
 	public void buyListing(Listing listing, Player player) {
 		double price = listing.getPrice();
 		if (market.cutTransactions() && !market.hasCut(player, listing.getSeller())) {
-			price = price - new BigDecimal(market.getCut(price)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+			price = price - market.getCut(price);
 		}
 		if (market.autoPayment()) {
 			market.getEcon().withdrawPlayer(player.getName(), listing.getPrice());
