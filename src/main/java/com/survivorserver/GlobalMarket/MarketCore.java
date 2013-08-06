@@ -42,7 +42,7 @@ public class MarketCore {
 				storage.storeMail(listing.getItem(), player.getName(), true);
 			}
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.removeListing(listing.getId());
+				storage.removeListing(player.getName(), listing.getId());
 			}
 			handler.updateAllViewers();
 			String itemName = market.getItemName(listing.getItem());
@@ -70,7 +70,7 @@ public class MarketCore {
 				storage.storeMail(listing.getItem(), player.getName(), true);
 			}
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.removeListing(listing.getId());
+				storage.removeListing(player.getName(), listing.getId());
 			}
 			handler.updateAllViewers();
 			String itemName = market.getItemName(listing.getItem());
@@ -101,7 +101,7 @@ public class MarketCore {
 					storage.storeMail(listing.getItem(), listing.getSeller(), true);
 			}
 		}
-		storage.removeListing(listing.getId());
+		storage.removeListing(player.getName(), listing.getId());
 		handler.updateAllViewers();
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			String itemName = market.getItemName(listing.getItem());
@@ -117,7 +117,7 @@ public class MarketCore {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			storage.storeMail(listing.getItem(), listing.getSeller(), true);
 		}
-		storage.removeListing(listing.getId());
+		storage.removeListing(player, listing.getId());
 		handler.updateAllViewers();
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			String itemName = market.getItemName(listing.getItem());

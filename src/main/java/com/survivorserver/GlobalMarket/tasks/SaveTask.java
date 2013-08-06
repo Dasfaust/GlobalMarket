@@ -5,8 +5,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.ConfigHandler;
@@ -49,6 +52,17 @@ public class SaveTask extends BukkitRunnable {
 						new FileOutputStream(currentFile)));
 				out.write(config.getQueueYML().saveToString());
 				out.close();
+				
+				for (Entry<String, Map<File, FileConfiguration>> entry : config.customConfigs.entrySet()) {
+					for (Entry<File, FileConfiguration> ent : entry.getValue().entrySet()) {
+						currentFile = ent.getKey();
+						out = new BufferedWriter(new OutputStreamWriter(
+								new FileOutputStream(currentFile)));
+						out.write(ent.getValue().saveToString());
+						out.close();
+						break;
+					}
+				}
 			} catch(Exception e) {
 				log.severe("Could not save "
 						+ currentFile.getName() + ":");

@@ -14,6 +14,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.survivorserver.GlobalMarket.Events.ListingClickEvent;
 import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 import com.survivorserver.GlobalMarket.InterfaceViewer.ViewType;
 
@@ -34,8 +35,7 @@ public class InterfaceListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public synchronized void handleClickEvent(InventoryClickEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getWhoClicked().getName());
-		if (event.getInventory().getTitle().equalsIgnoreCase(market.getLocale().get("interface.listings_title"))
-				|| event.getInventory().getTitle().equalsIgnoreCase(market.getLocale().get("interface.mail_title"))) {
+		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
 			event.setCancelled(true);
 			if (viewer != null) {
 				if (event.getSlot() < 45 && !event.isRightClick()) {
@@ -82,12 +82,12 @@ public class InterfaceListener implements Listener {
 					}
 				}
 				handler.refreshViewer(viewer);
-			} else {
-				if (isMarketItem(event.getCurrentItem())) {
-					event.getInventory().remove(event.getCurrentItem());
-					if (event.getCursor() != null) {
-						event.getCursor().setType(Material.AIR);
-					}
+			}
+		} else {
+			if (isMarketItem(event.getCurrentItem())) {
+				event.getInventory().remove(event.getCurrentItem());
+				if (event.getCursor() != null) {
+					event.getCursor().setType(Material.AIR);
 				}
 				event.getWhoClicked().closeInventory();
 				event.setCancelled(true);
@@ -96,7 +96,14 @@ public class InterfaceListener implements Listener {
 	}
 	
 	public void handleListingsAction(InventoryClickEvent event, InterfaceViewer viewer) {
-		Listing listing = storage.getListing(viewer.getBoundSlots().get(event.getSlot()));
+		Listing listing = null;
+		ListingClickEvent e = new ListingClickEvent(event, viewer, listing);
+		market.getServer().getPluginManager().callEvent(e);
+		if (e.getListing() != null) {
+			listing = e.getListing();
+		} else {
+			listing = storage.getListing(viewer.getBoundSlots().get(event.getSlot()));
+		}
 		if (viewer.getLastAction() == null) {
 			if (event.isShiftClick()) {
 				viewer.setLastAction(InterfaceAction.SHIFTCLICK);

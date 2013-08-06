@@ -27,4 +27,9 @@ public class LocaleHandler {
 		}
 		return config.getLocaleYML().getString(selected + "." + string);
 	}
+	
+	public void registerLocale(String path, String value) {
+		config.getLocaleYML().addDefault(path, value);
+		config.getLocaleYML().options().copyDefaults(true);
+	}
 }

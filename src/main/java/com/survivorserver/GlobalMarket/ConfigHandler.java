@@ -2,10 +2,13 @@ package com.survivorserver.GlobalMarket;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+
 import com.survivorserver.GlobalMarket.tasks.SaveTask;
 
 public class ConfigHandler {
@@ -22,9 +25,11 @@ public class ConfigHandler {
 	private FileConfiguration queueConfig;
 	private File queueFile;
 	public boolean save = false;
+	public Map<String, Map<File, FileConfiguration>> customConfigs;
 	
 	public ConfigHandler(Market market) {
 		this.market = market;
+		customConfigs = new HashMap<String, Map<File, FileConfiguration>>();
 		load();
 	}
 	
@@ -139,5 +144,24 @@ public class ConfigHandler {
 	
 	public File getQueueFile() {
 		return queueFile;
+	}
+	
+	public void loadCustomConfig(String name) throws Exception {
+		Map<File, FileConfiguration> config = new HashMap<File, FileConfiguration>();
+		File file = new File(market.getDataFolder(), name + ".yml");
+		if (!file.exists()) {
+			file.createNewFile();
+		}
+		FileConfiguration conf = new YamlConfiguration();
+		conf.load(file);
+		config.put(file, conf);
+		customConfigs.put(name, config);
+	}
+	
+	public FileConfiguration getCustomConfig(String name) {
+		if (customConfigs.containsKey(name)) {
+			return customConfigs.get(name).values().iterator().next();
+		}
+		return null;
 	}
 }

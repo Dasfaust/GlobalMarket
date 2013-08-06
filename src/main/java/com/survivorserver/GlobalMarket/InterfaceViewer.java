@@ -45,6 +45,10 @@ public class InterfaceViewer {
 		return gui;
 	}
 	
+	public void setGui(Inventory gui) {
+		this.gui = gui;
+	}
+	
 	public InterfaceAction getLastAction() {
 		return lastAction;
 	}

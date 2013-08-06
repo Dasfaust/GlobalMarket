@@ -18,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
 import com.survivorserver.GlobalMarket.MarketQueue.QueueType;
+import com.survivorserver.GlobalMarket.Events.ListingRemoveEvent;
 
 public class MarketStorage {
 
@@ -59,7 +60,12 @@ public class MarketStorage {
 		config.getListingsYML().set("index", index);
 	}
 	
-	public void removeListing(int id) {
+	public void removeListing(String user, int id) {
+		ListingRemoveEvent event = new ListingRemoveEvent(id, user);
+		market.getServer().getPluginManager().callEvent(event);
+		if (event.isCancelled()) {
+			return;
+		}
 		String path = "listings." + id;
 		if (!config.getListingsYML().isSet(path)) {
 			return;
@@ -94,31 +100,27 @@ public class MarketStorage {
 		return listings;
 	}
 	
-	public List<Listing> getAllListings(String search) {
-		List<Listing> listings = new ArrayList<Listing>();
-		for (int i = getListingsIndex(); i >= 1; i--) {
-			String path = "listings." + i;
-			if (!config.getListingsYML().isSet(path)) {
-				continue;
-			}
-			String seller = config.getListingsYML().getString(path + ".seller");
-			ItemStack item = config.getListingsYML().getItemStack(path + ".item").clone();
+	public List<Listing> getAllListings(String search, List<Listing> listings) {
+		List<Listing> found = new ArrayList<Listing>();
+		for (Listing listing : listings) {
+			ItemStack item = listing.getItem();
 			String itemName = market.getItemName(item);
+			String seller = listing.getSeller();
 			if (itemName.toLowerCase().contains(search.toLowerCase())
 					|| isItemId(search, item.getTypeId())
 					|| isInDisplayName(search.toLowerCase(), item)
 					|| isInEnchants(search.toLowerCase(), item)
 					|| isInLore(search.toLowerCase(), item)
 					|| seller.toLowerCase().contains(search.toLowerCase())) {
-				listings.add(new Listing(market, i, item, seller, config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time")));
+				found.add(listing);
 			}
 		}
-		return listings;
+		return found;
 	}
 
 	public int getNumListings(String seller) {
 		int n = 0;
-		for (Listing listing : getAllListings(seller)) {
+		for (Listing listing : getAllListings(seller, getAllListings())) {
 			if (listing.getSeller().equalsIgnoreCase(seller)) {
 				n++;
 			}

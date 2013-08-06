@@ -15,6 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.survivorserver.GlobalMarket.Events.InterfaceCreateEvent;
+import com.survivorserver.GlobalMarket.Events.ViewerRemoveEvent;
 import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 import com.survivorserver.GlobalMarket.InterfaceViewer.ViewType;
 
@@ -63,6 +65,7 @@ public class InterfaceHandler {
 	}
 	
 	public synchronized void removeViewer(InterfaceViewer viewer) {
+		market.getServer().getPluginManager().callEvent(new ViewerRemoveEvent(viewer.getViewer()));
 		viewers.remove(viewer);
 	}
 	
@@ -72,13 +75,14 @@ public class InterfaceHandler {
 	
 	public void prepareListings(InterfaceViewer viewer) {
 		Map<Integer, Integer> boundSlots = new HashMap<Integer, Integer>();
+		List<Listing> listings = storage.getAllListings();
+		if (viewer.getSearch() != null) {
+			listings = storage.getAllListings(viewer.getSearch(), listings);
+		}
+		market.getServer().getPluginManager().callEvent(new InterfaceCreateEvent(viewer, listings));
 		Inventory gui = viewer.getGui();
 		gui.clear();
-		List<Listing> listings = storage.getAllListings();
 		ItemStack[] contents = new ItemStack[54];
-		if (viewer.getSearch() != null) {
-			listings = storage.getAllListings(viewer.getSearch());
-		}
 		setSearch(viewer.getSearch(), contents);
 		int slot = 0;
 		int p = 0;
@@ -93,7 +97,7 @@ public class InterfaceHandler {
 				boundSlots.put(slot, listing.getId());
 				ItemStack item = listing.getItem();
 				if (item == null || item.getType() == Material.AIR) {
-					storage.removeListing(listing.getId());
+					storage.removeListing(viewer.getViewer(), listing.getId());
 					market.log.warning("The item in listing " + listing.getId() + " is null, removing");
 					continue;
 				}

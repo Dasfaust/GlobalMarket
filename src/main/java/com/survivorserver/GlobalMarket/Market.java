@@ -34,6 +34,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.survivorserver.GlobalMarket.Events.ListingCreateEvent;
 import com.survivorserver.GlobalMarket.tasks.CleanTask;
 import com.survivorserver.GlobalMarket.tasks.ExpireTask;
 import com.survivorserver.GlobalMarket.tasks.SaveTask;
@@ -621,13 +622,17 @@ public class Market extends JavaPlugin implements Listener {
 							sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 							return true;
 						}
-						boolean infinite = false;
+						List<String> extraArgs = new ArrayList<String>();
 						for (int i = 0; i < args.length; i++) {
-							if (args[i].equalsIgnoreCase("-inf") && sender.hasPermission("globalmarket.infinite")) {
-								infinite = true;
+							if (args[i].startsWith("-")) {
+								extraArgs.add(args[i]);
 							}
 						}
-						if ((args.length == 3 && !infinite) || (args.length == 4 && infinite)) {
+						boolean infinite = false;
+						if (extraArgs.contains("-inf") && sender.hasPermission("globalmarket.infinite")) {
+							infinite = true;
+						}
+						if ((args.length == 3 && extraArgs.isEmpty()) || (args.length == 4 && !extraArgs.isEmpty())) {
 							int amount = 0;
 							try {
 								amount = Integer.parseInt(args[2]);
@@ -643,16 +648,22 @@ public class Market extends JavaPlugin implements Listener {
 								player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
 								return true;
 							}
+							ItemStack toList = new ItemStack(player.getItemInHand());
+							ListingCreateEvent event = new ListingCreateEvent(toList, amount, price, player, fee, extraArgs);
+							getServer().getPluginManager().callEvent(event);
+							if (event.isCancelled()) {
+								return true;
+							}
 							if (fee > 0) {
 								if (econ.has(sender.getName(), fee)) {
 									econ.withdrawPlayer(sender.getName(), fee);
 									storageHandler.incrementSpent(sender.getName(), fee);
+									player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
 								} else {
 									sender.sendMessage(ChatColor.RED + locale.get("you_cant_pay_this_fee"));
 									return true;
 								}
 							}
-							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (player.getItemInHand().getAmount() == amount) {
 								if (!infinite) {
 									player.setItemInHand(new ItemStack(Material.AIR));
@@ -670,9 +681,6 @@ public class Market extends JavaPlugin implements Listener {
 								storageHandler.storeListing(toList, infinite ? getInfiniteSeller() : player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 							}
-							if (fee > 0) {
-								player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
-							}
 							String itemName = getItemName(toList);
 							storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName + "x" + toList.getAmount(), price));
 						} else {
@@ -680,21 +688,24 @@ public class Market extends JavaPlugin implements Listener {
 								if (econ.has(sender.getName(), fee)) {
 									econ.withdrawPlayer(sender.getName(), fee);
 									storageHandler.incrementSpent(sender.getName(), fee);
+									player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
 								} else {
 									sender.sendMessage(ChatColor.RED + locale.get("you_cant_pay_this_fee"));
 									return true;
 								}
 							}
 							ItemStack toList = new ItemStack(player.getItemInHand());
+							ListingCreateEvent event = new ListingCreateEvent(toList, toList.getAmount(), price, player, fee, extraArgs);
+							getServer().getPluginManager().callEvent(event);	
+							if (event.isCancelled()) {
+								return true;
+							}
 							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
 								queue.queueListing(toList, player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
 							} else {
 								storageHandler.storeListing(toList, infinite ? getInfiniteSeller() : player.getName(), price);
 								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
-							}
-							if (fee > 0) {
-								player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
 							}
 							if (!infinite) {
 								player.setItemInHand(new ItemStack(Material.AIR));
