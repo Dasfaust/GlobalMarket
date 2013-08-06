@@ -8,7 +8,6 @@ import java.util.logging.Level;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-
 import com.survivorserver.GlobalMarket.tasks.SaveTask;
 
 public class ConfigHandler {
