@@ -38,7 +38,7 @@ public class InterfaceListener implements Listener {
 		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
 			event.setCancelled(true);
 			if (viewer != null) {
-				if (event.getSlot() < 45 && !event.isRightClick()) {
+				if (event.getSlot() < viewer.getGui().getContents().length - 9 && !event.isRightClick()) {
 					if (viewer.getViewType() == ViewType.MAIL) {
 						if (isMarketItem(event.getCurrentItem())) {
 							handleMailAction(event, viewer);
@@ -54,7 +54,7 @@ public class InterfaceListener implements Listener {
 					viewer.setLastActionSlot(-1);
 					viewer.setLastListing(null);
 				} else {
-					if (event.getSlot() == 47) {
+					if (event.getSlot() == viewer.getGui().getContents().length - 7) {
 						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
 							if (viewer.getSearch() == null) {
 								Player player = (Player) event.getWhoClicked();
@@ -68,13 +68,13 @@ public class InterfaceListener implements Listener {
 							}
 						}
 					}
-					if (event.getSlot() == 53) {
+					if (event.getSlot() == viewer.getGui().getContents().length - 1) {
 						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
 							viewer.setPage(viewer.getPage() + 1);
 							viewer.setLastAction(null);
 						}
 					}
-					if (event.getSlot() == 45) {
+					if (event.getSlot() == viewer.getGui().getContents().length - 9) {
 						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
 							viewer.setPage(viewer.getPage() - 1);
 							viewer.setLastAction(null);

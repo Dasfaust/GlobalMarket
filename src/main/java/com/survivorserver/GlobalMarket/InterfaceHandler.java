@@ -25,7 +25,6 @@ public class InterfaceHandler {
 	Market market;
 	MarketStorage storage;
 	List<InterfaceViewer> viewers;
-	int maxListingsPerPage = 45;
 	UUID versionId;
 	
 	public InterfaceHandler(Market market, MarketStorage storage) {
@@ -82,18 +81,18 @@ public class InterfaceHandler {
 		market.getServer().getPluginManager().callEvent(new InterfaceCreateEvent(viewer, listings));
 		Inventory gui = viewer.getGui();
 		gui.clear();
-		ItemStack[] contents = new ItemStack[54];
+		ItemStack[] contents = new ItemStack[gui.getSize()];
 		setSearch(viewer.getSearch(), contents);
 		int slot = 0;
 		int p = 0;
-		int n = viewer.getPage() * maxListingsPerPage;
+		int n = viewer.getPage() * (contents.length - 9);
 		for (Listing listing : listings) {
-			if (n > maxListingsPerPage && p < n - maxListingsPerPage) {
+			if (n > (contents.length - 9) && p < n - (contents.length - 9)) {
 				p++;
 				continue;
 			}
 			p++;
-			if (slot < maxListingsPerPage) {
+			if (slot < (contents.length - 9)) {
 				boundSlots.put(slot, listing.getId());
 				ItemStack item = listing.getItem();
 				if (item == null || item.getType() == Material.AIR) {
@@ -142,7 +141,7 @@ public class InterfaceHandler {
 		if (n < listings.size()) {
 			setNextPage(contents, viewer);
 		}
-		if (n > maxListingsPerPage) {
+		if (n > (contents.length - 9)) {
 			setPrevPage(contents, viewer);
 		}
 		viewer.setBoundSlots(boundSlots);
@@ -162,17 +161,17 @@ public class InterfaceHandler {
 		Inventory gui = viewer.getGui();
 		gui.clear();
 		Map<Integer, ItemStack> mail = storage.getAllMailFor(viewer.getViewer());
-		ItemStack[] contents = new ItemStack[54];
+		ItemStack[] contents = new ItemStack[gui.getSize()];
 		int slot = 0;
 		int p = 0;
-		int n = viewer.getPage() * maxListingsPerPage;
+		int n = viewer.getPage() * (contents.length - 9);
 		for (Entry<Integer, ItemStack> entry : mail.entrySet()) {
-			if (n > maxListingsPerPage && p < n - maxListingsPerPage) {
+			if (n > (contents.length - 9) && p < n - (contents.length - 9)) {
 				p++;
 				continue;
 			}
 			p++;
-			if (slot < maxListingsPerPage) {
+			if (slot < (contents.length - 9)) {
 				boundSlots.put(slot, entry.getKey());
 				if (entry.getValue() == null || entry.getValue().getType() == Material.AIR) {
 					storage.removeMail(viewer.getViewer(), entry.getKey());
@@ -211,7 +210,7 @@ public class InterfaceHandler {
 		if (n < storage.getNumMail(viewer.getViewer())) {
 			setNextPage(contents, viewer);
 		}
-		if (n > maxListingsPerPage) {
+		if (n > (contents.length - 9)) {
 			setPrevPage(contents, viewer);
 		}
 		viewer.setBoundSlots(boundSlots);
@@ -236,7 +235,7 @@ public class InterfaceHandler {
 		nextLore.add(ChatColor.YELLOW + market.getLocale().get("interface.next_page"));
 		nextMeta.setLore(nextLore);
 		nextPage.setItemMeta(nextMeta);
-		contents[53] = nextPage;
+		contents[contents.length - 1] = nextPage;
 	}
 	
 	public void setCurPage(ItemStack[] contents, InterfaceViewer viewer) {
@@ -250,7 +249,7 @@ public class InterfaceHandler {
 		curLore.add(ChatColor.YELLOW + market.getLocale().get("interface.cur_page"));
 		curMeta.setLore(curLore);
 		curPage.setItemMeta(curMeta);
-		contents[49] = curPage;
+		contents[contents.length - 5] = curPage;
 	}
 	
 	public void setPrevPage(ItemStack[] contents, InterfaceViewer viewer) {
@@ -264,7 +263,7 @@ public class InterfaceHandler {
 		prevLore.add(ChatColor.YELLOW + market.getLocale().get("interface.prev_page"));
 		prevMeta.setLore(prevLore);
 		prevPage.setItemMeta(prevMeta);
-		contents[45] = prevPage;
+		contents[contents.length - 9] = prevPage;
 	}
 	
 	public void setSearch(String search, ItemStack[] contents) {
@@ -279,7 +278,7 @@ public class InterfaceHandler {
 			lore.add(ChatColor.YELLOW + market.getLocale().get("interface.start_search"));
 			meta.setLore(lore);
 			searchItem.setItemMeta(meta);
-			contents[47] = searchItem;
+			contents[contents.length - 7] = searchItem;
 		} else {
 			ItemMeta meta = searchItem.getItemMeta();
 			if (meta == null) {
@@ -290,7 +289,7 @@ public class InterfaceHandler {
 			lore.add(ChatColor.YELLOW + market.getLocale().get("interface.searching_for", search));
 			meta.setLore(lore);
 			searchItem.setItemMeta(meta);
-			contents[47] = searchItem;
+			contents[contents.length - 7] = searchItem;
 		}
 	}
 	
