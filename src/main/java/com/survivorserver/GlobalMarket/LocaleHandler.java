@@ -1,5 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
+import org.bukkit.ChatColor;
+
 public class LocaleHandler {
 	
 	ConfigHandler config;
@@ -18,14 +20,14 @@ public class LocaleHandler {
 		if (!config.getLocaleYML().isSet(selected + "." + string)) {
 			return string;
 		}
-		return String.format(config.getLocaleYML().getString(selected + "." + string), args);
+		return ChatColor.translateAlternateColorCodes('&', String.format(config.getLocaleYML().getString(selected + "." + string), args));
 	}
 	
 	public String get(String string) {
 		if (!config.getLocaleYML().isSet(selected + "." + string)) {
 			return string;
 		}
-		return config.getLocaleYML().getString(selected + "." + string);
+		return ChatColor.translateAlternateColorCodes('&', config.getLocaleYML().getString(selected + "." + string));
 	}
 	
 	public void registerLocale(String path, String value) {
