@@ -2,7 +2,9 @@ package com.survivorserver.GlobalMarket;
 
 import org.bukkit.inventory.ItemStack;
 
-public class Listing {
+import com.survivorserver.GlobalMarket.Interface.MarketItem;
+
+public class Listing implements MarketItem {
 
 	int id;
 	ItemStack item;

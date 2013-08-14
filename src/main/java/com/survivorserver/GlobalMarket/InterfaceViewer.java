@@ -4,6 +4,8 @@ import java.util.Map;
 
 import org.bukkit.inventory.Inventory;
 
+import com.survivorserver.GlobalMarket.Interface.MarketItem;
+
 public class InterfaceViewer {
 	
 	String player;
@@ -12,13 +14,14 @@ public class InterfaceViewer {
 	Inventory gui;
 	InterfaceAction lastAction;
 	int lastActionSlot = 0;
-	ViewType viewType;
 	String search;
-	Listing lastClicked;
+	MarketItem lastClicked;
+	String interfaceName;
 	
-	public InterfaceViewer(String player, Inventory gui) {
+	public InterfaceViewer(String player, Inventory gui, String interfaceName) {
 		this.player = player;
 		this.gui = gui;
+		this.interfaceName = interfaceName;
 	}
 	
 	public void setBoundSlots(Map<Integer, Integer> boundSlots) {
@@ -65,20 +68,12 @@ public class InterfaceViewer {
 		this.lastActionSlot = slot;
 	}
 	
-	public void setLastListing(Listing listing) {
-		lastClicked = listing;
+	public void setLastItem(MarketItem item) {
+		lastClicked = item;
 	}
 	
-	public Listing getLastListing() {
+	public MarketItem getLastItem() {
 		return lastClicked;
-	}
-	
-	public void setViewType(ViewType viewType) {
-		this.viewType = viewType;
-	}
-	
-	public ViewType getViewType() {
-		return viewType;
 	}
 
 	public void setSearch(String search) {
@@ -89,6 +84,20 @@ public class InterfaceViewer {
 		return search;
 	}
 	
+	public String getInterface() {
+		return interfaceName;
+	}
+	
+	public void setInterface(String name) {
+		interfaceName = name;
+	}
+	
+	public void resetActions() {
+		setLastAction(null);
+		setLastActionSlot(-1);
+		setLastItem(null);
+	}
+	
 	public enum InterfaceAction {
 		LEFTCLICK("leftclick"), RIGHTCLICK("rightclick"),
 		MIDDLECLICK("middleclick"), SHIFTCLICK("shiftclick");
@@ -96,21 +105,6 @@ public class InterfaceViewer {
 		private String value;
 		
 		private InterfaceAction(String value) {
-			this.value = value;
-		}
-		
-		public String getValue() {
-			return value;
-		}
-	}
-	
-	public enum ViewType {
-		LISTINGS("listings"), MAIL("mail"),
-		REQUESTS("requests");
-		
-		private String value;
-		
-		private ViewType(String value) {
 			this.value = value;
 		}
 		

@@ -100,9 +100,9 @@ public class MarketStorage {
 		return listings;
 	}
 	
-	public List<Listing> getAllListings(String search, List<Listing> listings) {
+	public List<Listing> getAllListings(String search) {
 		List<Listing> found = new ArrayList<Listing>();
-		for (Listing listing : listings) {
+		for (Listing listing : getAllListings()) {
 			ItemStack item = listing.getItem();
 			String itemName = market.getItemName(item);
 			String seller = listing.getSeller();
@@ -120,7 +120,7 @@ public class MarketStorage {
 
 	public int getNumListings(String seller) {
 		int n = 0;
-		for (Listing listing : getAllListings(seller, getAllListings())) {
+		for (Listing listing : getAllListings(seller)) {
 			if (listing.getSeller().equalsIgnoreCase(seller)) {
 				n++;
 			}
@@ -177,13 +177,6 @@ public class MarketStorage {
 		}
 	}
 	
-	public double getPaymentAmount(int id, String player) {
-		if (!config.getMailYML().isSet(player + "." + id + ".amount")) {
-			return 0;
-		}
-		return config.getMailYML().getDouble(player + "." + id + ".amount");
-	}
-	
 	public void nullifyPayment(int id, String player) {
 		if (!config.getMailYML().isSet(player + "." + id + ".amount")) {
 			return;
@@ -210,21 +203,38 @@ public class MarketStorage {
 		return config.getMailYML().getConfigurationSection(player).getKeys(false).size();
 	}
 	
-	public Map<Integer, ItemStack> getAllMailFor(String player) {
-		Map<Integer, ItemStack> mail = new HashMap<Integer, ItemStack>();
+	public List<Mail> getAllMailFor(String player) {
+		List<Mail> mail = new ArrayList<Mail>();
 		for (int i = 1; i <= getMailIndex(player); i++) {
 			String path = player + "." + i;
 			if (!config.getMailYML().isSet(path)) {
 				continue;
 			}
-			mail.put(i, config.getMailYML().getItemStack(path + ".item").clone());
+			String sender = null;
+			if (config.getMailYML().isSet(path + ".sender")) {
+				sender = config.getMailYML().getString(path + ".sender");
+			}
+			double pickup = -1;
+			if (config.getMailYML().isSet(path + ".amount")) {
+				pickup = config.getMailYML().getDouble(path + ".amount");
+			}
+			mail.add(new Mail(player, i, config.getMailYML().getItemStack(path + ".item").clone(), pickup, sender));
 		}
 		return mail;
 	}
 	
-	public ItemStack getMailItem(String player, int id) {
-		if (config.getMailYML().isSet(player + "." + id)) {
-			return config.getMailYML().getItemStack(player + "." + id + ".item").clone();
+	public Mail getMailItem(String player, int id) {
+		String path = player + "." + id;
+		if (config.getMailYML().isSet(path)) {
+			String sender = null;
+			if (config.getMailYML().isSet(path + ".sender")) {
+				sender = config.getMailYML().getString(path + ".sender");
+			}
+			double pickup = -1;
+			if (config.getMailYML().isSet(path + ".amount")) {
+				pickup = config.getMailYML().getDouble(path + ".amount");
+			}
+			return new Mail(player, id, config.getMailYML().getItemStack(path + ".item").clone(), pickup, sender);
 		}
 		return null;
 	}

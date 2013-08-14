@@ -3,7 +3,9 @@ package com.survivorserver.GlobalMarket;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
@@ -35,9 +37,10 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.survivorserver.GlobalMarket.Events.ListingCreateEvent;
-import com.survivorserver.GlobalMarket.tasks.CleanTask;
-import com.survivorserver.GlobalMarket.tasks.ExpireTask;
-import com.survivorserver.GlobalMarket.tasks.SaveTask;
+import com.survivorserver.GlobalMarket.Tasks.CleanTask;
+import com.survivorserver.GlobalMarket.Tasks.ExpireTask;
+import com.survivorserver.GlobalMarket.Tasks.SaveTask;
+import com.survivorserver.GlobalMarket.WebInterface.WebHandler;
 
 public class Market extends JavaPlugin implements Listener {
 
@@ -46,16 +49,16 @@ public class Market extends JavaPlugin implements Listener {
 	static Market market;
 	private ConfigHandler config;
 	private MarketStorage storageHandler;
-	private MarketServer server;
 	private InterfaceHandler interfaceHandler;
 	private MarketCore core;
 	private InterfaceListener listener;
 	private Economy econ;
 	private Permission perms;
 	private LocaleHandler locale;
-	private List<String> searching;
+	private Map<String, String> searching;
 	private MarketQueue queue;
 	private PriceHandler prices;
+	private WebHandler webHandler;
 	String infiniteSeller;
 	String prefix;
 
@@ -125,9 +128,10 @@ public class Market extends JavaPlugin implements Listener {
 		prefix = locale.get("cmd.prefix");
 		storageHandler = new MarketStorage(config, this);
 		interfaceHandler = new InterfaceHandler(this, storageHandler);
+		interfaceHandler.registerInterface(new ListingsInterface(this));
+		interfaceHandler.registerInterface(new MailInterface(this));
 		if (getConfig().getBoolean("server.enable")) {
-			server = new MarketServer(this, storageHandler, interfaceHandler);
-			server.start();
+			webHandler = new WebHandler(this);
 		}
 		core = new MarketCore(this, interfaceHandler, storageHandler);
 		listener = new InterfaceListener(this, interfaceHandler, storageHandler, core);
@@ -145,7 +149,7 @@ public class Market extends JavaPlugin implements Listener {
 			    log.info("Failed to start Metrics!");
 			}
 		}
-		searching = new ArrayList<String>();
+		searching = new HashMap<String, String>();
 		if (enablePrices()) {
 			prices = new PriceHandler(this);
 		}
@@ -182,14 +186,7 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public boolean serverEnabled() {
-		if (server != null) {
-			return true;
-		}
-		return false;
-	}
-	
-	public MarketServer server() {
-		return server;
+		return getConfig().getBoolean("server.enable");
 	}
 	
 	public double getCut(double amount) {
@@ -225,22 +222,22 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getBoolean("enable_cut");
 	}
 	
-	public void addSearcher(String name) {
-		searching.add(name);
+	public void addSearcher(String name, String interfaceName) {
+		searching.put(name, interfaceName);
 	}
 	
 	public double getMaxPrice() {
 		return getConfig().getDouble("max_price");
 	}
 	
-	public void startSearch(Player player) {
+	public void startSearch(Player player, String interfaceName) {
 		player.sendMessage(ChatColor.GREEN + getLocale().get("type_your_search"));
 		final String name = player.getName();
-		if (!searching.contains(name)) {
-			addSearcher(name);
+		if (!searching.containsKey(name)) {
+			addSearcher(name, interfaceName);
 			getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
 				public void run() {
-					if (searching.contains(name)) {
+					if (searching.containsKey(name)) {
 						searching.remove(name);
 						Player player = market.getServer().getPlayer(name);
 						if (player != null) {
@@ -370,14 +367,14 @@ public class Market extends JavaPlugin implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
-		if (searching.contains(player.getName())) {
+		if (searching.containsKey(player.getName())) {
 			event.setCancelled(true);
 			String search = event.getMessage();
 			if (search.equalsIgnoreCase("cancel")) {
+				interfaceHandler.openInterface(player, null, searching.get(player.getName()));
 				searching.remove(player.getName());
-				interfaceHandler.showListings(player, null);
 			} else {
-				interfaceHandler.showListings(player, search);
+				interfaceHandler.openInterface(player, search, searching.get(player.getName()));
 				searching.remove(player.getName());
 			}
 		}
@@ -399,7 +396,7 @@ public class Market extends JavaPlugin implements Listener {
 				int z = loc.getBlockZ();
 				if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
 					event.setCancelled(true);
-					interfaceHandler.showMail(player);
+					interfaceHandler.openInterface(player, null, "Mail");
 				}
 				if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
 					event.setCancelled(true);
@@ -409,14 +406,14 @@ public class Market extends JavaPlugin implements Listener {
 						Sign sign = (Sign) event.getClickedBlock().getState();
 						String line = sign.getLine(3);
 						if (line != null && line.length() > 0) {
-							interfaceHandler.showListings(player, line);
+							interfaceHandler.openInterface(player, line, "Listings");
 							return;
 						}
 					}
 					if (event.getPlayer().isSneaking() && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-						startSearch(player);
+						startSearch(player, "Listings");
 					} else {
-						interfaceHandler.showListings(player, null);
+						interfaceHandler.openInterface(player, null, "Listings");
 					}
 				}
 			}
@@ -481,7 +478,7 @@ public class Market extends JavaPlugin implements Listener {
 			}
 			if (args[0].equalsIgnoreCase("mail") && sender.hasPermission("globalmarket.quickmail")) {
 				Player player = (Player) sender;
-				interfaceHandler.showMail(player);
+				interfaceHandler.openInterface(player, null, "Mail");
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("send")) {
@@ -570,7 +567,7 @@ public class Market extends JavaPlugin implements Listener {
 							}
 						}
 					}
-					interfaceHandler.showListings(player, search);
+					interfaceHandler.openInterface(player, null, "Listings");
 				} else {
 					sender.sendMessage(ChatColor.YELLOW + locale.get("no_permission_for_this_command"));
 					return true;
@@ -799,7 +796,7 @@ public class Market extends JavaPlugin implements Listener {
 	public void onDisable() {
 		interfaceHandler.closeAllInterfaces();
 		if (getConfig().getBoolean("server.enable")) {
-			server.setDisabled();
+			webHandler.stopServer();
 		}
 		for(int i = 0; i < tasks.size(); i++) {
 			getServer().getScheduler().cancelTask(tasks.get(i));

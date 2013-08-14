@@ -1,4 +1,4 @@
-package com.survivorserver.GlobalMarket.tasks;
+package com.survivorserver.GlobalMarket.Tasks;
 
 import java.util.ArrayList;
 import java.util.List;

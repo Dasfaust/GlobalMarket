@@ -129,10 +129,10 @@ public class MarketCore {
 		}
 	}
 	
-	public void retrieveMail(int id, String player) {
-		Inventory playerInv = market.getServer().getPlayer(player).getInventory();
-		playerInv.addItem(storage.getMailItem(player, id));
-		storage.removeMail(player, id);
+	public void retrieveMail(Mail mail, Player player) {
+		Inventory playerInv = player.getInventory();
+		playerInv.addItem(storage.getMailItem(player.getName(), mail.getId()).getItem());
+		storage.removeMail(player.getName(), mail.getId());
 	}
 	
 	public void notifyPlayer(String player, String notification) {

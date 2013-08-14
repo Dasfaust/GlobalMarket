@@ -2,54 +2,61 @@ package com.survivorserver.GlobalMarket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
-
+import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.survivorserver.GlobalMarket.Events.InterfaceCreateEvent;
 import com.survivorserver.GlobalMarket.Events.ViewerRemoveEvent;
+import com.survivorserver.GlobalMarket.Interface.MarketInterface;
+import com.survivorserver.GlobalMarket.Interface.MarketItem;
 import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
-import com.survivorserver.GlobalMarket.InterfaceViewer.ViewType;
 
 public class InterfaceHandler {
 
 	Market market;
 	MarketStorage storage;
 	List<InterfaceViewer> viewers;
-	UUID versionId;
+	Set<MarketInterface> interfaces;
 	
 	public InterfaceHandler(Market market, MarketStorage storage) {
 		this.market = market;
 		this.storage = storage;
 		viewers = new ArrayList<InterfaceViewer>();
-		setVersionId();
+		interfaces = new HashSet<MarketInterface>();
 	}
 	
-	public void setVersionId() {
-		versionId = UUID.randomUUID();
+	public void registerInterface(MarketInterface gui) {
+		interfaces.add(gui);
 	}
 	
-	public UUID getVersionId() {
-		return versionId;
+	public MarketInterface getInterface(String name) {
+		for (MarketInterface gui : interfaces) {
+			if (gui.getName().equalsIgnoreCase(name)) {
+				return gui;
+			}
+		}
+		return null;
 	}
 	
-	public InterfaceViewer addViewer(String player, Inventory gui) {
+	public Set<MarketInterface> getInterfaces() {
+		return interfaces;
+	}
+	
+	public InterfaceViewer addViewer(String player, Inventory gui, String interfaceName) {
 		for (InterfaceViewer viewer : viewers) {
 			if (viewer.getViewer().equalsIgnoreCase(player)) {
 				gui = null;
 				return viewer;
 			}
 		}
-		InterfaceViewer viewer = new InterfaceViewer(player, gui);
+		InterfaceViewer viewer = new InterfaceViewer(player, gui, interfaceName);
 		viewers.add(viewer);
 		return viewer;
 	}
@@ -68,162 +75,64 @@ public class InterfaceHandler {
 		viewers.remove(viewer);
 	}
 	
-	public synchronized void openGui(InterfaceViewer viewer) {
+	private synchronized void openGui(InterfaceViewer viewer) {
 		market.getServer().getPlayer(viewer.getViewer()).openInventory(viewer.getGui());
 	}
 	
-	public void prepareListings(InterfaceViewer viewer) {
-		Map<Integer, Integer> boundSlots = new HashMap<Integer, Integer>();
-		List<Listing> listings = storage.getAllListings();
-		if (viewer.getSearch() != null) {
-			listings = storage.getAllListings(viewer.getSearch(), listings);
-		}
-		market.getServer().getPluginManager().callEvent(new InterfaceCreateEvent(viewer, listings));
-		Inventory gui = viewer.getGui();
-		gui.clear();
-		ItemStack[] contents = new ItemStack[gui.getSize()];
-		setSearch(viewer.getSearch(), contents);
-		int slot = 0;
-		int p = 0;
-		int n = viewer.getPage() * (contents.length - 9);
-		for (Listing listing : listings) {
-			if (n > (contents.length - 9) && p < n - (contents.length - 9)) {
-				p++;
-				continue;
-			}
-			p++;
-			if (slot < (contents.length - 9)) {
-				boundSlots.put(slot, listing.getId());
-				ItemStack item = listing.getItem();
-				if (item == null || item.getType() == Material.AIR) {
-					storage.removeListing(viewer.getViewer(), listing.getId());
-					market.log.warning("The item in listing " + listing.getId() + " is null, removing");
-					continue;
-				}
-				ItemMeta meta = item.getItemMeta().clone();
-				List<String> lore = meta.getLore();
-				if (!meta.hasLore()) {
-					lore = new ArrayList<String>();
-				}
-				String price = ChatColor.WHITE + market.getLocale().get("price") + market.getEcon().format(listing.getPrice());
-				String seller = ChatColor.WHITE + market.getLocale().get("seller") + ChatColor.GRAY + ChatColor.ITALIC + listing.getSeller();
-				lore.add(price);
-				lore.add(seller);
-				if (!viewer.getViewer().equalsIgnoreCase(listing.seller)) {
-					String buyMsg = ChatColor.YELLOW + market.getLocale().get("click_to_buy");
-					if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.LEFTCLICK && viewer.getLastActionSlot() == slot && (viewer.getLastListing() != null && viewer.getLastListing().getId() == listing.getId())) {
-						if (market.getEcon().has(viewer.getViewer(), listing.price)) {
-							buyMsg = ChatColor.GREEN + market.getLocale().get("click_again_to_confirm");
-						} else {
-							buyMsg = ChatColor.RED + market.getLocale().get("not_enough_money", market.getEcon().currencyNamePlural());
-							viewer.setLastAction(InterfaceAction.RIGHTCLICK);
-						}
-					}
-					lore.add(buyMsg);
-				}
-				if (viewer.getViewer().equalsIgnoreCase(listing.seller) || isAdmin(viewer.getViewer())) {
-					String removeMsg = ChatColor.DARK_GRAY + market.getLocale().get("shift_click_to_remove");
-					if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.SHIFTCLICK && viewer.getLastActionSlot() == slot && (viewer.getLastListing() != null && viewer.getLastListing().getId() == listing.getId())) {
-						removeMsg = ChatColor.GREEN + market.getLocale().get("shift_click_again_to_confirm");
-					}
-					lore.add(removeMsg);
-				}
-				if (listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-					lore.add(ChatColor.LIGHT_PURPLE + market.getLocale().get("interface.infinite"));
-				}
-				meta.setLore(lore);
-				item.setItemMeta(meta);
-				contents[slot] = item;
-			}
-			slot++;
-		}
-		setCurPage(contents, viewer);
-		if (n < listings.size()) {
-			setNextPage(contents, viewer);
-		}
-		if (n > (contents.length - 9)) {
-			setPrevPage(contents, viewer);
-		}
-		viewer.setBoundSlots(boundSlots);
-		gui.setContents(contents);
-	}
-	
-	public void showListings(Player player, String search) {
-		InterfaceViewer viewer = addViewer(player.getName(), market.getServer().createInventory(player, 54, market.getLocale().get("interface.listings_title")));
-		viewer.setViewType(ViewType.LISTINGS);
+	public void openInterface(Player player, String search, String marketInterface) {
+		MarketInterface gui = getInterface(marketInterface);
+		InterfaceViewer viewer = addViewer(player.getName(), market.getServer().createInventory(player, gui.getSize(), gui.getTitle()), marketInterface);
 		viewer.setSearch(search);
-		prepareListings(viewer);
+		refreshInterface(viewer, gui);
 		openGui(viewer);
 	}
 	
-	public void prepareMail(InterfaceViewer viewer) {
+	public void refreshInterface(InterfaceViewer viewer, MarketInterface gui) {
 		Map<Integer, Integer> boundSlots = new HashMap<Integer, Integer>();
-		Inventory gui = viewer.getGui();
-		gui.clear();
-		Map<Integer, ItemStack> mail = storage.getAllMailFor(viewer.getViewer());
-		ItemStack[] contents = new ItemStack[gui.getSize()];
+		List<MarketItem> contents = gui.getContents(viewer);
+		Inventory inv = viewer.getGui();
+		inv.clear();
+		ItemStack[] invContents = new ItemStack[gui.getSize()];
+		if (gui.enableSearch()) {
+			setSearch(viewer.getSearch(), invContents);
+		}
+		if (viewer.getSearch() != null) {
+			contents = gui.doSearch(viewer.getSearch());
+		}
 		int slot = 0;
 		int p = 0;
-		int n = viewer.getPage() * (contents.length - 9);
-		for (Entry<Integer, ItemStack> entry : mail.entrySet()) {
-			if (n > (contents.length - 9) && p < n - (contents.length - 9)) {
+		int n = viewer.getPage() * (invContents.length - 9);
+		for (MarketItem marketItem : contents) {
+			if (n > (invContents.length - 9) && p < n - (invContents.length - 9)) {
 				p++;
 				continue;
 			}
 			p++;
-			if (slot < (contents.length - 9)) {
-				boundSlots.put(slot, entry.getKey());
-				if (entry.getValue() == null || entry.getValue().getType() == Material.AIR) {
-					storage.removeMail(viewer.getViewer(), entry.getKey());
-					market.log.warning("The item in " + viewer.getViewer() + "'s mail id " + entry.getKey() + " is null");
-					continue;
+			if (slot < (invContents.length - 9)) {
+				boundSlots.put(slot, marketItem.getId());
+				boolean left = false;
+				boolean shift = false;
+				if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.LEFTCLICK && viewer.getLastActionSlot() == slot && (viewer.getLastItem() != null && viewer.getLastItem().getId() == marketItem.getId())) {
+					left = true;
 				}
-				ItemStack item = new ItemStack(entry.getValue());
-				ItemMeta meta = item.getItemMeta().clone();
-				List<String> lore = meta.getLore();
-				if (!meta.hasLore()) {
-					lore = new ArrayList<String>();
+				if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.SHIFTCLICK && viewer.getLastActionSlot() == slot && (viewer.getLastItem() != null && viewer.getLastItem().getId() == marketItem.getId())) {
+					shift = true;
 				}
-				if (meta instanceof BookMeta) {
-					BookMeta bookMeta = (BookMeta) meta;
-					if (bookMeta.hasTitle()) {
-						if (bookMeta.getTitle().equalsIgnoreCase(market.getLocale().get("transaction_log.item_name"))) {
-							double amount = storage.getPaymentAmount(entry.getKey(), viewer.getViewer());
-							if (amount > 0) {
-								lore.add(ChatColor.WHITE + market.getLocale().get("amount") + market.getEcon().format(amount));
-							}
-						}
-					}
-				}
-				String instructions = ChatColor.YELLOW + market.getLocale().get("click_to_retrieve");
-				if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.LEFTCLICK && viewer.getLastActionSlot() == slot) {
-					instructions = ChatColor.RED + market.getLocale().get("full_inventory");
-				}
-				lore.add(instructions);
-				meta.setLore(lore);
-				item.setItemMeta(meta);
-				contents[slot] = item;
+				invContents[slot] = gui.prepareItem(marketItem, viewer, p, slot, left, shift);
 			}
 			slot++;
 		}
-		setCurPage(contents, viewer);
-		if (n < storage.getNumMail(viewer.getViewer())) {
-			setNextPage(contents, viewer);
+		setCurPage(invContents, viewer);
+		if (n < contents.size()) {
+			setNextPage(invContents, viewer);
 		}
-		if (n > (contents.length - 9)) {
-			setPrevPage(contents, viewer);
+		if (n > (invContents.length - 9)) {
+			setPrevPage(invContents, viewer);
 		}
 		viewer.setBoundSlots(boundSlots);
-		gui.setContents(contents);
+		inv.setContents(invContents);
 	}
-	
-	public void showMail(Player player) {
-		InterfaceViewer viewer = addViewer(player.getName(), market.getServer().createInventory(player, 54, market.getLocale().get("interface.mail_title")));
-		viewer.setViewType(ViewType.MAIL);
-		prepareMail(viewer);
-		openGui(viewer);
-	}
-	
+
 	public void setNextPage(ItemStack[] contents, InterfaceViewer viewer) {
 		ItemStack nextPage = new ItemStack(Material.PAPER, viewer.getPage() + 1);
 		ItemMeta nextMeta = nextPage.getItemMeta();
@@ -294,11 +203,8 @@ public class InterfaceHandler {
 	}
 	
 	public void refreshViewer(InterfaceViewer viewer) {
-		if (viewer.getViewType() == ViewType.MAIL) {
-			prepareMail(viewer);
-		} else {
-			prepareListings(viewer);
-		}
+		MarketInterface gui = getInterface(viewer.getInterface());
+		refreshInterface(viewer, gui);
 	}
 	
 	public void updateAllViewers() {
@@ -312,18 +218,13 @@ public class InterfaceHandler {
 				inactive.add(viewer);
 				continue;
 			}
-			if (viewer.getViewType() == ViewType.MAIL) {
-				prepareMail(viewer);
-			} else {
-				prepareListings(viewer);
-			}
+			refreshViewer(viewer);
 		}
 		if (!inactive.isEmpty()) {
 			for (InterfaceViewer viewer : inactive) {
 				removeViewer(viewer);
 			}
 		}
-		setVersionId();
 	}
 	
 	public void closeAllInterfaces() {
