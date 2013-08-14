@@ -202,16 +202,14 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public double getCreationFee(double amount) {
-		double fee = getConfig().getDouble("creation_fee");
-		return amount * fee;
+		return getConfig().getDouble("creation_fee");
 	}
 	
 	public double getCreationFee(Player player, double amount) {
 		if (player.hasPermission("globalmarket.nofee")) {
 			return 0;
 		}
-		double fee = getConfig().getDouble("creation_fee");
-		return amount * fee;
+		return getConfig().getDouble("creation_fee");
 	}
 	
 	public boolean autoPayment() {
