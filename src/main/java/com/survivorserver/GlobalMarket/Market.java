@@ -529,19 +529,19 @@ public class Market extends JavaPlugin implements Listener {
 							}
 							toList.setAmount(amount);
 							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-								queue.queueMail(toList, args[1]);
+								queue.queueMail(toList, args[1], sender.getName());
 								sender.sendMessage(prefix + locale.get("item_will_send"));
 							} else {
-								storageHandler.storeMail(toList, args[1], true);
+								storageHandler.storeMail(toList, args[1], sender.getName(), true);
 								sender.sendMessage(prefix + locale.get("item_sent"));
 							}
 						} else {
 							ItemStack toList = new ItemStack(player.getItemInHand());
 							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-								queue.queueMail(toList, args[1]);
+								queue.queueMail(toList, args[1], sender.getName());
 								sender.sendMessage(prefix + locale.get("item_will_send"));
 							} else {
-								storageHandler.storeMail(toList, args[1], true);
+								storageHandler.storeMail(toList, args[1], sender.getName(), true);
 								sender.sendMessage(prefix + locale.get("item_sent"));
 							}
 							player.setItemInHand(new ItemStack(Material.AIR));

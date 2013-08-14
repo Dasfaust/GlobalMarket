@@ -36,8 +36,8 @@ public class MarketQueue extends BukkitRunnable {
 		storage.storeQueueItem(QueueType.LISTING_CREATE, item, seller, price);
 	}
 	
-	public void queueMail(ItemStack item, String to) {
-		storage.storeQueueItem(QueueType.MAIL_TO, item, to);
+	public void queueMail(ItemStack item, String to, String from) {
+		storage.storeQueueItem(QueueType.MAIL_TO, item, to, from);
 	}
 
 	@Override
@@ -57,7 +57,11 @@ public class MarketQueue extends BukkitRunnable {
 					} else if (type == QueueType.MAIL_TO) {
 						Long time = (Long) item.get(item.size() - 1);
 						if ((System.currentTimeMillis() - time) / 1000 >= market.getMailTime()) {
-							storage.storeMail(((ItemStack) item.get(1)), ((String) item.get(2)), true);
+							String from = null;
+							if (item.size() == 4) {
+								from = (String) item.get(3);
+							}
+							storage.storeMail(((ItemStack) item.get(1)), ((String) item.get(2)), from, true);
 							storage.removeQueueItem(set.getKey());
 						}
 					}

@@ -133,10 +133,11 @@ public class MarketStorage {
 		return new Listing(market, id, config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
 	}
 	
-	public void storeMail(ItemStack item, String player, boolean notify) {
+	public void storeMail(ItemStack item, String player, String sender, boolean notify) {
 		int id = getMailIndex(player) + 1;
 		String path = player + "." + id;
 		config.getMailYML().set(path + ".item", item);
+		config.getMailYML().set(path + ".sender", sender);
 		config.getMailYML().set(path + ".time", (System.currentTimeMillis() / 1000));
 		incrementMailIndex(player);
 		if (notify) {
@@ -147,7 +148,7 @@ public class MarketStorage {
 		}
 	}
 	
-	public void storePayment(ItemStack item, String player, double amount, boolean notify) {
+	public void storePayment(ItemStack item, String player, double amount, String buyer, boolean notify) {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
 		if (meta == null) {
@@ -166,6 +167,7 @@ public class MarketStorage {
 		int id = getMailIndex(player) + 1;
 		String path = player + "." + id;
 		config.getMailYML().set(path + ".item", book);
+		config.getMailYML().set(path + ".sender", buyer);
 		config.getMailYML().set(path + ".time", (System.currentTimeMillis() / 1000));
 		config.getMailYML().set(path + ".amount", (amount-cut));
 		incrementMailIndex(player);

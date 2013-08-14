@@ -57,6 +57,9 @@ public class MailInterface implements MarketInterface {
 		if (!meta.hasLore()) {
 			lore = new ArrayList<String>();
 		}
+		if (mail.getSender() != null) {
+			lore.add(ChatColor.RESET + market.getLocale().get("interface.mail_from") + ChatColor.GRAY + ChatColor.ITALIC + mail.getSender());
+		}
 		if (meta instanceof BookMeta) {
 			BookMeta bookMeta = (BookMeta) meta;
 			if (bookMeta.hasTitle()) {

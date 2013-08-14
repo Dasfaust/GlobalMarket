@@ -88,6 +88,7 @@ english:
         search: "Search..."
         start_search: "<click to start a search>"
         infinite: "<infinite>"
+        mail_from: "From: "
     interface_closed_due_to_reload: "Interface force-closed due to a reload"
     config_reloaded: "Config reloaded"
     no_permission_for_this_command: "You do not have permission for this command"
