@@ -128,5 +128,4 @@ public class ListingsInterface implements MarketInterface {
 		}
 		return false;
 	}
-
 }

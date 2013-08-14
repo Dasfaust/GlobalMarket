@@ -132,5 +132,4 @@ public class MailInterface implements MarketInterface {
 		}
 		return false;
 	}
-
 }
