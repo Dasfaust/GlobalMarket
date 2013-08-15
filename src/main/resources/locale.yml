@@ -4,7 +4,7 @@ english:
     you_have_new_mail: "You have new mail!"
     player_context_required: "All commands require a player context!"
     cmd:
-        prefix: "[\u00a7aMarket\u00a7f] "
+        prefix: "[&a&lMarket&f] "
         help: "Do /market ? for help"
         help_legend: "Legend: () optional, [] description"
         listings_syntax: "/market listings (<search>)"
@@ -102,7 +102,7 @@ english:
     item_is_blacklisted: "You can't sell this item"
     item_is_blacklisted_from_mail: "You can't send this item"
     prices:
-        no_data: "No data available for %s. Please note that price data will not be available until the item has been"
+        no_data: "No data available for %s. Please note that price data will not be available until the item has been traded"
         header: "%s Pricing:"
         price_per_item: "Average price per item: %s"
         price_per_stack: "Average price per stack: %s"
