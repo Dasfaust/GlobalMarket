@@ -75,7 +75,7 @@ public class InterfaceHandler {
 		viewers.remove(viewer);
 	}
 	
-	private synchronized void openGui(InterfaceViewer viewer) {
+	public synchronized void openGui(InterfaceViewer viewer) {
 		market.getServer().getPlayer(viewer.getViewer()).openInventory(viewer.getGui());
 	}
 	

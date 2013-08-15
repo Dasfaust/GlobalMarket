@@ -14,12 +14,11 @@ public class ListingCreateEvent extends Event implements Cancellable {
 	private int amount;
 	private double price;
 	private Player seller;
-	private double fee;
 	private List<String> args;
 	private boolean isCancelled;
 	private static final HandlerList handlers = new HandlerList();
 	
-	public ListingCreateEvent(ItemStack item, int amount, double price, Player seller, double fee, List<String> args) {
+	public ListingCreateEvent(ItemStack item, int amount, double price, Player seller, List<String> args) {
 		this.item = item;
 		this.amount = amount;
 		this.price = price;
@@ -61,10 +60,6 @@ public class ListingCreateEvent extends Event implements Cancellable {
 	
 	public Player getSeller() {
 		return seller;
-	}
-	
-	public double getFee() {
-		return fee;
 	}
 	
 	public List<String> getArgs() {

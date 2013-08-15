@@ -15,12 +15,7 @@ import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -36,7 +31,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.survivorserver.GlobalMarket.Events.ListingCreateEvent;
+import com.survivorserver.GlobalMarket.Command.MarketCommand;
 import com.survivorserver.GlobalMarket.Tasks.CleanTask;
 import com.survivorserver.GlobalMarket.Tasks.ExpireTask;
 import com.survivorserver.GlobalMarket.Tasks.SaveTask;
@@ -59,7 +54,8 @@ public class Market extends JavaPlugin implements Listener {
 	private MarketQueue queue;
 	private PriceHandler prices;
 	private WebHandler webHandler;
-	String infiniteSeller;
+	private MarketCommand cmd;
+	public String infiniteSeller;
 	String prefix;
 
 	public void onEnable() {
@@ -155,6 +151,8 @@ public class Market extends JavaPlugin implements Listener {
 		}
 		tasks.add(new SaveTask(log, config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 		infiniteSeller = getConfig().getString("infinite.seller");
+		cmd = new MarketCommand(this);
+		getCommand("market").setExecutor(cmd);
 	}
 	
 	public Economy getEcon() {
@@ -433,362 +431,6 @@ public class Market extends JavaPlugin implements Listener {
 				new UpdateCheck(this, player.getName());
 			}
 		}
-	}
-
-	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-		if (cmd.getName().equalsIgnoreCase("market")) {
-			if (args.length < 1 || args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("?")) {
-				sender.sendMessage(prefix + locale.get("cmd.help_legend"));
-				sender.sendMessage(prefix + locale.get("cmd.listings_syntax") + " " + locale.get("cmd.listings_descr"));
-				sender.sendMessage(prefix + locale.get("cmd.create_syntax") + " " + locale.get("cmd.create_descr"));
-				if (sender.hasPermission("globalmarket.quickmail")) {
-					sender.sendMessage(prefix + locale.get("cmd.mail_syntax") + " " + locale.get("cmd.mail_descr"));
-				}
-				if (sender.hasPermission("globalmarket.pricecheck")) {
-					sender.sendMessage(prefix + locale.get("cmd.pc_syntax") + " " + locale.get("cmd.pc_descr"));
-				}
-				if (sender.hasPermission("globalmarket.util.mailbox")) {
-					sender.sendMessage(prefix + locale.get("cmd.mailbox_syntax") + " " + locale.get("cmd.mailbox_descr"));
-				}
-				if (sender.hasPermission("globalmarket.util.stall")) {
-					sender.sendMessage(prefix + locale.get("cmd.stall_syntax") + " " + locale.get("cmd.stall_descr"));
-				}
-				if (sender.hasPermission("globalmarket.history")) {
-					sender.sendMessage(prefix + locale.get("cmd.history_syntax") + " " + locale.get("cmd.history_descr"));
-				}
-				sender.sendMessage(prefix + locale.get("cmd.send_syntax") + " " + locale.get("cmd.send_descr"));
-				if (sender.hasPermission("globalmarket.admin")) {
-					sender.sendMessage(prefix + locale.get("cmd.reload_syntax") + " " + locale.get("cmd.reload_descr"));
-				}
-				return true;
-			}
-			if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("globalmarket.admin")) {
-				reloadConfig();
-				config.reloadLocaleYML();
-				locale.setSelected();
-				infiniteSeller = getConfig().getString("infinite.seller");
-				sender.sendMessage(prefix + market.getLocale().get("config_reloaded"));
-				return true;
-			}
-			if (sender instanceof ConsoleCommandSender) {
-				sender.sendMessage(prefix + locale.get("player_context_required"));
-				return true;
-			}
-			if (args[0].equalsIgnoreCase("mail") && sender.hasPermission("globalmarket.quickmail")) {
-				Player player = (Player) sender;
-				interfaceHandler.openInterface(player, null, "Mail");
-				return true;
-			}
-			if (args[0].equalsIgnoreCase("send")) {
-				if (sender.hasPermission("globalmarket.send")) {
-					Player player = (Player) sender;
-					if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
-						if (blacklistMail()) {
-							if (itemBlacklisted(player.getItemInHand())) {
-								sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted_from_mail"));
-								return true;
-							}
-						}
-						if (args.length < 2) {
-							sender.sendMessage(prefix + locale.get("cmd.send_syntax"));
-							return true;
-						}
-						if (args[1].equalsIgnoreCase(player.getName())) {
-							sender.sendMessage(prefix + locale.get("cant_mail_to_self"));
-							return true;
-						}
-						OfflinePlayer off = getServer().getOfflinePlayer(args[1]);
-						if (!off.hasPlayedBefore()) {
-							sender.sendMessage(prefix + locale.get("player_not_found", args[1]));
-							return true;
-						}
-						args[1] = off.getName();
-						if (args.length == 3) {
-							int amount = 0;
-							try {
-								amount = Integer.parseInt(args[2]);
-							} catch(Exception e) {
-								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_number", args[2]));
-								return true;
-							}
-							if (amount <= 0) {
-								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_amount", args[2]));
-								return true;
-							}
-							if (player.getItemInHand().getAmount() < amount) {
-								player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
-								return true;
-							}
-							ItemStack toList = new ItemStack(player.getItemInHand());
-							if (player.getItemInHand().getAmount() == amount) {
-								player.setItemInHand(new ItemStack(Material.AIR));
-							} else {
-								player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
-							}
-							toList.setAmount(amount);
-							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-								queue.queueMail(toList, args[1], sender.getName());
-								sender.sendMessage(prefix + locale.get("item_will_send"));
-							} else {
-								storageHandler.storeMail(toList, args[1], sender.getName(), true);
-								sender.sendMessage(prefix + locale.get("item_sent"));
-							}
-						} else {
-							ItemStack toList = new ItemStack(player.getItemInHand());
-							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-								queue.queueMail(toList, args[1], sender.getName());
-								sender.sendMessage(prefix + locale.get("item_will_send"));
-							} else {
-								storageHandler.storeMail(toList, args[1], sender.getName(), true);
-								sender.sendMessage(prefix + locale.get("item_sent"));
-							}
-							player.setItemInHand(new ItemStack(Material.AIR));
-						}
-					} else {
-						sender.sendMessage(prefix + locale.get("hold_an_item") + " " + locale.get("cmd.send_syntax"));
-					}
-				} else {
-					sender.sendMessage(ChatColor.YELLOW + locale.get("no_permission_for_this_command"));
-					return true;
-				}
-				return true;
-			}
-			if (args[0].equalsIgnoreCase("listings")) {
-				if (sender.hasPermission("globalmarket.quicklist")) {
-					Player player = (Player) sender;
-					String search = null;
-					if (args.length >= 2) {
-						search = args[1];
-						if (args.length > 2) {
-							for (int i = 2 ; i < args.length ; i++) {
-								search = search + " " + args[i];
-							}
-						}
-					}
-					interfaceHandler.openInterface(player, null, "Listings");
-				} else {
-					sender.sendMessage(ChatColor.YELLOW + locale.get("no_permission_for_this_command"));
-					return true;
-				}
-				return true;
-			}
-			if (sender.hasPermission("globalmarket.history")) {
-				if (args[0].equalsIgnoreCase("history")) {
-					Player player = (Player) sender;
-					core.showHistory(player);
-					sender.sendMessage(ChatColor.GREEN + locale.get("check_your_inventory"));
-					return true;
-				}
-			}
-			if (args[0].equalsIgnoreCase("pricecheck") || args[0].equalsIgnoreCase("pc")) {
-				Player player = (Player) sender;
-				if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR) {
-					ItemStack item = player.getItemInHand();
-					sender.sendMessage(prices.getPricesInformation(item));
-				}
-				return true;
-			}
-			if (args[0].equalsIgnoreCase("create")) {
-				if (sender.hasPermission("globalmarket.create")) {
-					Player player = (Player) sender;
-					if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
-						if (itemBlacklisted(player.getItemInHand())) {
-							sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted"));
-							return true;
-						}
-						double price = 0;
-						try {
-							price = Double.parseDouble(args[1]);
-						} catch(Exception e) {
-							player.sendMessage(ChatColor.RED + locale.get("not_a_valid_number", args[1]));
-							return true;
-						}
-						if (price < 0.01) {
-							sender.sendMessage(prefix + locale.get("price_too_low"));
-							return true;
-						}
-						double maxPrice = getMaxPrice();
-						if (maxPrice > 0 && price > maxPrice && !sender.hasPermission("globalmarket.nolimit.maxprice")) {
-							sender.sendMessage(prefix + locale.get("price_too_high"));
-							return true;
-						}
-						double fee = getCreationFee(player, price);
-						if (maxListings() > 0 && storageHandler.getNumListings(sender.getName()) >= maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
-							sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
-							return true;
-						}
-						List<String> extraArgs = new ArrayList<String>();
-						for (int i = 0; i < args.length; i++) {
-							if (args[i].startsWith("-")) {
-								extraArgs.add(args[i]);
-							}
-						}
-						boolean infinite = false;
-						if (extraArgs.contains("-inf") && sender.hasPermission("globalmarket.infinite")) {
-							infinite = true;
-						}
-						if ((args.length == 3 && extraArgs.isEmpty()) || (args.length == 4 && !extraArgs.isEmpty())) {
-							int amount = 0;
-							try {
-								amount = Integer.parseInt(args[2]);
-							} catch(Exception e) {
-								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_number", args[2]));
-								return true;
-							}
-							if (amount <= 0) {
-								player.sendMessage(ChatColor.RED + locale.get("not_a_valid_amount", args[2]));
-								return true;
-							}
-							if (!infinite && player.getItemInHand().getAmount() < amount) {
-								player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
-								return true;
-							}
-							ItemStack toList = new ItemStack(player.getItemInHand());
-							ListingCreateEvent event = new ListingCreateEvent(toList, amount, price, player, fee, extraArgs);
-							getServer().getPluginManager().callEvent(event);
-							if (event.isCancelled()) {
-								return true;
-							}
-							if (fee > 0) {
-								if (econ.has(sender.getName(), fee)) {
-									econ.withdrawPlayer(sender.getName(), fee);
-									storageHandler.incrementSpent(sender.getName(), fee);
-									player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
-								} else {
-									sender.sendMessage(ChatColor.RED + locale.get("you_cant_pay_this_fee"));
-									return true;
-								}
-							}
-							if (player.getItemInHand().getAmount() == amount) {
-								if (!infinite) {
-									player.setItemInHand(new ItemStack(Material.AIR));
-								}
-							} else {
-								if (!infinite) {
-									player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
-								}
-							}
-							toList.setAmount(amount);
-							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-								queue.queueListing(toList, player.getName(), price);
-								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
-							} else {
-								storageHandler.storeListing(toList, infinite ? getInfiniteSeller() : player.getName(), price);
-								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
-							}
-							String itemName = getItemName(toList);
-							storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName + "x" + toList.getAmount(), price));
-						} else {
-							if (fee > 0) {
-								if (econ.has(sender.getName(), fee)) {
-									econ.withdrawPlayer(sender.getName(), fee);
-									storageHandler.incrementSpent(sender.getName(), fee);
-									player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
-								} else {
-									sender.sendMessage(ChatColor.RED + locale.get("you_cant_pay_this_fee"));
-									return true;
-								}
-							}
-							ItemStack toList = new ItemStack(player.getItemInHand());
-							ListingCreateEvent event = new ListingCreateEvent(toList, toList.getAmount(), price, player, fee, extraArgs);
-							getServer().getPluginManager().callEvent(event);	
-							if (event.isCancelled()) {
-								return true;
-							}
-							if (getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-								queue.queueListing(toList, player.getName(), price);
-								sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", getTradeTime()));
-							} else {
-								storageHandler.storeListing(toList, infinite ? getInfiniteSeller() : player.getName(), price);
-								sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
-							}
-							if (!infinite) {
-								player.setItemInHand(new ItemStack(Material.AIR));
-							}
-							String itemName = getItemName(toList);
-							storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName + "x" + toList.getAmount(), price));
-						}
-					} else {
-						sender.sendMessage(prefix + locale.get("hold_an_item") + " " + locale.get("cmd.create_syntax"));
-					}
-				} else {
-					sender.sendMessage(ChatColor.YELLOW + locale.get("no_permission_for_this_command"));
-					return true;
-				}
-				return true;
-			}
-			if (sender.hasPermission("globalmarket.util.mailbox") || sender.hasPermission("globalmarket.util.stall")) {
-				if (args[0].equalsIgnoreCase("mailbox") || args[0].equalsIgnoreCase("stall")) {
-					Player player = (Player) sender;
-					Location loc = null;
-					Block block = player.getTargetBlock(null, 4);
-					if (block.getType() == Material.CHEST
-							// Trapped chest
-							|| block.getTypeId() == 146
-							|| block.getType() == Material.SIGN
-							|| block.getType() == Material.SIGN_POST
-							|| block.getType() == Material.WALL_SIGN) {
-						loc = block.getLocation();
-					} else {
-						player.sendMessage(ChatColor.RED + locale.get("aim_cursor_at_chest_or_sign"));
-						return true;
-					}
-					int x = loc.getBlockX();
-					int y = loc.getBlockY();
-					int z = loc.getBlockZ();
-					if (args[0].equalsIgnoreCase("mailbox")) {
-						if (sender.hasPermission("globalmarket.util.mailbox")) {
-							if (args.length == 2 && args[1].equalsIgnoreCase("remove")) {
-								if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
-									getConfig().set("mailbox." + x + "," + y + "," + z, null);
-									saveConfig();
-									player.sendMessage(ChatColor.YELLOW + locale.get("mailbox_removed"));
-									return true;
-								} else {
-									player.sendMessage(ChatColor.RED + locale.get("no_mailbox_found"));
-									return true;
-								}
-							}
-							if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
-								sender.sendMessage(ChatColor.RED + locale.get("mailbox_already_exists"));
-								return true;
-							}
-							getConfig().set("mailbox." + x + "," + y + "," + z, true);
-							saveConfig();
-							sender.sendMessage(ChatColor.GREEN + locale.get("mailbox_added"));
-						} else {
-							sender.sendMessage(locale.get("no_permission_for_this_command"));
-						}
-					}
-					if (args[0].equalsIgnoreCase("stall")) {
-						if (sender.hasPermission("globalmarket.util.stall")) {
-							if (args.length == 2 && args[1].equalsIgnoreCase("remove")) {
-								if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
-									getConfig().set("stall." + x + "," + y + "," + z, null);
-									saveConfig();
-									player.sendMessage(ChatColor.YELLOW + locale.get("stall_removed"));
-									return true;
-								} else {
-									player.sendMessage(ChatColor.RED + locale.get("no_stall_found"));
-									return true;
-								}
-							}
-							if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
-								sender.sendMessage(ChatColor.RED + locale.get("stall_already_exists"));
-								return true;
-							}
-							getConfig().set("stall." + x + "," + y + "," + z, true);
-							saveConfig();
-							sender.sendMessage(ChatColor.GREEN + locale.get("stall_added"));
-						} else {
-							sender.sendMessage(locale.get("no_permission_for_this_command"));
-						}
-					}
-				}
-			}
-			sender.sendMessage(prefix + locale.get("cmd.help"));
-		}
-		return true;
 	}
 	
 	public void onDisable() {
