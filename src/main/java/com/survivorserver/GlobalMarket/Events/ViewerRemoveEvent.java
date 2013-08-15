@@ -3,12 +3,14 @@ package com.survivorserver.GlobalMarket.Events;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import com.survivorserver.GlobalMarket.InterfaceViewer;
+
 public class ViewerRemoveEvent extends Event {
 
-	private String viewer;
+	private InterfaceViewer viewer;
 	private static final HandlerList handlers = new HandlerList();
 	
-	public ViewerRemoveEvent(String viewer) {
+	public ViewerRemoveEvent(InterfaceViewer viewer) {
 		this.viewer = viewer;
 	}
 	
@@ -21,7 +23,7 @@ public class ViewerRemoveEvent extends Event {
         return handlers;
     }
 	
-	public String getViewerName() {
+	public InterfaceViewer getViewer() {
 		return viewer;
 	}
 }

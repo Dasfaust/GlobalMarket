@@ -85,7 +85,7 @@ public class InterfaceHandler {
 	}
 	
 	public synchronized void removeViewer(InterfaceViewer viewer) {
-		market.getServer().getPluginManager().callEvent(new ViewerRemoveEvent(viewer.getViewer()));
+		market.getServer().getPluginManager().callEvent(new ViewerRemoveEvent(viewer));
 		viewers.remove(viewer);
 	}
 	
