@@ -2,7 +2,7 @@ version: ${version}
 selected: english
 english:
     you_have_new_mail: "You have new mail!"
-    player_context_required: "All commands require a player context!"
+    player_context_required: "Player context is required"
     cmd:
         prefix: "[&a&lMarket&f] "
         help: "Do /market ? for help"
@@ -51,7 +51,7 @@ english:
         item_sold: "Item sold: %s"
         sale_price: "Sale price: %s"
         market_cut: "Market cut: %s"
-        amount_recieved: "Amount recieved: %s"
+        amount_recieved: "Amount received: %s"
     listing_purchased_mailbox: "Your listing of %s has been purchased, pick up your earnings at a mailbox"
     history:
         item_listed: "You listed %1$s for %2$s"
