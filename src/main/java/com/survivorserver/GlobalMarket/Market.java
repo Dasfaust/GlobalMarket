@@ -360,6 +360,10 @@ public class Market extends JavaPlugin implements Listener {
 		return false;
 	}
 	
+	public MarketCommand getCmd() {
+		return cmd;
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
