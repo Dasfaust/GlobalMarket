@@ -25,7 +25,7 @@ public class MarketCore {
 		this.storage = storage;
 	}
 	
-	public void buyListing(Listing listing, Player player) {
+	public void buyListing(Listing listing, Player player, boolean remove, boolean mail, boolean refresh) {
 		double price = listing.getPrice();
 		if (market.cutTransactions() && !market.hasCut(player, listing.getSeller())) {
 			price = price - market.getCut(price);
@@ -35,16 +35,19 @@ public class MarketCore {
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 				market.getEcon().depositPlayer(listing.getSeller(), price);
 			}
-			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-				market.getQueue().queueMail(listing.getItem(), player.getName(), null);
-				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
-			} else {
-				storage.storeMail(listing.getItem(), player.getName(), null, true);
+			if (mail) {
+				if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
+					market.getQueue().queueMail(listing.getItem(), player.getName(), null);
+					player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
+				} else {
+					storage.storeMail(listing.getItem(), player.getName(), null, true);
+				}
 			}
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.removeListing(player.getName(), listing.getId());
+				if (remove) {
+					storage.removeListing(player.getName(), listing.getId());
+				}
 			}
-			handler.updateAllViewers();
 			String itemName = market.getItemName(listing.getItem());
 			storage.storeHistory(player.getName(), market.getLocale().get("history.item_listed", itemName + "x" + listing.getItem().getAmount(), price));
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
@@ -63,16 +66,19 @@ public class MarketCore {
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 				storage.storePayment(listing.getItem(), listing.getSeller(), listing.getPrice(), player.getName(), true);
 			}
-			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-				market.getQueue().queueMail(listing.getItem(), player.getName(), null);
-				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
-			} else {
-				storage.storeMail(listing.getItem(), player.getName(), null, true);
+			if (mail) {
+				if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
+					market.getQueue().queueMail(listing.getItem(), player.getName(), null);
+					player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
+				} else {
+					storage.storeMail(listing.getItem(), player.getName(), null, true);
+				}
 			}
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.removeListing(player.getName(), listing.getId());
+				if (remove) {
+					storage.removeListing(player.getName(), listing.getId());
+				}
 			}
-			handler.updateAllViewers();
 			String itemName = market.getItemName(listing.getItem());
 			storage.storeHistory(player.getName(), market.getLocale().get("history.item_listed", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
 			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
@@ -86,6 +92,9 @@ public class MarketCore {
 				market.getPrices().storePriceInformation(listing.getItem(), listing.getPrice());
 			}
 		}
+		if (refresh) {
+			handler.updateAllViewers();
+		}
 		String infAccount = market.getInfiniteAccount();
 		if (infAccount.length() >= 1) {
 			market.getEcon().depositPlayer(infAccount, price);
@@ -98,7 +107,7 @@ public class MarketCore {
 				market.getQueue().queueMail(listing.getItem(), listing.getSeller(), null);
 				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
 			} else {
-					storage.storeMail(listing.getItem(), listing.getSeller(), null, true);
+				storage.storeMail(listing.getItem(), listing.getSeller(), null, true);
 			}
 		}
 		storage.removeListing(player.getName(), listing.getId());

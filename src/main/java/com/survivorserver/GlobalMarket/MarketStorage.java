@@ -17,8 +17,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
-import com.survivorserver.GlobalMarket.MarketQueue.QueueType;
 import com.survivorserver.GlobalMarket.Events.ListingRemoveEvent;
+import com.survivorserver.GlobalMarket.MarketQueue.QueueType;
 
 public class MarketStorage {
 
@@ -117,7 +117,7 @@ public class MarketStorage {
 		}
 		return found;
 	}
-
+	
 	public int getNumListings(String seller) {
 		int n = 0;
 		for (Listing listing : getAllListings(seller)) {

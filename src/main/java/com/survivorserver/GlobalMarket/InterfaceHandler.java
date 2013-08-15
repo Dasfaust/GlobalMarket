@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -61,6 +62,15 @@ public class InterfaceHandler {
 		return viewer;
 	}
 	
+	public void addViewer(InterfaceViewer v) {
+		for (InterfaceViewer viewer : viewers) {
+			if (viewer.getViewer().equalsIgnoreCase(v.getViewer())) {
+				viewers.remove(v);
+			}
+		}
+		viewers.add(v);
+	}
+	
 	public InterfaceViewer findViewer(String player) {
 		for (InterfaceViewer viewer : viewers) {
 			if (viewer.getViewer().equalsIgnoreCase(player)) {
@@ -92,12 +102,12 @@ public class InterfaceHandler {
 		List<MarketItem> contents = gui.getContents(viewer);
 		Inventory inv = viewer.getGui();
 		inv.clear();
-		ItemStack[] invContents = new ItemStack[gui.getSize()];
+		ItemStack[] invContents = new ItemStack[viewer.getGui().getSize()];
 		if (gui.enableSearch()) {
 			setSearch(viewer.getSearch(), invContents);
 		}
 		if (viewer.getSearch() != null) {
-			contents = gui.doSearch(viewer.getSearch());
+			contents = gui.doSearch(viewer, viewer.getSearch());
 		}
 		int slot = 0;
 		int p = 0;

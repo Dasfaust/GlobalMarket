@@ -7,8 +7,8 @@ import com.survivorserver.GlobalMarket.Market;
 
 public abstract class SubCommand {
 
-	Market market;
-	LocaleHandler locale;
+	protected Market market;
+	protected LocaleHandler locale;
 	
 	public SubCommand(Market market, LocaleHandler locale) {
 		this.market = market;

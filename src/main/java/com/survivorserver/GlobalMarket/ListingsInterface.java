@@ -15,7 +15,7 @@ import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 
 public class ListingsInterface implements MarketInterface {
 
-	Market market;
+	protected Market market;
 	
 	public ListingsInterface(Market market) {
 		this.market = market;
@@ -59,10 +59,10 @@ public class ListingsInterface implements MarketInterface {
 		String seller = ChatColor.WHITE + market.getLocale().get("seller") + ChatColor.GRAY + ChatColor.ITALIC + listing.getSeller();
 		lore.add(price);
 		lore.add(seller);
-		if (!viewer.getViewer().equalsIgnoreCase(listing.seller)) {
+		if (!viewer.getViewer().equalsIgnoreCase(listing.getSeller())) {
 			String buyMsg = ChatColor.YELLOW + market.getLocale().get("click_to_buy");
 			if (leftClick) {
-				if (market.getEcon().has(viewer.getViewer(), listing.price)) {
+				if (market.getEcon().has(viewer.getViewer(), listing.getPrice())) {
 					buyMsg = ChatColor.GREEN + market.getLocale().get("click_again_to_confirm");
 				} else {
 					buyMsg = ChatColor.RED + market.getLocale().get("not_enough_money", market.getEcon().currencyNamePlural());
@@ -92,7 +92,7 @@ public class ListingsInterface implements MarketInterface {
 	
 	@Override
 	public void handleLeftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
-		market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked());
+		market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked(), true, true, true);
 		viewer.resetActions();
 	}
 
@@ -110,7 +110,7 @@ public class ListingsInterface implements MarketInterface {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<MarketItem> doSearch(String search) {
+	public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
 		return (List<MarketItem>)(List<?>) market.getStorage().getAllListings(search);
 	}
 

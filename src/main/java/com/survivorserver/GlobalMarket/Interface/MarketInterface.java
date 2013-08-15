@@ -28,7 +28,7 @@ public interface MarketInterface {
 	
 	List<MarketItem> getContents(InterfaceViewer viewer);
 	
-	List<MarketItem> doSearch(String search);
+	List<MarketItem> doSearch(InterfaceViewer viewer, String search);
 	
 	MarketItem getItem(InterfaceViewer viewer, int id);
 	

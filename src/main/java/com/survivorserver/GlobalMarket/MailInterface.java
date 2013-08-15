@@ -11,13 +11,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
+import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 
 public class MailInterface implements MarketInterface {
 
-	Market market;
+	protected Market market;
 	
 	public MailInterface(Market market) {
 		this.market = market;
@@ -114,7 +114,7 @@ public class MailInterface implements MarketInterface {
 	}
 
 	@Override
-	public List<MarketItem> doSearch(String search) {
+	public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
 		return null;
 	}
 
