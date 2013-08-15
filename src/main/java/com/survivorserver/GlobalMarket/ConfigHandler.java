@@ -164,4 +164,11 @@ public class ConfigHandler {
 		}
 		return null;
 	}
+	
+	public void unregisterCustomConfig(String name, boolean save) {
+		if (save) {
+			save();
+		}
+		customConfigs.remove(name);
+	}
 }

@@ -72,6 +72,10 @@ public class MarketCommand implements CommandExecutor {
 		executors.add(sub);
 	}
 	
+	public void unregisterSubCommand(SubCommand sub) {
+		executors.remove(sub);
+	}
+	
 	public SubCommand findExecutor(String cmd) {
 		for (SubCommand sub : executors) {
 			if (sub.getCommand().equalsIgnoreCase(cmd)) {

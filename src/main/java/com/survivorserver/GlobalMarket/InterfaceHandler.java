@@ -37,6 +37,10 @@ public class InterfaceHandler {
 		interfaces.add(gui);
 	}
 	
+	public void unregisterInterface(MarketInterface gui) {
+		interfaces.remove(gui);
+	}
+	
 	public MarketInterface getInterface(String name) {
 		for (MarketInterface gui : interfaces) {
 			if (gui.getName().equalsIgnoreCase(name)) {
