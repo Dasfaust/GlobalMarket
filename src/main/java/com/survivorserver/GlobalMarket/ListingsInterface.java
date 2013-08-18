@@ -6,14 +6,14 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
-import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 
-public class ListingsInterface implements MarketInterface {
+public class ListingsInterface extends MarketInterface {
 
 	protected Market market;
 	
@@ -51,6 +51,10 @@ public class ListingsInterface implements MarketInterface {
 		Listing listing = (Listing) marketItem;
 		ItemStack item = listing.getItem();
 		ItemMeta meta = item.getItemMeta().clone();
+		
+		boolean isSeller = viewer.getViewer().equalsIgnoreCase(listing.getSeller());
+		boolean isAdmin = market.getInterfaceHandler().isAdmin(viewer.getViewer());
+		
 		List<String> lore = meta.getLore();
 		if (!meta.hasLore()) {
 			lore = new ArrayList<String>();
@@ -59,7 +63,20 @@ public class ListingsInterface implements MarketInterface {
 		String seller = ChatColor.WHITE + market.getLocale().get("seller") + ChatColor.GRAY + ChatColor.ITALIC + listing.getSeller();
 		lore.add(price);
 		lore.add(seller);
-		if (!viewer.getViewer().equalsIgnoreCase(listing.getSeller())) {
+		
+		// Don't want people buying their own listings
+		if (isSeller && leftClick) {
+			viewer.resetActions();
+		}
+		
+		// Or canceling listings they don't have permissions to
+		if (!isSeller && shiftClick) {
+			if (!isAdmin) {
+				viewer.resetActions();
+			}
+		}
+		
+		if (!isSeller) {
 			String buyMsg = ChatColor.YELLOW + market.getLocale().get("click_to_buy");
 			if (leftClick) {
 				if (market.getEcon().has(viewer.getViewer(), listing.getPrice())) {
@@ -70,18 +87,16 @@ public class ListingsInterface implements MarketInterface {
 				}
 			}
 			lore.add(buyMsg);
-		} else {
-			if (leftClick) {
-				viewer.setLastAction(InterfaceAction.RIGHTCLICK);
-			}
 		}
-		if (viewer.getViewer().equalsIgnoreCase(listing.seller) || market.getInterfaceHandler().isAdmin(viewer.getViewer())) {
+		
+		if (isSeller || isAdmin) {
 			String removeMsg = ChatColor.DARK_GRAY + market.getLocale().get("shift_click_to_remove");
 			if (shiftClick) {
 				removeMsg = ChatColor.GREEN + market.getLocale().get("shift_click_again_to_confirm");
 			}
 			lore.add(removeMsg);
 		}
+		
 		if (listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			lore.add(ChatColor.LIGHT_PURPLE + market.getLocale().get("interface.infinite"));
 		}
@@ -92,14 +107,14 @@ public class ListingsInterface implements MarketInterface {
 	
 	@Override
 	public void handleLeftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
-		market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked(), true, true, true);
 		viewer.resetActions();
+		market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked(), true, true, true);
 	}
 
 	@Override
 	public void handleShiftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
-		market.getCore().removeListing((Listing) item, (Player) event.getWhoClicked());
 		viewer.resetActions();
+		market.getCore().removeListing((Listing) item, (Player) event.getWhoClicked());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -121,11 +136,27 @@ public class ListingsInterface implements MarketInterface {
 
 	@Override
 	public boolean identifyItem(ItemMeta meta) {
+		if (meta.hasDisplayName()) {
+			String name = meta.getDisplayName();
+			if (name.contains(market.getLocale().get("interface.page").replace(" %s", ""))) {
+				return true;
+			}
+			if (name.contains(market.getLocale().get("interface.search"))) {
+				return true;
+			}
+			if (name.contains(market.getLocale().get("interface.cancel_search"))) {
+				return true;
+			}
+		}
 		for (String lore : meta.getLore()) {
 			if (lore.contains(market.getLocale().get("price")) || lore.contains(market.getLocale().get("click_to_retrieve"))) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
 	}
 }

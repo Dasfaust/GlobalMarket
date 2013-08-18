@@ -3,6 +3,7 @@ package com.survivorserver.GlobalMarket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,7 @@ import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -17,7 +19,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.survivorserver.GlobalMarket.Events.ViewerRemoveEvent;
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
-import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 
 public class InterfaceHandler {
 
@@ -107,6 +108,7 @@ public class InterfaceHandler {
 		Inventory inv = viewer.getGui();
 		inv.clear();
 		ItemStack[] invContents = new ItemStack[viewer.getGui().getSize()];
+		gui.onInterfacePrepare(viewer, contents, invContents, inv);
 		if (gui.enableSearch()) {
 			setSearch(viewer.getSearch(), invContents);
 		}
@@ -116,23 +118,46 @@ public class InterfaceHandler {
 		int slot = 0;
 		int p = 0;
 		int n = viewer.getPage() * (invContents.length - 9);
-		for (MarketItem marketItem : contents) {
+		boolean clicked = false;
+		Iterator<MarketItem> iterator = contents.iterator();
+		while (iterator.hasNext()) {
+			MarketItem marketItem = iterator.next();
 			if (n > (invContents.length - 9) && p < n - (invContents.length - 9)) {
 				p++;
 				continue;
 			}
 			p++;
 			if (slot < (invContents.length - 9)) {
-				boundSlots.put(slot, marketItem.getId());
 				boolean left = false;
 				boolean shift = false;
-				if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.LEFTCLICK && viewer.getLastActionSlot() == slot && (viewer.getLastItem() != null && viewer.getLastItem().getId() == marketItem.getId())) {
-					left = true;
+				if (viewer.getLastAction() != null) {
+					if (viewer.getLastAction() == InventoryAction.PICKUP_ALL) {
+						if (viewer.getLastActionSlot() == slot) {
+							if (viewer.getLastItem() >= 0 && viewer.getLastItem() == marketItem.getId()) {
+								clicked = true;
+								left = true;
+							}
+						}
+					}
 				}
-				if (viewer.getLastAction() != null && viewer.getLastAction() == InterfaceAction.SHIFTCLICK && viewer.getLastActionSlot() == slot && (viewer.getLastItem() != null && viewer.getLastItem().getId() == marketItem.getId())) {
-					shift = true;
+				if (viewer.getLastAction() != null) {
+					if (viewer.getLastAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+						if (viewer.getLastActionSlot() == slot) {
+							if (viewer.getLastItem() >= 0 && viewer.getLastItem() == marketItem.getId()) {
+								clicked = true;
+								shift = true;
+							}
+						}
+					}
 				}
-				invContents[slot] = gui.prepareItem(marketItem, viewer, p, slot, left, shift);
+				ItemStack item = gui.prepareItem(marketItem, viewer, p, slot, left, shift);
+				if (item != null) {
+					boundSlots.put(slot, marketItem.getId());
+					invContents[slot] = item;
+				} else {
+					iterator.remove();
+					continue;
+				}
 			}
 			slot++;
 		}
@@ -145,6 +170,9 @@ public class InterfaceHandler {
 		}
 		viewer.setBoundSlots(boundSlots);
 		inv.setContents(invContents);
+		if (!clicked) {
+			viewer.resetActions();
+		}
 	}
 
 	public void setNextPage(ItemStack[] contents, InterfaceViewer viewer) {

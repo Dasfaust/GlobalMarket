@@ -1,10 +1,10 @@
 package com.survivorserver.GlobalMarket;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
-
-import com.survivorserver.GlobalMarket.Interface.MarketItem;
 
 public class InterfaceViewer {
 	
@@ -12,16 +12,19 @@ public class InterfaceViewer {
 	Map<Integer, Integer> boundSlots;
 	int currentPage = 1;
 	Inventory gui;
-	InterfaceAction lastAction;
+	InventoryAction lastAction;
 	int lastActionSlot = 0;
 	String search;
-	MarketItem lastClicked;
+	int lastClicked;
 	String interfaceName;
+	int clicks = 0;
+	Map<String, Object> customData;
 	
 	public InterfaceViewer(String player, Inventory gui, String interfaceName) {
 		this.player = player;
 		this.gui = gui;
 		this.interfaceName = interfaceName;
+		customData = new HashMap<String, Object>();
 	}
 	
 	public void setBoundSlots(Map<Integer, Integer> boundSlots) {
@@ -52,11 +55,11 @@ public class InterfaceViewer {
 		this.gui = gui;
 	}
 	
-	public InterfaceAction getLastAction() {
+	public InventoryAction getLastAction() {
 		return lastAction;
 	}
 	
-	public void setLastAction(InterfaceAction action) {
+	public void setLastAction(InventoryAction action) {
 		lastAction = action;
 	}
 	
@@ -68,11 +71,11 @@ public class InterfaceViewer {
 		this.lastActionSlot = slot;
 	}
 	
-	public void setLastItem(MarketItem item) {
-		lastClicked = item;
+	public void setLastItem(int id) {
+		lastClicked = id;
 	}
 	
-	public MarketItem getLastItem() {
+	public int getLastItem() {
 		return lastClicked;
 	}
 
@@ -95,21 +98,42 @@ public class InterfaceViewer {
 	public void resetActions() {
 		setLastAction(null);
 		setLastActionSlot(-1);
-		setLastItem(null);
+		setLastItem(-1);
+		clicks = 0;
 	}
 	
-	public enum InterfaceAction {
-		LEFTCLICK("leftclick"), RIGHTCLICK("rightclick"),
-		MIDDLECLICK("middleclick"), SHIFTCLICK("shiftclick");
-		
-		private String value;
-		
-		private InterfaceAction(String value) {
-			this.value = value;
+	public int getClicks() {
+		return clicks;
+	}
+	
+	public void incrementClicks() {
+		clicks++;
+	}
+	
+	public void set(String label, Object data) {
+		if (customData.containsKey(label)) {
+			customData.remove(label);
 		}
-		
-		public String getValue() {
-			return value;
-		}
+		customData.put(label, data);
+	}
+	
+	public boolean isSet(String label) {
+		return customData.containsKey(label);
+	}
+	
+	public String getString(String label) {
+		return (String) customData.get(label);
+	}
+	
+	public int getInt(String label) {
+		return (Integer) customData.get(label);
+	}
+	
+	public double getDouble(String label) {
+		return (Double) customData.get(label);
+	}
+	
+	public String[] getStringArray(String label) {
+		return (String[]) customData.get(label);
 	}
 }

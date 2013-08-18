@@ -1,7 +1,6 @@
 package com.survivorserver.GlobalMarket;
 
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -13,7 +12,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
-import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 
 public class InterfaceListener implements Listener {
 
@@ -30,84 +28,66 @@ public class InterfaceListener implements Listener {
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
-	public synchronized void handleClickEvent(InventoryClickEvent event) {
+	public void clickEvent(InventoryClickEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getWhoClicked().getName());
+		ItemStack curItem = event.getCurrentItem();
+		boolean marketItem = isMarketItem(curItem);
+		// Verify we're in a Market interface
 		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
-			event.setCancelled(true);
-			if (viewer != null) {
-				if ((event.getSlot() < viewer.getGui().getContents().length - 9 && !event.isRightClick())
-						&& (event.isLeftClick() && viewer.getBoundSlots().containsKey(event.getSlot()))) {
-					MarketInterface gui = handler.getInterface(viewer.getInterface());
-					MarketItem item = gui.getItem(viewer, viewer.getBoundSlots().get(event.getSlot()));
-					if (gui.doSingleClickActions()) {
-						handleSingleClick(event, viewer, gui, item);
-					} else {
-						handleDoubleClick(event, viewer, gui, item);
-					}
-				} else if (event.isRightClick()) {
-					viewer.setLastAction(null);
-					viewer.setLastActionSlot(-1);
-					viewer.setLastItem(null);
-				} else {
-					if (event.getSlot() == viewer.getGui().getContents().length - 7) {
-						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-							if (viewer.getSearch() == null) {
-								Player player = (Player) event.getWhoClicked();
-								player.closeInventory();
-								market.startSearch(player, viewer.getInterface());
-								handler.removeViewer(viewer);
-								return;
-							} else {
-								viewer.setSearch(null);
-								viewer.setLastAction(null);
-							}
-						}
-					}
-					if (event.getSlot() == viewer.getGui().getContents().length - 1) {
-						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-							viewer.setPage(viewer.getPage() + 1);
-							viewer.setLastAction(null);
-						}
-					}
-					if (event.getSlot() == viewer.getGui().getContents().length - 9) {
-						if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-							viewer.setPage(viewer.getPage() - 1);
-							viewer.setLastAction(null);
-						}
-					}
-				}
-				handler.refreshViewer(viewer);
-			}
-		} else {
-			if (isMarketItem(event.getCurrentItem())) {
-				event.getInventory().remove(event.getCurrentItem());
-				if (event.getCursor() != null) {
-					event.getCursor().setType(Material.AIR);
-				}
-				event.getWhoClicked().closeInventory();
+			// We're clicking a Market item
+			if (marketItem) {
 				event.setCancelled(true);
+				
+				int slot = event.getSlot();
+				int invSize = viewer.getGui().getContents().length;
+				if (event.isRightClick()) {
+					// Cancel any existing actions and start over
+					viewer.resetActions();
+					handler.refreshViewer(viewer);
+				} else {
+					// We've left clicked or shift clicked
+					// Let's update the viewer object with what's happened, so the handler can do stuff with it
+					viewer.setLastAction(event.getAction());
+					viewer.setLastActionSlot(slot);
+					
+					MarketInterface inter = handler.getInterface(viewer.getInterface());
+					if (viewer.getBoundSlots().containsKey(event.getSlot())) {
+						// This item has an ID attached to it
+						MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getSlot()));
+						// Yay, we've got the MarketItem instance. Let's do stuff with it
+						viewer.setLastItem(item.getId());
+						viewer.incrementClicks();
+						
+						if (inter.doSingleClickActions()) {
+							if (event.isShiftClick()) {
+								inter.handleShiftClickAction(viewer, item, event);
+							} else {
+								inter.handleLeftClickAction(viewer, item, event);
+							}
+							handler.refreshViewer(viewer);
+						} else {
+							handler.refreshViewer(viewer);
+							if (viewer.getClicks() == 2) {
+								if (event.isShiftClick()) {
+									inter.handleShiftClickAction(viewer, item, event);
+								} else {
+									inter.handleLeftClickAction(viewer, item, event);
+								}
+							}
+							handler.refreshViewer(viewer);
+						}
+					} else {
+						inter.onUnboundClick(market, handler, viewer, slot, event, invSize);
+						handler.refreshViewer(viewer);
+					}
+				}
 			}
-		}
-	}
-	
-	private void handleDoubleClick(InventoryClickEvent event, InterfaceViewer viewer, MarketInterface gui, MarketItem item) {
-		if (viewer.getLastAction() == null) {
-			if (event.isShiftClick()) {
-				viewer.setLastAction(InterfaceAction.SHIFTCLICK);
-				viewer.setLastActionSlot(event.getSlot());
-				viewer.setLastItem(item);
-			} else if (event.isLeftClick()) {
-				viewer.setLastAction(InterfaceAction.LEFTCLICK);
-				viewer.setLastActionSlot(event.getSlot());
-				viewer.setLastItem(item);
-			}
-		} else {
-			if (event.isShiftClick() && viewer.getLastAction() == InterfaceAction.SHIFTCLICK) {
-				gui.handleShiftClickAction(viewer, item, event);
-			} else if (event.isLeftClick() && viewer.getLastAction() == InterfaceAction.LEFTCLICK) {
-				gui.handleLeftClickAction(viewer, item, event);
-			} else {
-				viewer.resetActions();
+		} else if (marketItem) {
+			// Clicking a Market item and has no viewer object, probably not in the interface, destroy it at all costs
+			event.setCancelled(true);
+			curItem.setType(Material.AIR);
+			if (event.getCursor() != null) {
+				event.getCursor().setType(Material.AIR);
 			}
 		}
 	}

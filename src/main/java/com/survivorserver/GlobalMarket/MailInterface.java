@@ -13,9 +13,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
-import com.survivorserver.GlobalMarket.InterfaceViewer.InterfaceAction;
 
-public class MailInterface implements MarketInterface {
+public class MailInterface extends MarketInterface {
 
 	protected Market market;
 	
@@ -96,9 +95,7 @@ public class MailInterface implements MarketInterface {
 			market.getCore().retrieveMail((Mail) item, player);
 			viewer.resetActions();
 		} else {
-			viewer.setLastItem(item);
-			viewer.setLastAction(InterfaceAction.LEFTCLICK);
-			viewer.setLastActionSlot(event.getSlot());
+			viewer.resetActions();
 		}
 	}
 
@@ -131,5 +128,9 @@ public class MailInterface implements MarketInterface {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
 	}
 }

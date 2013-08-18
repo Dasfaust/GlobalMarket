@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -26,6 +27,8 @@ public class MarketCore {
 	}
 	
 	public void buyListing(Listing listing, Player player, boolean remove, boolean mail, boolean refresh) {
+		player.playSound(player.getLocation(), Sound.ORB_PICKUP, 0.7f, 1);
+		
 		double price = listing.getPrice();
 		if (market.cutTransactions() && !market.hasCut(player, listing.getSeller())) {
 			price = price - market.getCut(price);
@@ -102,6 +105,8 @@ public class MarketCore {
 	}
 	
 	public void removeListing(Listing listing, Player player) {
+		player.playSound(player.getLocation(), Sound.NOTE_BASS_DRUM, 0.7f, 1);
+		
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
 				market.getQueue().queueMail(listing.getItem(), listing.getSeller(), null);
@@ -140,13 +145,17 @@ public class MarketCore {
 	
 	public void retrieveMail(Mail mail, Player player) {
 		Inventory playerInv = player.getInventory();
-		playerInv.addItem(storage.getMailItem(player.getName(), mail.getId()).getItem());
+		ItemStack item = storage.getMailItem(player.getName(), mail.getId()).getItem();
+		player.sendMessage("" + item.getAmount());
+		playerInv.addItem(item);
 		storage.removeMail(player.getName(), mail.getId());
 	}
 	
 	public void notifyPlayer(String player, String notification) {
 		Player p = market.getServer().getPlayer(player);
 		if (p != null) {
+			p.playSound(p.getLocation(), Sound.LEVEL_UP, 0.7f, 1);
+			
 			p.sendMessage(notification);
 		}
 	}
