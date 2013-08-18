@@ -22,15 +22,6 @@ public class Listing implements MarketItem {
 		clientName = market.getItemName(item);
 	}
 	
-	public Listing(Market market, int id, ItemStack item, int amount, String seller, double price, Long time) {
-		this.id = id;
-		this.item = new ItemStack(item);
-		this.seller = seller;
-		this.price = price;
-		this.time = time;
-		clientName = market.getItemName(item);
-	}
-	
 	public int getId() {
 		return id;
 	}

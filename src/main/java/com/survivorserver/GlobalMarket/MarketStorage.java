@@ -78,12 +78,7 @@ public class MarketStorage {
 		if (config.getListingsYML().isSet("listings")) {
 			for (String l : config.getListingsYML().getConfigurationSection("listings").getKeys(false)) {
 				String path = "listings." + l;
-				Listing listing;
-				if (config.getListingsYML().isSet(path + ".amount")) {
-					listing = new Listing(market, Integer.parseInt(l), config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getInt(path + ".amount"), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
-				} else {
-					listing = new Listing(market, Integer.parseInt(l), config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
-				}
+				Listing listing = new Listing(market, Integer.parseInt(l), config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
 				listings.add(listing);
 			}
 			Collections.reverse(listings);
