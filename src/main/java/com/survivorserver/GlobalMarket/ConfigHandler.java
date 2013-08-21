@@ -152,7 +152,7 @@ public class ConfigHandler {
 		if (!file.exists()) {
 			file.createNewFile();
 		}
-		FileConfiguration conf = new YamlConfiguration();
+		YamlConfiguration conf = new YamlConfiguration();
 		conf.load(file);
 		config.put(file, conf);
 		customConfigs.put(name, config);

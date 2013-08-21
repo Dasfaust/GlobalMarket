@@ -33,7 +33,7 @@ public class SaveTask extends BukkitRunnable {
 				Writer out = new BufferedWriter(new OutputStreamWriter(
 						new FileOutputStream(currentFile)));
 				out.write(config.getListingsYML().saveToString());
-				out.close();		
+				out.close();
 				
 				currentFile = config.getMailFile();
 				out = new BufferedWriter(new OutputStreamWriter(

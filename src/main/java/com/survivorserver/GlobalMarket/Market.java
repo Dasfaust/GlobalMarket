@@ -94,10 +94,9 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("blacklist.enchant_id", b3);
 		
 		List<String> b4 = new ArrayList<String>();
-		getConfig().addDefault("blacklist.enchant_lore", b4);
+		getConfig().addDefault("blacklist.lore", b4);
 		
 		getConfig().addDefault("blacklist.use_with_mail", false);
-		
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 		
@@ -235,7 +234,7 @@ public class Market extends JavaPlugin implements Listener {
 				public void run() {
 					if (searching.containsKey(name)) {
 						searching.remove(name);
-						Player player = market.getServer().getPlayer(name);
+						Player player = getServer().getPlayer(name);
 						if (player != null) {
 							player.sendMessage(prefix + getLocale().get("search_cancelled"));
 						}
@@ -308,7 +307,7 @@ public class Market extends JavaPlugin implements Listener {
 				}
 			}
 			if (meta.hasLore()) {
-				List<String> lbl = getConfig().getStringList("blacklist.enchant_id");
+				List<String> lbl = getConfig().getStringList("blacklist.lore");
 				List<String> lore = meta.getLore();
 				for (String str : lbl) {
 					if (lore.contains(str)) {
