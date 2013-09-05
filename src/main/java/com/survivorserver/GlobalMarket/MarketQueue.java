@@ -58,7 +58,7 @@ public class MarketQueue extends BukkitRunnable {
 						Long time = (Long) item.get(item.size() - 1);
 						if ((System.currentTimeMillis() - time) / 1000 >= market.getMailTime()) {
 							String from = null;
-							if (item.size() == 4) {
+							if (item.size() == 5) {
 								from = (String) item.get(3);
 							}
 							storage.storeMail(((ItemStack) item.get(1)), ((String) item.get(2)), from, true);
