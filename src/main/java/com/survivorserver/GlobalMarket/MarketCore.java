@@ -146,7 +146,6 @@ public class MarketCore {
 	public void retrieveMail(Mail mail, Player player) {
 		Inventory playerInv = player.getInventory();
 		ItemStack item = storage.getMailItem(player.getName(), mail.getId()).getItem();
-		player.sendMessage("" + item.getAmount());
 		playerInv.addItem(item);
 		storage.removeMail(player.getName(), mail.getId());
 	}
