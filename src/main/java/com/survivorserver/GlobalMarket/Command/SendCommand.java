@@ -95,7 +95,7 @@ public class SendCommand extends SubCommand {
 				toList.setAmount(amount);
 				if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
 					queue.queueMail(toList, args[1], sender.getName());
-					sender.sendMessage(prefix + locale.get("item_will_send"));
+					sender.sendMessage(prefix + locale.get("item_will_send", market.getTradeTime()));
 				} else {
 					storageHandler.storeMail(toList, args[1], sender.getName(), true);
 					sender.sendMessage(prefix + locale.get("item_sent"));
@@ -104,7 +104,7 @@ public class SendCommand extends SubCommand {
 				ItemStack toList = new ItemStack(player.getItemInHand());
 				if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
 					queue.queueMail(toList, args[1], sender.getName());
-					sender.sendMessage(prefix + locale.get("item_will_send"));
+					sender.sendMessage(prefix + locale.get("item_will_send", market.getTradeTime()));
 				} else {
 					storageHandler.storeMail(toList, args[1], sender.getName(), true);
 					sender.sendMessage(prefix + locale.get("item_sent"));
