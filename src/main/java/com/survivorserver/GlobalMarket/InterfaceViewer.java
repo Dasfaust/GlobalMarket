@@ -8,6 +8,7 @@ import org.bukkit.inventory.Inventory;
 
 public class InterfaceViewer {
 	
+	String name;
 	String player;
 	Map<Integer, Integer> boundSlots;
 	int currentPage = 1;
@@ -20,7 +21,8 @@ public class InterfaceViewer {
 	int clicks = 0;
 	Map<String, Object> customData;
 	
-	public InterfaceViewer(String player, Inventory gui, String interfaceName) {
+	public InterfaceViewer(String name, String player, Inventory gui, String interfaceName) {
+		this.name = name;
 		this.player = player;
 		this.gui = gui;
 		this.interfaceName = interfaceName;
@@ -41,6 +43,10 @@ public class InterfaceViewer {
 	
 	public int getPage() {
 		return currentPage;
+	}
+	
+	public String getName() {
+		return name;
 	}
 	
 	public String getViewer() {

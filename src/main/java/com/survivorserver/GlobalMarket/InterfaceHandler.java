@@ -62,7 +62,7 @@ public class InterfaceHandler {
 				return viewer;
 			}
 		}
-		InterfaceViewer viewer = new InterfaceViewer(player, gui, interfaceName);
+		InterfaceViewer viewer = new InterfaceViewer(player, player, gui, interfaceName);
 		viewers.add(viewer);
 		return viewer;
 	}

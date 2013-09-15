@@ -107,7 +107,7 @@ public class MailInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getAllMailFor(viewer.getViewer());
+		return (List<MarketItem>)(List<?>) market.getStorage().getAllMailFor(viewer.getName());
 	}
 
 	@Override

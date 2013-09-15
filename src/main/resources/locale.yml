@@ -15,7 +15,7 @@ english:
         mailbox_descr: "[Creates or removes a mailbox]"
         stall_syntax: "/market stall (remove)"
         stall_descr: "[Creates or removes a stall]"
-        mail_syntax: "/market mail"
+        mail_syntax: "/market mail (<player>)"
         mail_descr: "[Opens your mailbox]"
         reload_syntax: "/market reload"
         reload_descr: "[Reloads config.yml and locale.yml]"
