@@ -87,7 +87,6 @@ public class ListingsInterface extends MarketInterface {
 					}
 				} else {
 					buyMsg = ChatColor.RED + market.getLocale().get("not_enough_money", market.getEcon().currencyNamePlural());
-					viewer.resetActions();
 				}
 			}
 			lore.add(buyMsg);
