@@ -102,6 +102,8 @@ english:
     selling_too_many_items: "You have too many items for sale"
     item_is_blacklisted: "You can't sell this item"
     item_is_blacklisted_from_mail: "You can't send this item"
+    friendly_item_name: "%s"
+    friendly_item_name_with_amount: "%1$s %2$s"
     prices:
         no_data: "No data available for %s. Please note that price data will not be available until the item has been traded"
         header: "%s Pricing:"

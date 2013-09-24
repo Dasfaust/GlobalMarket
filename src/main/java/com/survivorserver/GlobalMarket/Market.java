@@ -342,9 +342,6 @@ public class Market extends JavaPlugin implements Listener {
 	public String getItemName(ItemStack item) {
 		int amount = item.getAmount();
 		String itemName = item.getType().toString();
-		if (amount > 1) {
-			itemName = amount + " " + itemName;
-		}
 		try {
 			Class.forName("net.milkbowl.vault.item.Items");
         	Class.forName("net.milkbowl.vault.item.ItemInfo");
@@ -353,6 +350,11 @@ public class Market extends JavaPlugin implements Listener {
 				itemName = itemInfo.getName();
 			}
 		} catch(Exception ignored) { }
+		if (amount > 1) {
+			itemName = locale.get("friendly_item_name_with_amount", amount, itemName);
+		} else {
+			itemName = locale.get("friendly_item_name", itemName);
+		}
 		return itemName;
 	}
 	
