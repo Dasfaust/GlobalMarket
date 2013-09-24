@@ -140,7 +140,7 @@ public class CreateCommand extends SubCommand {
 				sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 			}
 			String itemName = market.getItemName(toList);
-			storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName + "x" + toList.getAmount(), price));
+			storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName, price));
 		} else {
 			sender.sendMessage(prefix + locale.get("hold_an_item") + " " + locale.get("cmd.create_syntax"));
 		}

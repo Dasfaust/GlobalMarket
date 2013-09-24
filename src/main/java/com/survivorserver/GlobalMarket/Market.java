@@ -340,7 +340,11 @@ public class Market extends JavaPlugin implements Listener {
 	}
 
 	public String getItemName(ItemStack item) {
+		int amount = item.getAmount();
 		String itemName = item.getType().toString();
+		if (amount > 1) {
+			itemName = amount + " " + itemName;
+		}
 		try {
 			Class.forName("net.milkbowl.vault.item.Items");
         	Class.forName("net.milkbowl.vault.item.ItemInfo");

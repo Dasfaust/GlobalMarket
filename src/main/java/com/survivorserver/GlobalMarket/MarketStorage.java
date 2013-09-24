@@ -158,7 +158,7 @@ public class MarketStorage {
 		double cut = new BigDecimal(market.getCut(amount)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
 		String itemName = market.getItemName(item);
 		String logStr = market.getLocale().get("transaction_log.title") + "\n\n" +
-						market.getLocale().get("transaction_log.item_sold", itemName + "x" + item.getAmount()) + "\n\n" +
+						market.getLocale().get("transaction_log.item_sold", itemName) + "\n\n" +
 						market.getLocale().get("transaction_log.sale_price", amount) + "\n\n" +
 						market.getLocale().get("transaction_log.market_cut", cut) +  "\n\n" +
 						market.getLocale().get("transaction_log.amount_recieved", (amount-cut));

@@ -32,25 +32,25 @@ public class SaveTask extends BukkitRunnable {
 				currentFile = config.getListingsFile();
 				Writer out = new BufferedWriter(new OutputStreamWriter(
 						new FileOutputStream(currentFile)));
-				out.write(config.getListingsYML().saveToString());
+				out.write(config.saveListingsToString());
 				out.close();
 				
 				currentFile = config.getMailFile();
 				out = new BufferedWriter(new OutputStreamWriter(
 						new FileOutputStream(currentFile)));
-				out.write(config.getMailYML().saveToString());
+				out.write(config.saveMailToString());
 				out.close();
 				
 				currentFile = config.getHistoryFile();
 				out = new BufferedWriter(new OutputStreamWriter(
 						new FileOutputStream(currentFile)));
-				out.write(config.getHistoryYML().saveToString());
+				out.write(config.saveHistoryToString());
 				out.close();
 				
 				currentFile = config.getQueueFile();
 				out = new BufferedWriter(new OutputStreamWriter(
 						new FileOutputStream(currentFile)));
-				out.write(config.getQueueYML().saveToString());
+				out.write(config.saveQueueToString());
 				out.close();
 				
 				for (Entry<String, Map<File, FileConfiguration>> entry : config.customConfigs.entrySet()) {

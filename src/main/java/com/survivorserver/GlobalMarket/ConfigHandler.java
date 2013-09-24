@@ -134,16 +134,32 @@ public class ConfigHandler {
 		return listingsFile;
 	}
 	
+	public synchronized String saveListingsToString() {
+		return listingsConfig.saveToString();
+	}
+	
 	public File getMailFile() {
 		return mailFile;
+	}
+	
+	public synchronized String saveMailToString() {
+		return mailConfig.saveToString();
 	}
 	
 	public File getHistoryFile() {
 		return historyFile;
 	}
 	
+	public synchronized String saveHistoryToString() {
+		return historyConfig.saveToString();
+	}
+	
 	public File getQueueFile() {
 		return queueFile;
+	}
+	
+	public synchronized String saveQueueToString() {
+		return queueConfig.saveToString();
 	}
 	
 	public void loadCustomConfig(String name) throws Exception {

@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -26,87 +30,76 @@ public class MarketCore {
 		this.storage = storage;
 	}
 	
-	public void buyListing(Listing listing, Player player, boolean remove, boolean mail, boolean refresh) {
-		player.playSound(player.getLocation(), Sound.ORB_PICKUP, 0.7f, 1);
-		
-		double price = listing.getPrice();
+	public boolean buyListing(Listing listing, Player player, boolean removeListing, boolean mailItem, boolean refreshInterface) {
+		double originalPrice = listing.getPrice();
+		double cutPrice = originalPrice;
+		Economy econ = market.getEcon();
+		String seller = listing.getSeller();
+		String infAccount = market.getInfiniteAccount();
+		boolean isInfinite = listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller());
+		String buyer = player.getName();
+		String friendlyItemName = listing.getItem().getAmount() + " " + market.getItemName(listing.getItem());
 		if (market.cutTransactions() && !market.hasCut(player, listing.getSeller())) {
-			price = price - market.getCut(price);
+			cutPrice = originalPrice - market.getCut(originalPrice);
 		}
-		if (market.autoPayment()) {
-			market.getEcon().withdrawPlayer(player.getName(), listing.getPrice());
-			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				market.getEcon().depositPlayer(listing.getSeller(), price);
+		// Make the transaction between buyer and seller
+		EconomyResponse response = econ.withdrawPlayer(buyer, originalPrice);
+		if (!response.transactionSuccess()) {
+			if (response.type == ResponseType.NOT_IMPLEMENTED) {
+				market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the withdrawPlayer() function.");
 			}
-			if (mail) {
-				if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-					market.getQueue().queueMail(listing.getItem(), player.getName(), null);
-					player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
-				} else {
-					storage.storeMail(listing.getItem(), player.getName(), null, true);
+			return false;
+		}
+		if (isInfinite && infAccount.length() >= 1) {
+			// Put the money earned in the infinite seller's account
+			response = econ.depositPlayer(infAccount, cutPrice);
+			if (!response.transactionSuccess()) {
+				if (response.type == ResponseType.NOT_IMPLEMENTED) {
+					market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
 				}
-			}
-			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				if (remove) {
-					storage.removeListing(player.getName(), listing.getId());
-				}
-			}
-			String itemName = market.getItemName(listing.getItem());
-			storage.storeHistory(player.getName(), market.getLocale().get("history.item_listed", itemName + "x" + listing.getItem().getAmount(), price));
-			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), price));
-			}
-			notifyPlayer(listing.getSeller(), ChatColor.GREEN + market.getLocale().get("you_sold_your_listing", itemName + "x" + listing.getItem().getAmount()));
-			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.incrementEarned(listing.getSeller(), price);
-			}
-			storage.incrementSpent(player.getName(), price);
-			if (market.enablePrices()) {
-				market.getPrices().storePriceInformation(listing.getItem(), listing.getPrice());
+				return false;
 			}
 		} else {
-			market.getEcon().withdrawPlayer(player.getName(), listing.getPrice());
-			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.storePayment(listing.getItem(), listing.getSeller(), listing.getPrice(), player.getName(), true);
-			}
-			if (mail) {
-				if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-					market.getQueue().queueMail(listing.getItem(), player.getName(), null);
-					player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
-				} else {
-					storage.storeMail(listing.getItem(), player.getName(), null, true);
+			// Direct deposit?
+			if (market.autoPayment()) {
+				response = econ.depositPlayer(seller, cutPrice);
+				if (!response.transactionSuccess()) {
+					if (response.type == ResponseType.NOT_IMPLEMENTED) {
+						market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
+					}
+					return false;
 				}
+			} else {
+				// Send a Transaction Log
+				storage.storePayment(listing.getItem(), seller, cutPrice, buyer, true);
 			}
-			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				if (remove) {
-					storage.removeListing(player.getName(), listing.getId());
-				}
-			}
-			String itemName = market.getItemName(listing.getItem());
-			storage.storeHistory(player.getName(), market.getLocale().get("history.item_listed", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
-			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.item_sold", itemName + "x" + listing.getItem().getAmount(), listing.getPrice()));
-			}
-			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-				storage.incrementEarned(listing.getSeller(), listing.getPrice() - market.getCut(listing.getPrice()));
-			}
-			storage.incrementSpent(player.getName(), listing.getPrice());
-			if (market.enablePrices()) {
-				market.getPrices().storePriceInformation(listing.getItem(), listing.getPrice());
+			// Seller's stats
+			storage.incrementEarned(seller, cutPrice);
+			storage.storeHistory(seller, market.getLocale().get("history.item_sold", friendlyItemName, cutPrice));
+			// Buyer's stats
+			storage.incrementSpent(seller, originalPrice);
+			storage.storeHistory(player.getName(), market.getLocale().get("history.item_bought", friendlyItemName, originalPrice));
+		}
+		// Transfer the item to where it belongs
+		if (!isInfinite && removeListing) {
+			market.getStorage().removeListing(buyer, listing.getId());
+		}
+		if (mailItem) {
+			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
+				market.getQueue().queueMail(listing.getItem(), buyer, null);
+				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
+			} else {
+				storage.storeMail(listing.getItem(), buyer, null, true);
 			}
 		}
-		if (refresh) {
+		// Update viewers
+		if (refreshInterface) {
 			handler.updateAllViewers();
 		}
-		String infAccount = market.getInfiniteAccount();
-		if (infAccount.length() >= 1) {
-			market.getEcon().depositPlayer(infAccount, price);
-		}
+		return true;
 	}
 	
 	public void removeListing(Listing listing, Player player) {
-		player.playSound(player.getLocation(), Sound.NOTE_BASS_DRUM, 0.7f, 1);
-		
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
 				market.getQueue().queueMail(listing.getItem(), listing.getSeller(), null);
@@ -120,9 +113,9 @@ public class MarketCore {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			String itemName = market.getItemName(listing.getItem());
 			if (listing.getSeller().equalsIgnoreCase(player.getName())) {
-				storage.storeHistory(player.getName(), market.getLocale().get("history.listing_removed", "You", itemName + "x" + listing.getItem().getAmount()));
+				storage.storeHistory(player.getName(), market.getLocale().get("history.listing_removed", "You", itemName));
 			} else {
-				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player.getName(), itemName + "x" + listing.getItem().getAmount()));
+				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player.getName(), itemName));
 			}
 		}
 	}
@@ -136,18 +129,18 @@ public class MarketCore {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			String itemName = market.getItemName(listing.getItem());
 			if (listing.getSeller().equalsIgnoreCase(player)) {
-				storage.storeHistory(player, market.getLocale().get("history.listing_removed", "You", itemName + "x" + listing.getItem().getAmount()));
+				storage.storeHistory(player, market.getLocale().get("history.listing_removed", "You", itemName));
 			} else {
-				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player, itemName + "x" + listing.getItem().getAmount()));
+				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player, itemName));
 			}
 		}
 	}
 	
-	public void retrieveMail(Mail mail, Player player) {
+	public void retrieveMail(Mail mail, InterfaceViewer viewer, Player player) {
 		Inventory playerInv = player.getInventory();
-		ItemStack item = storage.getMailItem(player.getName(), mail.getId()).getItem();
+		ItemStack item = storage.getMailItem(viewer.getName(), mail.getId()).getItem();
 		playerInv.addItem(item);
-		storage.removeMail(player.getName(), mail.getId());
+		storage.removeMail(viewer.getName(), mail.getId());
 	}
 	
 	public void notifyPlayer(String player, String notification) {

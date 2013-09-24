@@ -3,6 +3,10 @@ package com.survivorserver.GlobalMarket;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -65,7 +69,11 @@ public class MailInterface extends MarketInterface {
 				if (bookMeta.getTitle().equalsIgnoreCase(market.getLocale().get("transaction_log.item_name"))) {
 					double amount = mail.getPickup();
 					if (amount > 0) {
-						lore.add(ChatColor.WHITE + market.getLocale().get("amount") + market.getEcon().format(amount));
+						if (leftClick || shiftClick) {
+							lore.add(ChatColor.RED + market.getLocale().get("interface.transaction_error"));
+						} else {
+							lore.add(ChatColor.WHITE + market.getLocale().get("amount") + market.getEcon().format(amount));
+						}
 					}
 				}
 			}
@@ -83,16 +91,23 @@ public class MailInterface extends MarketInterface {
 
 	@Override
 	public void handleLeftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
+		Economy econ = market.getEcon();
 		Player player = (Player) event.getWhoClicked();
 		double amount = ((Mail) item).getPickup();
 		if (amount > 0) {
-			market.getEcon().depositPlayer(player.getName(), amount);
+			EconomyResponse response = econ.depositPlayer(player.getName(), amount);
+			if (!response.transactionSuccess()) {
+				if (response.type == ResponseType.NOT_IMPLEMENTED) {
+					market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
+				}
+				return;
+			}
 			player.sendMessage(ChatColor.GREEN + market.getLocale().get("picked_up_your_earnings", market.getEcon().format(market.getEcon().getBalance(player.getName()))));
-			market.getStorage().nullifyPayment(item.getId(), viewer.getViewer());
+			market.getStorage().nullifyPayment(item.getId(), viewer.getName());
 		}
 		Inventory inv = player.getInventory();
 		if (inv.firstEmpty() >= 0) {
-			market.getCore().retrieveMail((Mail) item, player);
+			market.getCore().retrieveMail((Mail) item, viewer, player);
 			viewer.resetActions();
 		} else {
 			viewer.resetActions();
@@ -117,7 +132,7 @@ public class MailInterface extends MarketInterface {
 
 	@Override
 	public MarketItem getItem(InterfaceViewer viewer, int id) {
-		return market.getStorage().getMailItem(viewer.getViewer(), id);
+		return market.getStorage().getMailItem(viewer.getName(), id);
 	}
 
 	@Override

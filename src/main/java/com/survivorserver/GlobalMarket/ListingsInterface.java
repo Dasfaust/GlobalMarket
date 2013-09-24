@@ -80,7 +80,11 @@ public class ListingsInterface extends MarketInterface {
 			String buyMsg = ChatColor.YELLOW + market.getLocale().get("click_to_buy");
 			if (leftClick) {
 				if (market.getEcon().has(viewer.getViewer(), listing.getPrice())) {
-					buyMsg = ChatColor.GREEN + market.getLocale().get("click_again_to_confirm");
+					if (viewer.getClicks() >= 2) {
+						buyMsg = ChatColor.RED + market.getLocale().get("interface.transaction_error");
+					} else {
+						buyMsg = ChatColor.GREEN + market.getLocale().get("click_again_to_confirm");
+					}
 				} else {
 					buyMsg = ChatColor.RED + market.getLocale().get("not_enough_money", market.getEcon().currencyNamePlural());
 					viewer.resetActions();
@@ -100,6 +104,7 @@ public class ListingsInterface extends MarketInterface {
 		if (listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			lore.add(ChatColor.LIGHT_PURPLE + market.getLocale().get("interface.infinite"));
 		}
+		
 		meta.setLore(lore);
 		item.setItemMeta(meta);
 		return item;
@@ -107,8 +112,9 @@ public class ListingsInterface extends MarketInterface {
 	
 	@Override
 	public void handleLeftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
-		viewer.resetActions();
-		market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked(), true, true, true);
+		if (market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked(), true, true, true)) {
+			viewer.resetActions();
+		}
 	}
 
 	@Override
