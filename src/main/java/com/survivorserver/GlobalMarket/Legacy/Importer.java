@@ -57,7 +57,6 @@ public class Importer {
 					if (item.size() == 5) {
 						from = (String) item.get(3);
 					}
-
 					sql.createMail((String) item.get(2), from, (ItemStack) item.get(1), 0);
 				}
 			}
@@ -70,10 +69,14 @@ public class Importer {
 		if (!newDir.exists()) {
 			newDir.mkdir();
 		}
-		conf.getListingsFile().renameTo(newDir);
-		conf.getMailFile().renameTo(newDir);
-		conf.getHistoryFile().renameTo(newDir);
-		conf.getQueueFile().renameTo(newDir);
-		market.log.info("Moved the old data files to plugins/GlobalMarket/old. Happy trading!");
+		conf.getListingsFile().renameTo(new File(newDir.getAbsolutePath() + File.separator + "listings.yml"));
+		conf.getMailFile().renameTo(new File(newDir.getAbsolutePath() + File.separator + "mail.yml"));
+		conf.getHistoryFile().renameTo(new File(newDir.getAbsolutePath() + File.separator + "history.yml"));
+		conf.getQueueFile().renameTo(new File(newDir.getAbsolutePath() + File.separator + "queue.yml"));
+		File prices = new File(market.getDataFolder().getAbsolutePath() + File.separator + "prices.db");
+		if (prices.exists()) {
+			prices.renameTo(new File(newDir.getAbsolutePath() + File.separator + "prices.db"));
+		}
+		market.log.info("Moved the old data files to 'plugins/GlobalMarket/old'. Happy trading!");
 	}
 }
