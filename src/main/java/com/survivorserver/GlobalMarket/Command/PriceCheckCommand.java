@@ -4,9 +4,11 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.LocaleHandler;
 import com.survivorserver.GlobalMarket.Market;
+import com.survivorserver.GlobalMarket.SQL.Database;
 
 public class PriceCheckCommand extends SubCommand {
 
@@ -41,10 +43,17 @@ public class PriceCheckCommand extends SubCommand {
 
 	@Override
 	public boolean onCommand(CommandSender sender, String[] args) {
-		Player player = (Player) sender;
+		final Player player = (Player) sender;
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR) {
-			ItemStack item = player.getItemInHand();
-			sender.sendMessage(market.getPrices().getPricesInformation(item));
+			final ItemStack item = player.getItemInHand();
+			new BukkitRunnable() {
+				public void run() {
+					Database db = market.getStorage().getAsyncDb().getDb();
+					synchronized(db) {
+						player.sendMessage(market.getHistory().getPricesInformation(item, db));
+					}
+				}
+			}.runTaskAsynchronously(market);
 		}
 		return true;
 	}

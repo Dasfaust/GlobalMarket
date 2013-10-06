@@ -1,22 +1,14 @@
 package com.survivorserver.GlobalMarket;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
+import com.survivorserver.GlobalMarket.HistoryHandler.MarketAction;
 
 public class MarketCore {
 
@@ -38,7 +30,7 @@ public class MarketCore {
 		String infAccount = market.getInfiniteAccount();
 		boolean isInfinite = listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller());
 		String buyer = player.getName();
-		String friendlyItemName = listing.getItem().getAmount() + " " + market.getItemName(listing.getItem());
+		ItemStack item = storage.getItem(listing.getItemId(), listing.getAmount());
 		if (market.cutTransactions() && !market.hasCut(player, listing.getSeller())) {
 			cutPrice = originalPrice - market.getCut(originalPrice);
 		}
@@ -71,26 +63,28 @@ public class MarketCore {
 				}
 			} else {
 				// Send a Transaction Log
-				storage.storePayment(listing.getItem(), seller, cutPrice, buyer, true);
+				storage.storePayment(item, seller, buyer, cutPrice);
 			}
 			// Seller's stats
-			storage.incrementEarned(seller, cutPrice);
-			storage.storeHistory(seller, market.getLocale().get("history.item_sold", friendlyItemName, cutPrice));
+			market.getHistory().storeHistory(seller, buyer, MarketAction.LISTING_SOLD, listing.getItemId(), listing.getAmount(), originalPrice);
+			market.getHistory().incrementEarned(seller, cutPrice);
+			/*storage.incrementEarned(seller, cutPrice);
+			storage.storeHistory(seller, market.getLocale().get("history.item_sold", friendlyItemName, cutPrice));*/
 			// Buyer's stats
-			storage.incrementSpent(seller, originalPrice);
-			storage.storeHistory(player.getName(), market.getLocale().get("history.item_bought", friendlyItemName, originalPrice));
+			market.getHistory().incrementSpent(buyer, originalPrice);
+			market.getHistory().storeHistory(buyer, seller, MarketAction.LISTING_BOUGHT, listing.getItemId(), listing.getAmount(), originalPrice);
 		}
 		// Transfer the item to where it belongs
-		if (!isInfinite && removeListing) {
-			market.getStorage().removeListing(buyer, listing.getId());
-		}
 		if (mailItem) {
 			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-				market.getQueue().queueMail(listing.getItem(), buyer, null);
+				storage.queueMail(buyer, null, listing.getItemId(), listing.getAmount());
 				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
 			} else {
-				storage.storeMail(listing.getItem(), buyer, null, true);
+				storage.createMail(buyer, null, listing.getItemId(), listing.getAmount());
 			}
+		}
+		if (!isInfinite && removeListing) {
+			storage.removeListing(listing.getId());
 		}
 		// Update viewers
 		if (refreshInterface) {
@@ -102,57 +96,49 @@ public class MarketCore {
 	public void removeListing(Listing listing, Player player) {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-				market.getQueue().queueMail(listing.getItem(), listing.getSeller(), null);
+				storage.queueMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount());
 				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
 			} else {
-				storage.storeMail(listing.getItem(), listing.getSeller(), null, true);
+				storage.createMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount());
 			}
 		}
-		storage.removeListing(player.getName(), listing.getId());
+		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			String itemName = market.getItemName(listing.getItem());
-			if (listing.getSeller().equalsIgnoreCase(player.getName())) {
-				storage.storeHistory(player.getName(), market.getLocale().get("history.listing_removed", "You", itemName));
+			if (listing.getSeller().equalsIgnoreCase(player.getName())) {;
+				market.getHistory().storeHistory(listing.getSeller(), "You", MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
 			} else {
-				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player.getName(), itemName));
+				market.getHistory().storeHistory(listing.getSeller(), player.getName(), MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
 			}
 		}
 	}
 	
-	public synchronized void removeListing(Listing listing, String player) {
+	public synchronized void expireListing(Listing listing) {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			storage.storeMail(listing.getItem(), listing.getSeller(), null, true);
+			storage.createMail(listing.getSeller(), "Expired", listing.getItemId(), listing.getAmount());
 		}
-		storage.removeListing(player, listing.getId());
+		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			String itemName = market.getItemName(listing.getItem());
-			if (listing.getSeller().equalsIgnoreCase(player)) {
-				storage.storeHistory(player, market.getLocale().get("history.listing_removed", "You", itemName));
-			} else {
-				storage.storeHistory(listing.getSeller(), market.getLocale().get("history.listing_removed", player, itemName));
-			}
+			market.getHistory().storeHistory(listing.getSeller(), null, MarketAction.LISTING_EXPIRED, listing.getItemId(), listing.getAmount(), 0);
 		}
 	}
 	
 	public void retrieveMail(Mail mail, InterfaceViewer viewer, Player player) {
 		Inventory playerInv = player.getInventory();
-		ItemStack item = storage.getMailItem(viewer.getName(), mail.getId()).getItem();
+		ItemStack item = storage.getItem(mail.getItemId(), mail.getAmount());
 		playerInv.addItem(item);
-		storage.removeMail(viewer.getName(), mail.getId());
+		storage.removeMail(mail.getId());
 	}
 	
 	public void notifyPlayer(String player, String notification) {
 		Player p = market.getServer().getPlayer(player);
 		if (p != null) {
-			p.playSound(p.getLocation(), Sound.LEVEL_UP, 0.7f, 1);
-			
 			p.sendMessage(notification);
 		}
 	}
 	
-	public void showHistory(Player player) {
+	/*public void showHistory(Player player) {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
 		if (meta == null) {
@@ -167,7 +153,7 @@ public class MarketCore {
 						market.getLocale().get("history.total_spent", market.getEcon().format(storage.getSpent(player.getName()))) + "\n" +
 						market.getLocale().get("history.actual_amount_made", market.getEcon().format((storage.getEarned(player.getName()) - storage.getSpent(player.getName()))));
 		pages.add(pagesStr);
-		pages.set(0, pages.get(0).replace("§f", "").replace("§7", "").replace("§6", ""));
+		pages.set(0, pages.get(0).replace("ï¿½f", "").replace("ï¿½7", "").replace("ï¿½6", ""));
 		for (Entry<String, Long> set : history.entrySet()) {
 			Date date = new Date(set.getValue() * 1000);
 			pages.add(set.getKey() + "\n" + market.getLocale().get("history.at_time", date.toString()));
@@ -175,5 +161,5 @@ public class MarketCore {
 		meta.setPages(pages);
 		book.setItemMeta(meta);
 		player.getInventory().addItem(book);
-	}
+	}*/
 }

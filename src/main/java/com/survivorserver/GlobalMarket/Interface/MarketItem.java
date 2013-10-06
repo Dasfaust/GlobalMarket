@@ -6,5 +6,14 @@ public interface MarketItem {
 	
 	int getId();
 	
+	int getItemId();
+	
+	int getAmount();
+	
+	/**
+	 * Should only be used by the legacy importer
+	 * @deprecated
+	 * @return ItemStack associated with this item
+	 */
 	ItemStack getItem();
 }

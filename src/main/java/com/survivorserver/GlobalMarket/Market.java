@@ -32,18 +32,20 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.survivorserver.GlobalMarket.Command.MarketCommand;
+import com.survivorserver.GlobalMarket.Legacy.Importer;
+import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
+import com.survivorserver.GlobalMarket.SQL.Database;
+import com.survivorserver.GlobalMarket.SQL.StorageMethod;
 import com.survivorserver.GlobalMarket.Tasks.CleanTask;
 import com.survivorserver.GlobalMarket.Tasks.ExpireTask;
-import com.survivorserver.GlobalMarket.Tasks.SaveTask;
-import com.survivorserver.GlobalMarket.WebInterface.WebHandler;
+import com.survivorserver.GlobalMarket.Tasks.Queue;
 
 public class Market extends JavaPlugin implements Listener {
 
-	Logger log;
+	public Logger log;
 	private ArrayList<Integer> tasks;
 	static Market market;
 	private ConfigHandler config;
-	private MarketStorage storageHandler;
 	private InterfaceHandler interfaceHandler;
 	private MarketCore core;
 	private InterfaceListener listener;
@@ -51,22 +53,26 @@ public class Market extends JavaPlugin implements Listener {
 	private Permission perms;
 	private LocaleHandler locale;
 	private Map<String, String> searching;
-	private MarketQueue queue;
-	private PriceHandler prices;
-	private WebHandler webHandler;
 	private MarketCommand cmd;
+	private HistoryHandler history;
+	private AsyncDatabase asyncDb;
 	public String infiniteSeller;
+	private MarketStorage storage;
+	private boolean haultSync = false;
 	String prefix;
 
 	public void onEnable() {
 		log = getLogger();
-		getServer().getPluginManager().registerEvents(this, this);
 		tasks = new ArrayList<Integer>();
 		market = this;
 		reloadConfig();
-		getConfig().addDefault("server.enable", false);
+		getConfig().addDefault("storage.type", StorageMethod.SQLITE.toString());
+		getConfig().addDefault("storage.mysql_user", "root");
+		getConfig().addDefault("storage.mysql_pass", "password");
+		getConfig().addDefault("storage.mysql_database", "market");
+		getConfig().addDefault("storage.mysql_address", "localhost");
+		getConfig().addDefault("storage.mysql_port", 3306);
 		getConfig().addDefault("automatic_payments", false);
-		getConfig().addDefault("enable_cut", true);
 		getConfig().addDefault("cut_amount", 0.05);
 		getConfig().addDefault("cut_account", "");
 		getConfig().addDefault("enable_metrics", true);
@@ -78,7 +84,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("queue.queue_on_cancel", true);
 		getConfig().addDefault("max_listings_per_player", 0);
 		getConfig().addDefault("expire_time", 168);
-		getConfig().addDefault("price_check.enable", true);
+		getConfig().addDefault("enable_history", true);
 		getConfig().addDefault("infinite.seller", "Server");
 		getConfig().addDefault("infinite.account", "");
 		getConfig().addDefault("notify_on_update", true);
@@ -101,41 +107,62 @@ public class Market extends JavaPlugin implements Listener {
 		saveConfig();
 		
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if (economyProvider != null) {
-            econ = economyProvider.getProvider();
-        } else {
-        	log.severe("Vault has no hooked economy plugin, disabling");
-        	this.setEnabled(false);
-        	return;
-        }
-        RegisteredServiceProvider<net.milkbowl.vault.permission.Permission> permsProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
-        if (permsProvider != null) {
-        	perms = permsProvider.getProvider();
-        }
-        try {
-        	Class.forName("net.milkbowl.vault.item.Items");
-        	Class.forName("net.milkbowl.vault.item.ItemInfo");
-        } catch(Exception e) {
-        	log.warning("You have an old or corrupt version of Vault that's missing the Vault Items API. Defaulting to Bukkit item names. Please consider updating Vault!");
-        }
+		if (economyProvider != null) {
+		    econ = economyProvider.getProvider();
+		} else {
+			log.severe("Vault has no hooked economy plugin, disabling");
+			this.setEnabled(false);
+			return;
+		}
+		RegisteredServiceProvider<net.milkbowl.vault.permission.Permission> permsProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+		if (permsProvider != null) {
+			perms = permsProvider.getProvider();
+		}
+		try {
+			Class.forName("net.milkbowl.vault.item.Items");
+			Class.forName("net.milkbowl.vault.item.ItemInfo");
+		} catch(Exception e) {
+			log.warning("You have an old or corrupt version of Vault that's missing the Vault Items API. Defaulting to Bukkit item names. Please consider updating Vault!");
+		}
 		config = new ConfigHandler(this);
 		locale = new LocaleHandler(config);
 		prefix = locale.get("cmd.prefix");
-		storageHandler = new MarketStorage(config, this);
-		interfaceHandler = new InterfaceHandler(this, storageHandler);
+		cmd = new MarketCommand(this);
+		getCommand("market").setExecutor(cmd);
+		asyncDb = new AsyncDatabase(this);
+		storage = new MarketStorage(this, asyncDb);
+		initializeStorage();
+	}
+	
+	public void initializeStorage() {
+		Database db = config.createConnection();
+		if (!db.connect()) {
+			log.severe("Couldn't connect to the configured database! GlobalMarket can't continue without a connection, please check your config and do /market reload or restart your server");
+			return;
+		}
+		storage.loadSchema(db);
+		storage.load(db);
+		db.close();
+		if (interfaceHandler == null) {
+			intialize();
+		}
+	}
+	
+	public void intialize() {
+		if (Importer.importNeeded(this)) {
+			Importer.importLegacyData(config, storage, this);
+		}
+		interfaceHandler = new InterfaceHandler(this, storage);
 		interfaceHandler.registerInterface(new ListingsInterface(this));
 		interfaceHandler.registerInterface(new MailInterface(this));
-		if (getConfig().getBoolean("server.enable")) {
-			webHandler = new WebHandler(this);
-		}
-		core = new MarketCore(this, interfaceHandler, storageHandler);
-		listener = new InterfaceListener(this, interfaceHandler, storageHandler, core);
-		queue = new MarketQueue(this, storageHandler);
+		core = new MarketCore(this, interfaceHandler, storage);
+		listener = new InterfaceListener(this, interfaceHandler, storage, core);
 		getServer().getPluginManager().registerEvents(listener, this);
 		if (getConfig().getDouble("expire_time") > 0) {
-			new ExpireTask(this, storageHandler, core).runTaskTimerAsynchronously(this, 0, 72000);
+			tasks.add(new ExpireTask(this, config, core, storage).runTaskTimerAsynchronously(this, 0, 72000).getTaskId());
 		}
 		tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new CleanTask(this, interfaceHandler), 0, 20));
+		tasks.add(new Queue(this).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 		if (getConfig().getBoolean("enable_metrics")) {
 			try {
 			    MetricsLite metrics = new MetricsLite(this);
@@ -145,13 +172,11 @@ public class Market extends JavaPlugin implements Listener {
 			}
 		}
 		searching = new HashMap<String, String>();
-		if (enablePrices()) {
-			prices = new PriceHandler(this);
+		if (enableHistory()) {
+			history = new HistoryHandler(this, asyncDb, config);
 		}
-		tasks.add(new SaveTask(log, config).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 		infiniteSeller = getConfig().getString("infinite.seller");
-		cmd = new MarketCommand(this);
-		getCommand("market").setExecutor(cmd);
+		getServer().getPluginManager().registerEvents(this, this);
 	}
 	
 	public Economy getEcon() {
@@ -162,12 +187,12 @@ public class Market extends JavaPlugin implements Listener {
 		return market;
 	}	
 
-	public MarketCore getCore() {
-		return core;
+	public MarketStorage getStorage() {
+		return storage;
 	}
 	
-	public MarketStorage getStorage() {
-		return storageHandler;
+	public MarketCore getCore() {
+		return core;
 	}
 	
 	public LocaleHandler getLocale() {
@@ -182,12 +207,8 @@ public class Market extends JavaPlugin implements Listener {
 		return interfaceHandler;
 	}
 	
-	public boolean serverEnabled() {
-		return getConfig().getBoolean("server.enable");
-	}
-	
 	public double getCut(double amount) {
-		if (amount < 10 || !getConfig().getBoolean("enable_cut")) {
+		if (amount < 10 || !cutTransactions()) {
 			return 0;
 		}
 		double cut = new BigDecimal(amount * getConfig().getDouble("cut_amount")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
@@ -214,7 +235,7 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public boolean cutTransactions() {
-		return getConfig().getBoolean("enable_cut");
+		return getConfig().getDouble("cut_amount") <= 0;
 	}
 	
 	public void addSearcher(String name, String interfaceName) {
@@ -244,10 +265,6 @@ public class Market extends JavaPlugin implements Listener {
 		}
 	}
 	
-	public MarketQueue getQueue() {
-		return queue;
-	}
-	
 	public int getTradeTime() {
 		return getConfig().getInt("queue.trade_time");
 	}
@@ -272,6 +289,15 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getDouble("expire_time");
 	}
 	
+	public synchronized boolean haultSync() {
+		return haultSync;
+	}
+	
+	public void setSyncHault(boolean b) {
+		haultSync = b;
+	}
+	
+	@SuppressWarnings("deprecation")
 	public boolean itemBlacklisted(ItemStack item) {
 		if (getConfig().isSet("blacklist.item_id." + item.getTypeId())) {
 			String path = "blacklist.item_id." + item.getTypeId();
@@ -323,12 +349,8 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getBoolean("blacklist.use_with_mail");
 	}
 	
-	public PriceHandler getPrices() {
-		return prices;
-	}
-	
-	public boolean enablePrices() {
-		return getConfig().getBoolean("price_check.enable");
+	public boolean enableHistory() {
+		return getConfig().getBoolean("enable_history");
 	}
 	
 	public String getInfiniteSeller() {
@@ -339,6 +361,7 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getString("infinite.account");
 	}
 
+	@SuppressWarnings("deprecation")
 	public String getItemName(ItemStack item) {
 		int amount = item.getAmount();
 		String itemName = item.getType().toString();
@@ -369,6 +392,10 @@ public class Market extends JavaPlugin implements Listener {
 		return cmd;
 	}
 	
+	public HistoryHandler getHistory() {
+		return history;
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -385,6 +412,7 @@ public class Market extends JavaPlugin implements Listener {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRightClick(PlayerInteractEvent event) {
 		if (!event.isCancelled() && event.getClickedBlock() != null) {
@@ -432,7 +460,7 @@ public class Market extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onLogin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		if (storageHandler.getNumMail(player.getName()) > 0) {
+		if (storage.getNumMail(player.getName()) > 0) {
 			player.sendMessage(prefix + locale.get("you_have_new_mail"));
 		}
 		if (player.hasPermission("globalmarket.admin")) {
@@ -444,12 +472,17 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public void onDisable() {
 		interfaceHandler.closeAllInterfaces();
-		if (getConfig().getBoolean("server.enable")) {
-			webHandler.stopServer();
-		}
 		for(int i = 0; i < tasks.size(); i++) {
 			getServer().getScheduler().cancelTask(tasks.get(i));
 		}
-		config.save();
+		if (asyncDb.isProcessing()) {
+			market.log.info("DB queue is currently running, haulting...");
+			while(asyncDb.isProcessing()) { 
+				haultSync = true;
+			}
+			haultSync = false;
+		}
+		asyncDb.processQueue(true);
+		asyncDb.close();
 	}
 }

@@ -41,6 +41,7 @@ public class MailboxCommand extends SubCommand {
 		return false;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, String[] args) {
 		Player player = (Player) sender;

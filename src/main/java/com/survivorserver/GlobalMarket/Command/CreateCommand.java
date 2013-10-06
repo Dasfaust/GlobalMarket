@@ -11,9 +11,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.survivorserver.GlobalMarket.HistoryHandler.MarketAction;
 import com.survivorserver.GlobalMarket.LocaleHandler;
 import com.survivorserver.GlobalMarket.Market;
-import com.survivorserver.GlobalMarket.MarketQueue;
 import com.survivorserver.GlobalMarket.MarketStorage;
 
 public class CreateCommand extends SubCommand {
@@ -50,9 +50,8 @@ public class CreateCommand extends SubCommand {
 	@Override
 	public boolean onCommand(CommandSender sender, String[] args) {
 		String prefix = locale.get("cmd.prefix");
-		MarketStorage storageHandler = market.getStorage();
+		MarketStorage storage = market.getStorage();
 		Economy econ = market.getEcon();
-		MarketQueue queue = market.getQueue();
 		Player player = (Player) sender;
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
 			if (market.itemBlacklisted(player.getItemInHand())) {
@@ -76,7 +75,7 @@ public class CreateCommand extends SubCommand {
 				return true;
 			}
 			double fee = market.getCreationFee(player, price);
-			if (market.maxListings() > 0 && storageHandler.getNumListings(sender.getName()) >= market.maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
+			if (market.maxListings() > 0 && storage.getNumListings(sender.getName()) >= market.maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
 				sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 				return true;
 			}
@@ -111,7 +110,7 @@ public class CreateCommand extends SubCommand {
 			if (fee > 0) {
 				if (econ.has(sender.getName(), fee)) {
 					econ.withdrawPlayer(sender.getName(), fee);
-					storageHandler.incrementSpent(sender.getName(), fee);
+					market.getHistory().incrementSpent(sender.getName(), fee);
 					player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
 				} else {
 					sender.sendMessage(ChatColor.RED + locale.get("you_cant_pay_this_fee"));
@@ -133,14 +132,13 @@ public class CreateCommand extends SubCommand {
 				player.setItemInHand(new ItemStack(Material.AIR));
 			}
 			if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-				queue.queueListing(toList, player.getName(), price);
+				storage.queueListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price);
 				sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", market.getTradeTime()));
 			} else {
-				storageHandler.storeListing(toList, infinite ? market.getInfiniteSeller() : player.getName(), price);
+				storage.createListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price);
 				sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 			}
-			String itemName = market.getItemName(toList);
-			storageHandler.storeHistory(player.getName(), locale.get("history.item_listed", itemName, price));
+			market.getHistory().storeHistory(player.getName(), "", MarketAction.LISTING_CREATED, toList, price);
 		} else {
 			sender.sendMessage(prefix + locale.get("hold_an_item") + " " + locale.get("cmd.create_syntax"));
 		}

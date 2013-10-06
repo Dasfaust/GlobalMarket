@@ -15,15 +15,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.survivorserver.GlobalMarket.HistoryHandler.MarketAction;
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
 
 public class MailInterface extends MarketInterface {
 
 	protected Market market;
+	private MarketStorage storage;
 	
 	public MailInterface(Market market) {
 		this.market = market;
+		storage = market.getStorage();
 	}
 	
 	@Override
@@ -54,8 +57,8 @@ public class MailInterface extends MarketInterface {
 	@Override
 	public ItemStack prepareItem(MarketItem mailItem, InterfaceViewer viewer, int page, int slot, boolean leftClick, boolean shiftClick) {
 		Mail mail = (Mail) mailItem;
-		ItemStack item = mailItem.getItem();
-		ItemMeta meta = item.getItemMeta().clone();
+		ItemStack item = storage.getItem(mail.getItemId(), mail.getAmount());
+		ItemMeta meta = item.getItemMeta();
 		List<String> lore = meta.getLore();
 		if (!meta.hasLore()) {
 			lore = new ArrayList<String>();
@@ -103,7 +106,12 @@ public class MailInterface extends MarketInterface {
 				return;
 			}
 			player.sendMessage(ChatColor.GREEN + market.getLocale().get("picked_up_your_earnings", market.getEcon().format(market.getEcon().getBalance(player.getName()))));
-			market.getStorage().nullifyPayment(item.getId(), viewer.getName());
+			market.getStorage().nullifyMailPayment(item.getId());
+			if (viewer.getName().equalsIgnoreCase(viewer.getViewer())) {
+				market.getHistory().storeHistory(viewer.getName(), "You", MarketAction.EARNINGS_RETRIEVED, item.getItemId(), item.getAmount(), amount);
+			} else {
+				market.getHistory().storeHistory(viewer.getName(), viewer.getViewer(), MarketAction.EARNINGS_RETRIEVED, item.getItemId(), item.getAmount(), amount);
+			}
 		}
 		Inventory inv = player.getInventory();
 		if (inv.firstEmpty() >= 0) {
@@ -122,7 +130,7 @@ public class MailInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getAllMailFor(viewer.getName());
+		return (List<MarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getPage(), getSize() - 9);
 	}
 
 	@Override
@@ -132,7 +140,7 @@ public class MailInterface extends MarketInterface {
 
 	@Override
 	public MarketItem getItem(InterfaceViewer viewer, int id) {
-		return market.getStorage().getMailItem(viewer.getName(), id);
+		return market.getStorage().getMail(id);
 	}
 
 	@Override
@@ -147,5 +155,10 @@ public class MailInterface extends MarketInterface {
 
 	@Override
 	public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
+	}
+	
+	@Override
+	public int getTotalNumberOfItems(InterfaceViewer viewer) {
+		return market.getStorage().getNumMail(viewer.getName());
 	}
 }

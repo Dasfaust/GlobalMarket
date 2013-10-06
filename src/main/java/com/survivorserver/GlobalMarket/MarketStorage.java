@@ -3,152 +3,415 @@ package com.survivorserver.GlobalMarket;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
-import com.survivorserver.GlobalMarket.Events.ListingRemoveEvent;
-import com.survivorserver.GlobalMarket.MarketQueue.QueueType;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.survivorserver.GlobalMarket.SQL.Database;
+import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
+import com.survivorserver.GlobalMarket.SQL.MarketResult;
+import com.survivorserver.GlobalMarket.SQL.QueuedStatement;
+import com.survivorserver.GlobalMarket.SQL.StorageMethod;
 
 public class MarketStorage {
 
-	ConfigHandler config;
-	Market market;
+	private Market market;
+	private AsyncDatabase asyncDb;
+	private Map<Integer, ItemStack> items;
+	private LinkedHashMap<Integer, Listing> listings;
+	private LinkedHashMap<Integer, Mail> mail;
+	private LinkedHashMap<Integer, QueueItem> queue;
+	private int itemIndex;
+	private int listingIndex;
+	private int mailIndex;
+	private int queueIndex;
 	
-	public MarketStorage(ConfigHandler config, Market market) {
-		this.config = config;
+	public MarketStorage(Market market, AsyncDatabase asyncDb) {
 		this.market = market;
+		this.asyncDb = asyncDb;
+		items = new HashMap<Integer, ItemStack>();
+		listings = new LinkedHashMap<Integer, Listing>();
+		mail = new LinkedHashMap<Integer, Mail>();
+		queue = new LinkedHashMap<Integer, QueueItem>();
 	}
 	
-	public synchronized void storeListing(ItemStack item, String player, double price) {
-		int id = getListingsIndex() + 1;
-		String path = "listings." + id;
-		config.getListingsYML().set(path + ".item", item);
-		config.getListingsYML().set(path + ".seller", player);
-		config.getListingsYML().set(path + ".price", price);
-		config.getListingsYML().set(path + ".time", (System.currentTimeMillis() / 1000));
-		incrementListingsIndex();
-		market.getInterfaceHandler().updateAllViewers();
+	public void loadSchema(Database db) {
+		boolean sqlite = market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE;
+		// Create items table
+		db.createStatement("CREATE TABLE IF NOT EXISTS items ("
+				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+				+ (sqlite ? "item MEDIUMTEXT" : "item MEDIUMTEXT CHARACTER SET utf8 COLLATE utf8_general_ci")
+				+ ")").execute();
+		// Create listings table
+		db.createStatement("CREATE TABLE IF NOT EXISTS listings ("
+				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ") 
+				+ "seller TINYTEXT, "
+				+ "item int, "
+				+ "amount int, "
+				+ "price DOUBLE, "
+				+ "time BIGINT)").execute();
+		// Create mail table
+		db.createStatement("CREATE TABLE IF NOT EXISTS mail ("
+				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+				+ "owner TINYTEXT, "
+				+ "item int, "
+				+ "amount int, "
+				+ "sender TINYTEXT, "
+				+ "pickup DOUBLE)").execute();
+		// Create queue table
+		db.createStatement("CREATE TABLE IF NOT EXISTS queue ("
+				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+				+ "data MEDIUMTEXT)").execute();
+		// Create users metadata table
+		db.createStatement("CREATE TABLE IF NOT EXISTS users ("
+				+ "name varchar(16) NOT NULL UNIQUE, "
+				+ "earned DOUBLE, "
+				+ "spent DOUBLE)").execute();
+		// Create history table
+		db.createStatement("CREATE TABLE IF NOT EXISTS history ("
+				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+				+ "player TINYTEXT, "
+				+ "action TINYTEXT, "
+				+ "who TINYTEXT, "
+				+ "item int, "
+				+ "amount int, "
+				+ "price DOUBLE, "
+				+ "time BIGINT)").execute();
 	}
 	
-	public int getNumListings() {
-		if (!config.getListingsYML().isSet("listings")) {
-			return 0;
+	public void load(Database db) {
+		// Items we should cache in memory
+		List<Integer> itemIds = new ArrayList<Integer>();
+		/*
+		 * Synchronize the listing index with the database
+		 */
+		listings.clear();
+		listingIndex = 1;
+		MarketResult res = db.createStatement("SELECT id FROM listings ORDER BY id DESC LIMIT 1").query();
+		if (res.next()) {
+			listingIndex = res.getInt(1) + 1;
 		}
-		return config.getListingsYML().getConfigurationSection("listings").getKeys(false).size();
-	}
-	
-	public int getListingsIndex() {
-		if (!config.getListingsYML().isSet("index")) {
-			config.getListingsYML().set("index", 0);
-		}
-		return config.getListingsYML().getInt("index");
-	}
-	
-	public void incrementListingsIndex() {
-		int index = getListingsIndex() + 1;
-		config.getListingsYML().set("index", index);
-	}
-	
-	public void removeListing(String user, int id) {
-		ListingRemoveEvent event = new ListingRemoveEvent(id, user);
-		market.getServer().getPluginManager().callEvent(event);
-		if (event.isCancelled()) {
-			return;
-		}
-		String path = "listings." + id;
-		if (!config.getListingsYML().isSet(path)) {
-			return;
-		}
-		config.getListingsYML().set(path, null);
-	}
-	
-	public List<Listing> getAllListings() {
-		List<Listing> listings = new ArrayList<Listing>();
-		if (config.getListingsYML().isSet("listings")) {
-			for (String l : config.getListingsYML().getConfigurationSection("listings").getKeys(false)) {
-				String path = "listings." + l;
-				Listing listing = new Listing(market, Integer.parseInt(l), config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
-				listings.add(listing);
+		res = db.createStatement("SELECT * FROM listings ORDER BY id ASC").query();
+		while(res.next()) {
+			Listing listing = res.constructListing(this);
+			int id = listing.getItemId();
+			if (!itemIds.contains(id)) {
+				itemIds.add(id);
 			}
-			Collections.reverse(listings);
+			listings.put(listing.getId(), listing);
 		}
-		return listings;
-	}
-	
-	public synchronized List<Listing> getListings() {
-		List<Listing> listings = new ArrayList<Listing>();
-		for (int i = 0; i <= getListingsIndex(); i++) {
-			String path = "listings." + i;
-			if (!config.getListingsYML().isSet(path)) {
-				continue;
+		/*
+		 * Synchronize the mail index with the database
+		 */
+		mail.clear();
+		res = db.createStatement("SELECT * FROM mail ORDER BY id ASC").query();
+		while(res.next()) {
+			Mail m = res.constructMail(this);
+			int id = m.getItemId();
+			if (!itemIds.contains(id)) {
+				itemIds.add(id);
 			}
-			String seller = config.getListingsYML().getString(path + ".seller");
-			ItemStack item = config.getListingsYML().getItemStack(path + ".item").clone();
-			listings.add(new Listing(market, i, item, seller, config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time")));
+			mail.put(m.getId(), m);
 		}
-		return listings;
+		mailIndex = 1;
+		res = db.createStatement("SELECT id FROM mail ORDER BY id DESC LIMIT 1").query();
+		if (res.next()) {
+			mailIndex = res.getInt(1) + 1;
+		}
+		/*
+		 * Queue
+		 */
+		queue.clear();
+		res = db.createStatement("SELECT * FROM queue ORDER BY id ASC").query();
+		Yaml yaml = new Yaml(new CustomClassLoaderConstructor(Market.class.getClassLoader()));
+		while(res.next()) {
+			QueueItem item = yaml.loadAs(res.getString(2), QueueItem.class);
+			queue.put(item.getId(), item);
+			int itemId;
+			if (item.getMail() != null) {
+				itemId = item.getMail().getItemId();
+			} else {
+				itemId = item.getListing().getItemId();
+			}
+			if (!itemIds.contains(itemId)) {
+				itemIds.add(itemId);
+			}
+		}
+		queueIndex = 1;
+		res = db.createStatement("SELECT id FROM queue ORDER BY id DESC LIMIT 1").query();
+		if (res.next()) {
+			queueIndex = res.getInt(1) + 1;
+		}
+		/*
+		 * Synchronize needed items
+		 */
+		items.clear();
+		if (itemIds.size() > 0) {
+			StringBuilder query = new StringBuilder();
+			query.append("SELECT * FROM items WHERE id IN (");
+			for (int i = 0; i < itemIds.size(); i++) {
+				query.append(itemIds.get(i));
+				if (i + 1 == itemIds.size()) {
+					query.append(")");
+				} else {
+					query.append(", ");
+				}
+			}
+			res = db.createStatement(query.toString()).query();
+			while(res.next()) {
+				items.put(res.getInt(1), res.getItemStack(2));
+			}
+		}
+		itemIndex = 1;
+		res = db.createStatement("SELECT id FROM items ORDER BY id DESC LIMIT 1").query();
+		if (res.next()) {
+			itemIndex = res.getInt(1) + 1;
+		}
+		asyncDb.startTask();
 	}
 	
-	public List<Listing> getAllListings(String search) {
-		List<Listing> found = new ArrayList<Listing>();
-		for (Listing listing : getAllListings()) {
-			ItemStack item = listing.getItem();
+	public AsyncDatabase getAsyncDb() {
+		return asyncDb;
+	}
+	
+	public Listing queueListing(String seller, ItemStack itemStack, double price) {
+		int itemId = storeItem(itemStack);
+		long time = System.currentTimeMillis();
+		Listing listing = new Listing(listingIndex++, seller, itemId, itemStack.getAmount(), price, time);
+		QueueItem item = new QueueItem(queueIndex++, time, listing);
+		queue.put(item.getId(), item);
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
+		.setValue(new Yaml().dump(item)));
+		return listing;
+	}
+	
+	public Mail queueMail(String owner, String from, ItemStack itemStack) {
+		int itemId = storeItem(itemStack);
+		Mail mail = new Mail(owner, mailIndex++, itemId, itemStack.getAmount(), 0, from);
+		QueueItem item = new QueueItem(queueIndex++, System.currentTimeMillis(), mail);
+		queue.put(item.getId(), item);
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
+		.setValue(new Yaml().dump(item)));
+		return mail;
+	}
+	
+	public Mail queueMail(String owner, String from, int itemId, int amount) {
+		Mail mail = new Mail(owner, mailIndex++, itemId, amount, 0, from);
+		QueueItem item = new QueueItem(queueIndex++, System.currentTimeMillis(), mail);
+		queue.put(item.getId(), item);
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
+		.setValue(new Yaml().dump(item)));
+		return mail;
+	}
+	
+	public synchronized List<QueueItem> getQueue() {
+		return new ArrayList<QueueItem>(queue.values());
+	}
+	
+	public synchronized void removeItemFromQueue(int id) {
+		QueueItem item = queue.get(new Integer(id));
+		if (item.getMail() != null) {
+			storeMail(item.getMail());
+		} else {
+			storeListing(item.getListing());
+		}
+		asyncDb.addStatement(new QueuedStatement("DELETE FROM queue WHERE id=?").setValue(id));
+		queue.remove(id);
+	}
+	
+	public static String itemStackToString(ItemStack item) {
+		YamlConfiguration conf = new YamlConfiguration();
+		ItemStack toSave = item.clone();
+		toSave.setAmount(1);
+		conf.set("item", toSave);
+		return conf.saveToString();
+	}
+	
+	public static ItemStack itemStackFromString(String item) {
+		YamlConfiguration conf = new YamlConfiguration();
+		try {
+			conf.loadFromString(item);
+			return new ItemStack(conf.getItemStack("item"));
+		} catch (InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static ItemStack itemStackFromString(String item, int amount) {
+		YamlConfiguration conf = new YamlConfiguration();
+		try {
+			conf.loadFromString(item);
+			ItemStack itemStack = conf.getItemStack("item");
+			itemStack.setAmount(amount);
+			return itemStack;
+		} catch (InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public int storeItem(ItemStack item) {
+		for (Entry<Integer, ItemStack> ent : items.entrySet()) {
+			if (ent.getValue().equals(item)) {
+				return ent.getKey();
+			}
+		}
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO items (item) VALUES (?)")
+		.setValue(item));
+		items.put(itemIndex, item);
+		return itemIndex++;
+	}
+	
+	public ItemStack getItem(int id, int amount) {
+		ItemStack item = null;
+		if (items.containsKey(new Integer(id))) {
+			item = items.get(new Integer(id)).clone();
+		}
+		item.setAmount(amount);
+		return item;
+	}
+	
+	public Listing createListing(String seller, ItemStack item, double price) {
+		int itemId = storeItem(item);
+		Long time = System.currentTimeMillis();
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (seller, item, amount, price, time) VALUES (?, ?, ?, ?, ?)")
+		.setValue(seller)
+		.setValue(itemId)
+		.setValue(item.getAmount())
+		.setValue(price)
+		.setValue(time));
+		Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, time);
+		listings.put(listing.getId(), listing);
+		return listing;
+	}
+	
+	public void storeListing(Listing listing) {
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, time) VALUES (?, ?, ?, ?, ?, ?)")
+		.setValue(listing.getId())
+		.setValue(listing.getSeller())
+		.setValue(listing.getItemId())
+		.setValue(listing.getAmount())
+		.setValue(listing.getPrice())
+		.setValue(listing.getTime()));
+		listings.put(listing.getId(), listing);
+	}
+	
+	public void storeMail(Mail m) {
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, pickup) VALUES (?, ?, ?, ?, ?, ?)")
+		.setValue(m.getId())
+		.setValue(m.getOwner())
+		.setValue(m.getItemId())
+		.setValue(m.getAmount())
+		.setValue(m.getSender())
+		.setValue(m.getPickup()));
+		mail.put(m.getId(), m);
+	}
+	
+	public synchronized Listing getListing(int id) {
+		if (listings.containsKey(id)) {
+			return listings.get(id);
+		}
+		return null;
+	}
+	
+	public List<Listing> getListings(int page, int pageSize) {
+		List<Listing> toReturn = new ArrayList<Listing>();
+		int index = (pageSize * page) - pageSize;
+		while (listings.size() > index && toReturn.size() < pageSize) {
+			toReturn.add(listings.values().toArray(new Listing[0])[index]);
+			index++;
+		}
+		return toReturn;
+	}
+	
+	public synchronized List<Listing> getAllListings() {
+		return new ArrayList<Listing>(listings.values());
+	}
+	
+	@SuppressWarnings("deprecation")
+	public List<Listing> getListings(int page, int pageSize, String search) {
+		List<Listing> toReturn = new ArrayList<Listing>();
+		for (Listing listing : listings.values().toArray(new Listing[0])) {
+			ItemStack item = getItem(listing.getItemId(), listing.getAmount());
 			String itemName = market.getItemName(item);
-			String seller = listing.getSeller();
 			if (itemName.toLowerCase().contains(search.toLowerCase())
 					|| isItemId(search, item.getTypeId())
 					|| isInDisplayName(search.toLowerCase(), item)
 					|| isInEnchants(search.toLowerCase(), item)
-					|| isInLore(search.toLowerCase(), item)
-					|| seller.toLowerCase().contains(search.toLowerCase())) {
-				found.add(listing);
+					|| isInLore(search.toLowerCase(), item)) {
+				toReturn.add(listing);
 			}
 		}
-		return found;
+		return toReturn;
 	}
 	
-	public int getNumListings(String seller) {
-		int n = 0;
-		for (Listing listing : getAllListings(seller)) {
-			if (listing.getSeller().equalsIgnoreCase(seller)) {
-				n++;
+	public synchronized void removeListing(int id) {
+		if (listings.containsKey(id)) {
+			listings.remove(id);
+		}
+		asyncDb.addStatement(new QueuedStatement("DELETE FROM listings WHERE id=?")
+		.setValue(id));
+	}
+	
+	public int getNumListings() {
+		return listings.size();
+	}
+	
+	public int getNumListings(String name) {
+		int amount = 0;
+		for (Listing listing : listings.values()) {
+			if (listing.getSeller().equalsIgnoreCase(name)) {
+				amount++;
 			}
 		}
-		return n;
+		return amount;
 	}
 	
-	public Listing getListing(int id) {
-		String path = "listings." + id;
-		return new Listing(market, id, config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
+	public LinkedHashMap<Integer, Listing> getCachedListingIndex() {
+		return listings;
 	}
 	
-	public void storeMail(ItemStack item, String player, String sender, boolean notify) {
-		int id = getMailIndex(player) + 1;
-		String path = player + "." + id;
-		config.getMailYML().set(path + ".item", item);
-		config.getMailYML().set(path + ".sender", sender);
-		config.getMailYML().set(path + ".time", (System.currentTimeMillis() / 1000));
-		incrementMailIndex(player);
-		if (notify) {
-			Player reciever = market.getServer().getPlayer(player);
-			if (reciever != null) {
-				reciever.sendMessage(ChatColor.GREEN + market.getLocale().get("you_have_new_mail"));
-			}
-		}
+	public Mail createMail(String owner, String from, int itemId, int amount) {
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (owner, item, amount, sender, pickup) VALUES (?, ?, ?, ?, ?)")
+		.setValue(owner)
+		.setValue(itemId)
+		.setValue(amount)
+		.setValue(from)
+		.setValue(0));
+		Mail m = new Mail(owner, mailIndex++, itemId, amount, 0, from);
+		mail.put(m.getId(), m);
+		return m;
 	}
 	
-	public void storePayment(ItemStack item, String player, double amount, String buyer, boolean notify) {
+	public Mail createMail(String owner, String from, ItemStack item, double pickup) {
+		int itemId = storeItem(item);
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (owner, item, amount, sender, pickup) VALUES (?, ?, ?, ?, ?)")
+		.setValue(owner)
+		.setValue(itemId)
+		.setValue(item.getAmount())
+		.setValue(from)
+		.setValue(pickup));
+		Mail m = new Mail(owner, mailIndex++, itemId, item.getAmount(), pickup, from);
+		mail.put(m.getId(), m);
+		return m;
+	}
+	
+	public void storePayment(ItemStack item, String player, String buyer, double amount) {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
 		if (meta == null) {
@@ -164,184 +427,60 @@ public class MarketStorage {
 						market.getLocale().get("transaction_log.amount_recieved", (amount-cut));
 		meta.setPages(logStr);
 		book.setItemMeta(meta);
-		int id = getMailIndex(player) + 1;
-		String path = player + "." + id;
-		config.getMailYML().set(path + ".item", book);
-		config.getMailYML().set(path + ".sender", buyer);
-		config.getMailYML().set(path + ".time", (System.currentTimeMillis() / 1000));
-		config.getMailYML().set(path + ".amount", (amount-cut));
-		incrementMailIndex(player);
-		if (notify) {
-			Player reciever = market.getServer().getPlayer(player);
-			if (reciever != null) {
-				reciever.sendMessage(ChatColor.GREEN + market.getLocale().get("listing_purchased_mailbox", itemName));
-			}
-		}
+		createMail(player, buyer, book, amount - cut);
 	}
 	
-	public void nullifyPayment(int id, String player) {
-		if (!config.getMailYML().isSet(player + "." + id + ".amount")) {
-			return;
-		}
-		config.getMailYML().set(player + "." + id + ".amount", null);
-	}
-	
-	public int getMailIndex(String player) {
-		if (!config.getMailYML().isSet("index." + player)) {
-			config.getMailYML().set("index." + player, 0);
-		}
-		return config.getMailYML().getInt("index." + player);
-	}
-	
-	public void incrementMailIndex(String player) {
-		int index = getMailIndex(player) + 1;
-		config.getMailYML().set("index." + player, index);
-	}
-	
-	public int getNumMail(String player) {
-		if (!config.getMailYML().isSet(player)) {
-			return 0;
-		}
-		return config.getMailYML().getConfigurationSection(player).getKeys(false).size();
-	}
-	
-	public List<Mail> getAllMailFor(String player) {
-		List<Mail> mail = new ArrayList<Mail>();
-		for (int i = 1; i <= getMailIndex(player); i++) {
-			String path = player + "." + i;
-			if (!config.getMailYML().isSet(path)) {
-				continue;
-			}
-			String sender = null;
-			if (config.getMailYML().isSet(path + ".sender")) {
-				sender = config.getMailYML().getString(path + ".sender");
-			}
-			double pickup = -1;
-			if (config.getMailYML().isSet(path + ".amount")) {
-				pickup = config.getMailYML().getDouble(path + ".amount");
-			}
-			mail.add(new Mail(player, i, config.getMailYML().getItemStack(path + ".item").clone(), pickup, sender));
-		}
-		return mail;
-	}
-	
-	public Mail getMailItem(String player, int id) {
-		String path = player + "." + id;
-		if (config.getMailYML().isSet(path)) {
-			String sender = null;
-			if (config.getMailYML().isSet(path + ".sender")) {
-				sender = config.getMailYML().getString(path + ".sender");
-			}
-			double pickup = -1;
-			if (config.getMailYML().isSet(path + ".amount")) {
-				pickup = config.getMailYML().getDouble(path + ".amount");
-			}
-			return new Mail(player, id, config.getMailYML().getItemStack(path + ".item").clone(), pickup, sender);
+	public Mail getMail(int id) {
+		if (mail.containsKey(id)) {
+			return mail.get(id);
 		}
 		return null;
 	}
 	
-	public void removeMail(String player, int id) {
-		String path = player + "." + id;
-		if (!config.getMailYML().isSet(path)) {
-			return;
-		}
-		config.getMailYML().set(path, null);
-	}
-	
-	public int getNumHistory(String player) {
-		if (!config.getHistoryYML().isSet(player)) {
-			return 0;
-		}
-		return config.getHistoryYML().getConfigurationSection(player).getKeys(false).size();
-	}
-	
-	public void storeHistory(String player, String info) {
-		int id = getNumHistory(player) + 1;
-		config.getHistoryYML().set(player + "." + id + ".info", info);
-		config.getHistoryYML().set(player + "." + id + ".time", (System.currentTimeMillis() / 1000));
-	}
-	
-	public Map<String, Long> getHistory(String player, int stop) {
-		Map<String, Long> history = new HashMap<String, Long>();
-		int p = 0;
-		for (int i = getNumHistory(player); i > 0; i--) {
-			history.put(config.getHistoryYML().getString(player + "." + i + ".info"), config.getHistoryYML().getLong(player + "." + i + ".time"));
-			p++;
-			if (p >= stop) {
-				break;
+	public List<Mail> getMail(final String owner, int page, int pageSize) {
+		Collection<Mail> ownedMail = Collections2.filter(mail.values(), new Predicate<Mail>() {
+			public boolean apply(Mail mail) {
+				return mail.getOwner().equals(owner);
 			}
+		});
+		List<Mail> toReturn = new ArrayList<Mail>();
+		int index = (pageSize * page) - pageSize;
+		while (ownedMail.size() > index && toReturn.size() < pageSize) {
+			toReturn.add(ownedMail.toArray(new Mail[0])[index]);
+			index++;
 		}
-		if (history.isEmpty()) {
-			history.put("No history! ...yet ;)", 0L);
+		return toReturn;
+	}
+	
+	public void nullifyMailPayment(int id) {
+		asyncDb.addStatement(new QueuedStatement("UPDATE mail SET pickup=? WHERE id=?")
+		.setValue(0)
+		.setValue(id));
+		if (mail.containsKey(id)) {
+			mail.get(id).setPickup(0);
 		}
-		return history;
 	}
 	
-	public void incrementSpent(String player, double amount) {
-		config.getHistoryYML().set("spent." + player, getSpent(player) + amount);
-	}
-	
-	public double getSpent(String player) {
-		if (!config.getHistoryYML().isSet("spent." + player)) {
-			return 0;
+	public void removeMail(int id) {
+		if (mail.containsKey(id)) {
+			mail.remove(id);
 		}
-		return config.getHistoryYML().getDouble("spent." + player);
+		asyncDb.addStatement(new QueuedStatement("DELETE FROM mail WHERE id=?")
+		.setValue(id));
 	}
 	
-	public void incrementEarned(String player, double amount) {
-		config.getHistoryYML().set("earned." + player, getEarned(player) + amount);
-	}
-	
-	public double getEarned(String player) {
-		if (!config.getHistoryYML().isSet("earned." + player)) {
-			return 0;
-		}
-		return config.getHistoryYML().getDouble("earned." + player);
-	}
-	
-	public int getQueueIndex() {
-		if (!config.getQueueYML().isSet("index")) {
-			config.getQueueYML().set("index", 0);
-		}
-		return config.getQueueYML().getInt("index");
-	}
-	
-	public void incrementQueueIndex() {
-		int index = getQueueIndex() + 1;
-		config.getQueueYML().set("index", index);
-	}
-	
-	public void storeQueueItem(QueueType type, Object... args) {
-		int id = getQueueIndex();
-		String path = "queue." + id;
-		config.getQueueYML().set(path + ".type", type.toString());
-		for (int i = 0; i < args.length; i++) {
-			config.getQueueYML().set(path + "." + i, args[i]);
-		}
-		config.getQueueYML().set(path + ".time", System.currentTimeMillis());
-		incrementQueueIndex();
-	}
-	
-	public synchronized Map<Integer, List<Object>> getAllQueueItems() {
-		Map<Integer, List<Object>> items = new HashMap<Integer, List<Object>>();
-		for (int i = 0; i < getQueueIndex(); i++) {
-			if (config.getQueueYML().isSet("queue." + i)) {
-				List<Object> obs = new ArrayList<Object>();
-				ConfigurationSection section = config.getQueueYML().getConfigurationSection("queue." + i);
-				for (String key : section.getKeys(false)) {
-					obs.add(section.get(key));
-				}
-				items.put(i, obs);
+	public int getNumMail(final String player) {
+		Collection<Mail> ownedMail = Collections2.filter(mail.values(), new Predicate<Mail>() {
+			public boolean apply(Mail mail) {
+				return mail.getOwner().equals(player);
 			}
-		}
-		return items;
+		});
+		return ownedMail.size();
 	}
-	
-	public synchronized void removeQueueItem(int id) {
-		config.getQueueYML().set("queue." + id, null);
-	}
-	
+
+	/*
+	 * Basic search method
+	 */
 	public boolean isItemId(String search, int typeId) {
 		if (search.equalsIgnoreCase(Integer.toString(typeId))) {
 			return true;
@@ -349,6 +488,9 @@ public class MarketStorage {
 		return false;
 	}
 	
+	/*
+	 * Basic search method
+	 */
 	public boolean isInDisplayName(String search, ItemStack item) {
 		if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
 			return item.getItemMeta().getDisplayName().toLowerCase().contains(search);
@@ -356,6 +498,9 @@ public class MarketStorage {
 		return false;
 	}
 	
+	/*
+	 * Basic search method
+	 */
 	public boolean isInEnchants(String search, ItemStack item) {
 		if (item.hasItemMeta() && item.getItemMeta().hasEnchants()) {
 			for (Entry<Enchantment, Integer> entry : item.getItemMeta().getEnchants().entrySet()) {
@@ -367,6 +512,9 @@ public class MarketStorage {
 		return false;
 	}
 	
+	/*
+	 * Basic search method
+	 */
 	public boolean isInLore(String search, ItemStack item) {
 		if (item.hasItemMeta() && item.getItemMeta().hasLore()) {
 			for (String l : item.getItemMeta().getLore()) {

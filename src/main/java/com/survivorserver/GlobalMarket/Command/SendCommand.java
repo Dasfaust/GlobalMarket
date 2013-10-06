@@ -9,7 +9,6 @@ import org.bukkit.inventory.ItemStack;
 
 import com.survivorserver.GlobalMarket.LocaleHandler;
 import com.survivorserver.GlobalMarket.Market;
-import com.survivorserver.GlobalMarket.MarketQueue;
 import com.survivorserver.GlobalMarket.MarketStorage;
 
 public class SendCommand extends SubCommand {
@@ -47,7 +46,6 @@ public class SendCommand extends SubCommand {
 	public boolean onCommand(CommandSender sender, String[] args) {
 		String prefix = locale.get("cmd.prefix");
 		MarketStorage storageHandler = market.getStorage();
-		MarketQueue queue = market.getQueue();
 		Player player = (Player) sender;
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
 			if (market.blacklistMail()) {
@@ -94,19 +92,19 @@ public class SendCommand extends SubCommand {
 				}
 				toList.setAmount(amount);
 				if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-					queue.queueMail(toList, args[1], sender.getName());
+					market.getStorage().queueMail(args[1], sender.getName(), toList);
 					sender.sendMessage(prefix + locale.get("item_will_send", market.getTradeTime()));
 				} else {
-					storageHandler.storeMail(toList, args[1], sender.getName(), true);
+					storageHandler.createMail(args[1], sender.getName(), toList, 0);
 					sender.sendMessage(prefix + locale.get("item_sent"));
 				}
 			} else {
 				ItemStack toList = new ItemStack(player.getItemInHand());
 				if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-					queue.queueMail(toList, args[1], sender.getName());
+					market.getStorage().queueMail(args[1], sender.getName(), toList);
 					sender.sendMessage(prefix + locale.get("item_will_send", market.getTradeTime()));
 				} else {
-					storageHandler.storeMail(toList, args[1], sender.getName(), true);
+					storageHandler.createMail(args[1], sender.getName(), toList, 0);
 					sender.sendMessage(prefix + locale.get("item_sent"));
 				}
 				player.setItemInHand(new ItemStack(Material.AIR));

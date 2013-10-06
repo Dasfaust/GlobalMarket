@@ -6,28 +6,48 @@ import com.survivorserver.GlobalMarket.Interface.MarketItem;
 
 public class Listing implements MarketItem {
 
-	int id;
+	public int id;
+	public int itemId;
+	public int amount;
+	public String seller;
+	public double price;
+	public Long time;
+	// Legacy
 	ItemStack item;
-	String seller;
-	double price;
-	Long time;
-	String clientName;
 	
-	public Listing(Market market, int id, ItemStack item, String seller, double price, Long time) {
+	public Listing() {
+	}
+	
+	public Listing(int id, String seller, int itemId, int amount, double price, Long time) {
 		this.id = id;
-		this.item = new ItemStack(item);
+		this.itemId = itemId;
+		this.amount = amount;
 		this.seller = seller;
 		this.price = price;
 		this.time = time;
-		clientName = market.getItemName(item);
+	}
+	
+	/*
+	 * Legacy constructor
+	 */
+	public Listing(int id, ItemStack item, String seller, double price, Long time) {
+		this.id = id;
+		this.seller = seller;
+		this.price = price;
+		this.time = time;
+		this.item = item;
 	}
 	
 	public int getId() {
 		return id;
 	}
 	
-	public ItemStack getItem() {
-		return item.clone();
+	public int getItemId() {
+		return itemId;
+	}
+	
+	public int getAmount() {
+		return amount;
 	}
 	
 	public String getSeller() {
@@ -42,7 +62,12 @@ public class Listing implements MarketItem {
 		return time;
 	}
 	
-	public String getClientName() {
-		return clientName;
+	/**
+	 * Should only be used by the legacy importer
+	 * @deprecated
+	 * @return ItemStack associated with this item
+	 */
+	public ItemStack getItem() {
+		return item;
 	}
 }

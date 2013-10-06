@@ -16,9 +16,11 @@ import com.survivorserver.GlobalMarket.Interface.MarketItem;
 public class ListingsInterface extends MarketInterface {
 
 	protected Market market;
+	private MarketStorage storage;
 	
 	public ListingsInterface(Market market) {
 		this.market = market;
+		storage = market.getStorage();
 	}
 	
 	@Override
@@ -49,7 +51,7 @@ public class ListingsInterface extends MarketInterface {
 	@Override
 	public ItemStack prepareItem(MarketItem marketItem, InterfaceViewer viewer, int page, int slot, boolean leftClick, boolean shiftClick) {
 		Listing listing = (Listing) marketItem;
-		ItemStack item = listing.getItem();
+		ItemStack item = storage.getItem(listing.getItemId(), listing.getAmount());
 		ItemMeta meta = item.getItemMeta().clone();
 		
 		boolean isSeller = viewer.getViewer().equalsIgnoreCase(listing.getSeller());
@@ -125,13 +127,13 @@ public class ListingsInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getAllListings();
+		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getPage(), getSize() - 9);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getAllListings(search);
+		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getPage(), getSize() - 9, search);
 	}
 
 	@Override
@@ -163,5 +165,10 @@ public class ListingsInterface extends MarketInterface {
 	
 	@Override
 	public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
+	}
+	
+	@Override
+	public int getTotalNumberOfItems(InterfaceViewer viewer) {
+		return market.getStorage().getNumListings();
 	}
 }

@@ -1,17 +1,21 @@
 package com.survivorserver.GlobalMarket;
 
 import org.bukkit.Material;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
+import com.survivorserver.GlobalMarket.Lib.NbtFactory;
+import com.survivorserver.GlobalMarket.Lib.NbtFactory.NbtCompound;
 
 public class InterfaceListener implements Listener {
 
@@ -30,15 +34,16 @@ public class InterfaceListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void clickEvent(InventoryClickEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getWhoClicked().getName());
-		ItemStack curItem = event.getCurrentItem();
-		boolean marketItem = isMarketItem(curItem);
+		//ItemStack curItem = event.getCurrentItem();
+		int rawSlot = event.getRawSlot();
+		int slot = event.getSlot();
 		// Verify we're in a Market interface
 		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
-			// We're clicking a Market item
-			if (marketItem) {
-				event.setCancelled(true);
+			//int guiSize = handler.getInterface(viewer.getInterface()).getSize() - 1;
+			if (rawSlot <= 53) {
+				// We've clicked a Market item
+				event.setResult(Result.DENY);
 				
-				int slot = event.getSlot();
 				int invSize = viewer.getGui().getContents().length;
 				if (event.isRightClick()) {
 					// Cancel any existing actions and start over
@@ -51,7 +56,7 @@ public class InterfaceListener implements Listener {
 					viewer.setLastActionSlot(slot);
 					
 					MarketInterface inter = handler.getInterface(viewer.getInterface());
-					if (viewer.getBoundSlots().containsKey(event.getSlot())) {
+					if (rawSlot <= 44 && event.getCurrentItem() != null) {
 						// This item has an ID attached to it
 						MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getSlot()));
 						// Yay, we've got the MarketItem instance. Let's do stuff with it
@@ -81,13 +86,36 @@ public class InterfaceListener implements Listener {
 						handler.refreshViewer(viewer);
 					}
 				}
+			} else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
+					|| (event.getAction() == InventoryAction.PLACE_ALL
+					|| event.getAction() == InventoryAction.PLACE_ONE
+					|| event.getAction() == InventoryAction.PLACE_SOME
+					|| event.getAction() == InventoryAction.SWAP_WITH_CURSOR)
+					&& event.getRawSlot() == event.getSlot()) {
+				// They're trying to put an item from their inventory into the Market inventory. Not bad for us, but they will lose their item. Cancel it because we're nice :)
+				event.setResult(Result.DENY);
 			}
-		} else if (marketItem) {
-			// Clicking a Market item and has no viewer object, probably not in the interface, destroy it at all costs
-			event.setCancelled(true);
+		} /*else if (isMarketItem(curItem)) {
+			
+			// Clicking a Market item and has no viewer object, probably not in the interface, destroy it at all costs!
+			event.setResult(Result.DENY);
 			curItem.setType(Material.AIR);
 			if (event.getCursor() != null) {
 				event.getCursor().setType(Material.AIR);
+			}
+			event.getCurrentItem().setType(Material.AIR);
+		}*/
+	}
+	
+	@EventHandler
+	public void handleDrag(InventoryDragEvent event) {
+		InterfaceViewer viewer = handler.findViewer(event.getWhoClicked().getName());
+		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
+			//int guiSize = handler.getInterface(viewer.getInterface()).getSize() - 1;
+			for (int raw : event.getRawSlots()) {
+				if (raw <= 53) {
+					event.setCancelled(true);
+				}
 			}
 		}
 	}
@@ -106,6 +134,7 @@ public class InterfaceListener implements Listener {
 	public synchronized void handleInventoryClose(InventoryCloseEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getPlayer().getName());
 		if (viewer != null) {
+			viewer.getGui().clear();
 			handler.removeViewer(viewer);
 		}
 		// Ugly fix for item duping via shift+click and esc. Oh well, we'll have to wait until Bukkit fixes this
@@ -138,15 +167,9 @@ public class InterfaceListener implements Listener {
 	
 	public boolean isMarketItem(ItemStack item) {
 		if (item != null) {
-			if (item.hasItemMeta()) {
-				ItemMeta meta = item.getItemMeta();
-				if (meta.hasLore()) {
-					for (MarketInterface gui : handler.getInterfaces()) {
-						if (gui.identifyItem(meta)) {
-							return true;
-						}
-					}
-				}
+			if (item.getType() != Material.AIR) {
+				NbtCompound comp = NbtFactory.fromItemTag(item.clone());
+				return comp == null ? false : comp.containsKey("marketItem");
 			}
 		}
 		return false;

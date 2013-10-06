@@ -49,7 +49,7 @@ public class ListingsCommand extends SubCommand {
 				}
 			}
 		}
-		market.getInterfaceHandler().openInterface(player, null, "Listings");
+		market.getInterfaceHandler().openInterface(player, search, "Listings");
 		return true;
 	}
 

@@ -6,12 +6,30 @@ import com.survivorserver.GlobalMarket.Interface.MarketItem;
 
 public class Mail implements MarketItem {
 
-	String owner;
-	int id;
+	public String owner;
+	public int id;
+	public int itemId;
+	public int amount;
+	public double pickup;
+	public String sender;
+	// Legacy
 	ItemStack item;
-	double pickup;
-	String sender;
 	
+	public Mail() {
+	}
+	
+	public Mail(String owner, int id, int itemId, int amount, double pickup, String sender) {
+		this.owner = owner;
+		this.id = id;
+		this.itemId = itemId;
+		this.amount = amount;
+		this.pickup = pickup;
+		this.sender = sender;
+	}
+	
+	/*
+	 * Legacy constructor
+	 */
 	public Mail(String owner, int id, ItemStack item, double pickup, String sender) {
 		this.owner = owner;
 		this.id = id;
@@ -25,9 +43,12 @@ public class Mail implements MarketItem {
 		return id;
 	}
 
-	@Override
-	public ItemStack getItem() {
-		return item;
+	public int getItemId() {
+		return itemId;
+	}
+	
+	public int getAmount() {
+		return amount;
 	}
 
 	public String getOwner() {
@@ -38,7 +59,20 @@ public class Mail implements MarketItem {
 		return pickup;
 	}
 	
+	public void setPickup(double amount) {
+		pickup = amount;
+	}
+	
 	public String getSender() {
 		return sender;
+	}
+	
+	/**
+	 * Should only be used by the legacy importer
+	 * @deprecated
+	 * @return ItemStack associated with this item
+	 */
+	public ItemStack getItem() {
+		return item;
 	}
 }

@@ -1,11 +1,12 @@
 package com.survivorserver.GlobalMarket.Command;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.LocaleHandler;
 import com.survivorserver.GlobalMarket.Market;
+import com.survivorserver.GlobalMarket.SQL.Database;
 
 public class HistoryCommand extends SubCommand {
 
@@ -40,9 +41,15 @@ public class HistoryCommand extends SubCommand {
 
 	@Override
 	public boolean onCommand(CommandSender sender, String[] args) {
-		Player player = (Player) sender;
-		market.getCore().showHistory(player);
-		sender.sendMessage(ChatColor.GREEN + locale.get("check_your_inventory"));
+		final Player player = (Player) sender;
+		new BukkitRunnable() {
+			public void run() {
+				Database db = market.getStorage().getAsyncDb().getDb();
+				synchronized(db) {
+					player.sendMessage(market.getHistory().buildHistory(player.getName(), 15, db));
+				}
+			}
+		}.runTaskAsynchronously(market);
 		return true;
 	}
 
