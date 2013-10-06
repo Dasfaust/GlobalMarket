@@ -11,6 +11,7 @@ public class Listing implements MarketItem {
 	public int amount;
 	public String seller;
 	public double price;
+	String world;
 	public Long time;
 	// Legacy
 	ItemStack item;
@@ -18,12 +19,13 @@ public class Listing implements MarketItem {
 	public Listing() {
 	}
 	
-	public Listing(int id, String seller, int itemId, int amount, double price, Long time) {
+	public Listing(int id, String seller, int itemId, int amount, double price, String world, Long time) {
 		this.id = id;
 		this.itemId = itemId;
 		this.amount = amount;
 		this.seller = seller;
 		this.price = price;
+		this.world = world;
 		this.time = time;
 	}
 	
@@ -56,6 +58,10 @@ public class Listing implements MarketItem {
 	
 	public double getPrice() {
 		return price;
+	}
+	
+	public String getWorld() {
+		return world;
 	}
 	
 	public Long getTime() {

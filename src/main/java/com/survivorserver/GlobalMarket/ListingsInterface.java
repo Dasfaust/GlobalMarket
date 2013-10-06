@@ -127,13 +127,13 @@ public class ListingsInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getPage(), getSize() - 9);
+		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getPage(), getSize() - 9, viewer.getWorld());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getPage(), getSize() - 9, search);
+		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getPage(), getSize() - 9, search, viewer.getWorld());
 	}
 
 	@Override
@@ -169,6 +169,6 @@ public class ListingsInterface extends MarketInterface {
 	
 	@Override
 	public int getTotalNumberOfItems(InterfaceViewer viewer) {
-		return market.getStorage().getNumListings();
+		return market.getStorage().getNumListings(viewer.getWorld());
 	}
 }

@@ -3,6 +3,7 @@ package com.survivorserver.GlobalMarket;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.Command.MarketCommand;
 import com.survivorserver.GlobalMarket.Legacy.Importer;
@@ -72,6 +74,9 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("storage.mysql_database", "market");
 		getConfig().addDefault("storage.mysql_address", "localhost");
 		getConfig().addDefault("storage.mysql_port", 3306);
+		getConfig().addDefault("multiworld.enable", false);
+		String[] links = new String[]{"world_nether", "world_the_end"};
+		getConfig().addDefault("multiworld.links.world", Arrays.asList(links));
 		getConfig().addDefault("automatic_payments", false);
 		getConfig().addDefault("cut_amount", 0.05);
 		getConfig().addDefault("cut_account", "");
@@ -396,6 +401,19 @@ public class Market extends JavaPlugin implements Listener {
 		return history;
 	}
 	
+	public boolean enableMultiworld() {
+		return getConfig().getBoolean("multiworld.enable");
+	}
+	
+	public boolean areWorldsLinked(String world1, String world2) {
+		if (getConfig().isSet("multiworld.links." + world1)) {
+			return getConfig().getStringList("multiworld.links." + world1).contains(world2);
+		} else if(getConfig().isSet("multiworld.links." + world2)) {
+			return getConfig().getStringList("multiworld.links." + world2).contains(world1);
+		}
+		return false;
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -459,10 +477,18 @@ public class Market extends JavaPlugin implements Listener {
 	
 	@EventHandler
 	public void onLogin(PlayerJoinEvent event) {
+		final String name = event.getPlayer().getName();
+		new BukkitRunnable() {
+			public void run() {
+				Player player = market.getServer().getPlayer(name);
+				if (player != null) {
+					if (storage.getNumMail(player.getName(), player.getWorld().getName()) > 0) {
+						player.sendMessage(prefix + locale.get("you_have_new_mail"));
+					}
+				}
+			}
+		}.runTaskLater(this, 10);
 		Player player = event.getPlayer();
-		if (storage.getNumMail(player.getName()) > 0) {
-			player.sendMessage(prefix + locale.get("you_have_new_mail"));
-		}
 		if (player.hasPermission("globalmarket.admin")) {
 			if (getConfig().getBoolean("notify_on_update")) {
 				new UpdateCheck(this, player.getName());

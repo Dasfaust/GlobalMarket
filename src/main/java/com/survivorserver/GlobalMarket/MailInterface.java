@@ -130,7 +130,7 @@ public class MailInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getPage(), getSize() - 9);
+		return (List<MarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getPage(), getSize() - 9, viewer.getWorld());
 	}
 
 	@Override
@@ -159,6 +159,6 @@ public class MailInterface extends MarketInterface {
 	
 	@Override
 	public int getTotalNumberOfItems(InterfaceViewer viewer) {
-		return market.getStorage().getNumMail(viewer.getName());
+		return market.getStorage().getNumMail(viewer.getName(), viewer.getWorld());
 	}
 }

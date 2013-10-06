@@ -24,6 +24,7 @@ public class Importer {
 	public static void importLegacyData(com.survivorserver.GlobalMarket.ConfigHandler config, MarketStorage sql, Market market) {
 		LegacyConfigHandler conf = new LegacyConfigHandler(market);
 		LegacyMarketStorage storage = new LegacyMarketStorage(conf, market);
+		String world = market.getServer().getWorlds().get(0).getName();
 		market.log.info("Old YAML storage found, importing your data. Note that history and pricing information will not be imported, as they are incompatbile, sorry!");
 		/*
 		 * Import listings from legacy YAML storage
@@ -32,7 +33,7 @@ public class Importer {
 		List<Listing> listings = storage.getAllListings();
 		for (int i = 0; i < listings.size(); i++) {
 			Listing listing = listings.get(i);
-			sql.createListing(listing.getSeller(), listing.getItem(), listing.getPrice());
+			sql.createListing(listing.getSeller(), listing.getItem(), listing.getPrice(), world);
 		}
 		/*
 		 * Import mail from legacy YAML storage
@@ -41,7 +42,7 @@ public class Importer {
 		Set<String> players = storage.getAllMailUsers();
 		for (String player : players) {
 			for (Mail mail : storage.getAllMailFor(player)) {
-				sql.createMail(mail.getOwner(), mail.getSender(), mail.getItem(), mail.getPickup());
+				sql.createMail(mail.getOwner(), mail.getSender(), mail.getItem(), mail.getPickup(), world);
 			}
 		}
 		market.log.info("Importing queue... (Queue will be cleared)");
@@ -51,13 +52,13 @@ public class Importer {
 				List<Object> item = set.getValue();
 				String type = (String) item.get(0);
 				if (type.equalsIgnoreCase("listing_create")) {
-					sql.createListing((String) item.get(2), (ItemStack) item.get(1), (Double) item.get(3));
+					sql.createListing((String) item.get(2), (ItemStack) item.get(1), (Double) item.get(3), world);
 				} else if (type.equalsIgnoreCase("mail_to")) {
 					String from = null;
 					if (item.size() == 5) {
 						from = (String) item.get(3);
 					}
-					sql.createMail((String) item.get(2), from, (ItemStack) item.get(1), 0);
+					sql.createMail((String) item.get(2), from, (ItemStack) item.get(1), 0, world);
 				}
 			}
 		}

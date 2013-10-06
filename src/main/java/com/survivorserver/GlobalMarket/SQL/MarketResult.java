@@ -185,7 +185,7 @@ public class MarketResult {
 			if (set.isBeforeFirst()) {
 				set.next();
 			}
-			return new Listing(set.getInt("id"), set.getString("seller"), set.getInt("item"), set.getInt("amount"), set.getDouble("price"), set.getLong("time"));
+			return new Listing(set.getInt("id"), set.getString("seller"), set.getInt("item"), set.getInt("amount"), set.getDouble("price"), set.getString("world"), set.getLong("time"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
@@ -197,7 +197,7 @@ public class MarketResult {
 			if (set.isBeforeFirst()) {
 				set.next();
 			}
-			return new Mail(set.getString("owner"), set.getInt("id"), set.getInt("item"), set.getInt("amount"), set.getDouble("pickup"), set.getString("sender"));
+			return new Mail(set.getString("owner"), set.getInt("id"), set.getInt("item"), set.getInt("amount"), set.getDouble("pickup"), set.getString("sender"), set.getString("world"));
 		} catch(SQLException e) {
 			e.printStackTrace();
 			return null;

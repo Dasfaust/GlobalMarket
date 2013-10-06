@@ -75,7 +75,7 @@ public class CreateCommand extends SubCommand {
 				return true;
 			}
 			double fee = market.getCreationFee(player, price);
-			if (market.maxListings() > 0 && storage.getNumListings(sender.getName()) >= market.maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
+			if (market.maxListings() > 0 && storage.getNumListingsFor(sender.getName()) >= market.maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
 				sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 				return true;
 			}
@@ -131,11 +131,12 @@ public class CreateCommand extends SubCommand {
 			} else {
 				player.setItemInHand(new ItemStack(Material.AIR));
 			}
+			String world = player.getWorld().getName();
 			if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-				storage.queueListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price);
+				storage.queueListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price, world);
 				sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", market.getTradeTime()));
 			} else {
-				storage.createListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price);
+				storage.createListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price, world);
 				sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 			}
 			market.getHistory().storeHistory(player.getName(), "", MarketAction.LISTING_CREATED, toList, price);

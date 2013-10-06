@@ -64,6 +64,7 @@ public class MarketStorage {
 				+ "item int, "
 				+ "amount int, "
 				+ "price DOUBLE, "
+				+ "world TINYTEXT, "
 				+ "time BIGINT)").execute();
 		// Create mail table
 		db.createStatement("CREATE TABLE IF NOT EXISTS mail ("
@@ -72,6 +73,7 @@ public class MarketStorage {
 				+ "item int, "
 				+ "amount int, "
 				+ "sender TINYTEXT, "
+				+ "world TINYTEXT, "
 				+ "pickup DOUBLE)").execute();
 		// Create queue table
 		db.createStatement("CREATE TABLE IF NOT EXISTS queue ("
@@ -189,10 +191,10 @@ public class MarketStorage {
 		return asyncDb;
 	}
 	
-	public Listing queueListing(String seller, ItemStack itemStack, double price) {
+	public Listing queueListing(String seller, ItemStack itemStack, double price, String world) {
 		int itemId = storeItem(itemStack);
 		long time = System.currentTimeMillis();
-		Listing listing = new Listing(listingIndex++, seller, itemId, itemStack.getAmount(), price, time);
+		Listing listing = new Listing(listingIndex++, seller, itemId, itemStack.getAmount(), price, world, time);
 		QueueItem item = new QueueItem(queueIndex++, time, listing);
 		queue.put(item.getId(), item);
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
@@ -200,9 +202,9 @@ public class MarketStorage {
 		return listing;
 	}
 	
-	public Mail queueMail(String owner, String from, ItemStack itemStack) {
+	public Mail queueMail(String owner, String from, ItemStack itemStack, String world) {
 		int itemId = storeItem(itemStack);
-		Mail mail = new Mail(owner, mailIndex++, itemId, itemStack.getAmount(), 0, from);
+		Mail mail = new Mail(owner, mailIndex++, itemId, itemStack.getAmount(), 0, from, world);
 		QueueItem item = new QueueItem(queueIndex++, System.currentTimeMillis(), mail);
 		queue.put(item.getId(), item);
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
@@ -210,8 +212,8 @@ public class MarketStorage {
 		return mail;
 	}
 	
-	public Mail queueMail(String owner, String from, int itemId, int amount) {
-		Mail mail = new Mail(owner, mailIndex++, itemId, amount, 0, from);
+	public Mail queueMail(String owner, String from, int itemId, int amount, String world) {
+		Mail mail = new Mail(owner, mailIndex++, itemId, amount, 0, from, world);
 		QueueItem item = new QueueItem(queueIndex++, System.currentTimeMillis(), mail);
 		queue.put(item.getId(), item);
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
@@ -287,38 +289,41 @@ public class MarketStorage {
 		return item;
 	}
 	
-	public Listing createListing(String seller, ItemStack item, double price) {
+	public Listing createListing(String seller, ItemStack item, double price, String world) {
 		int itemId = storeItem(item);
 		Long time = System.currentTimeMillis();
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (seller, item, amount, price, time) VALUES (?, ?, ?, ?, ?)")
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?)")
 		.setValue(seller)
 		.setValue(itemId)
 		.setValue(item.getAmount())
 		.setValue(price)
+		.setValue(world)
 		.setValue(time));
-		Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, time);
+		Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, world, time);
 		listings.put(listing.getId(), listing);
 		return listing;
 	}
 	
 	public void storeListing(Listing listing) {
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, time) VALUES (?, ?, ?, ?, ?, ?)")
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
 		.setValue(listing.getId())
 		.setValue(listing.getSeller())
 		.setValue(listing.getItemId())
 		.setValue(listing.getAmount())
 		.setValue(listing.getPrice())
+		.setValue(listing.getWorld())
 		.setValue(listing.getTime()));
 		listings.put(listing.getId(), listing);
 	}
 	
 	public void storeMail(Mail m) {
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, pickup) VALUES (?, ?, ?, ?, ?, ?)")
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
 		.setValue(m.getId())
 		.setValue(m.getOwner())
 		.setValue(m.getItemId())
 		.setValue(m.getAmount())
 		.setValue(m.getSender())
+		.setValue(m.getWorld())
 		.setValue(m.getPickup()));
 		mail.put(m.getId(), m);
 	}
@@ -330,12 +335,22 @@ public class MarketStorage {
 		return null;
 	}
 	
-	public List<Listing> getListings(int page, int pageSize) {
+	public List<Listing> getListings(int page, int pageSize, final String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
 		int index = (pageSize * page) - pageSize;
-		List<Listing> list = new ArrayList<Listing>(listings.values());
+		List<Listing> list;
+		if (market.enableMultiworld()) {
+			list = new ArrayList<Listing>(Collections2.filter(listings.values(), new Predicate<Listing>() {
+				@Override
+				public boolean apply(Listing listing) {
+					return listing.getWorld().equalsIgnoreCase(world) ? true : market.areWorldsLinked(world, listing.getWorld());
+				}
+			}));
+		} else {
+			list = new ArrayList<Listing>(listings.values());
+		}
 		Collections.reverse(list);
-		while (listings.size() > index && toReturn.size() < pageSize) {
+		while (list.size() > index && toReturn.size() < pageSize) {
 			toReturn.add(list.get(index));
 			index++;
 		}
@@ -347,9 +362,20 @@ public class MarketStorage {
 	}
 	
 	@SuppressWarnings("deprecation")
-	public List<Listing> getListings(int page, int pageSize, String search) {
+	public List<Listing> getListings(int page, int pageSize, String search, final String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
-		for (Listing listing : listings.values().toArray(new Listing[0])) {
+		List<Listing> list;
+		if (market.enableMultiworld()) {
+			list = new ArrayList<Listing>(Collections2.filter(listings.values(), new Predicate<Listing>() {
+				@Override
+				public boolean apply(Listing listing) {
+					return listing.getWorld().equalsIgnoreCase(world) ? true : market.areWorldsLinked(world, listing.getWorld());
+				}
+			}));
+		} else {
+			list = new ArrayList<Listing>(listings.values());
+		}
+		for (Listing listing : list) {
 			ItemStack item = getItem(listing.getItemId(), listing.getAmount());
 			String itemName = market.getItemName(item);
 			if (itemName.toLowerCase().contains(search.toLowerCase())
@@ -371,11 +397,19 @@ public class MarketStorage {
 		.setValue(id));
 	}
 	
-	public int getNumListings() {
+	public int getNumListings(final String world) {
+		if (market.enableMultiworld()) {
+			return Collections2.filter(listings.values(), new Predicate<Listing>() {
+				@Override
+				public boolean apply(Listing listing) {
+					return listing.getWorld().equalsIgnoreCase(world) ? true : market.areWorldsLinked(world, listing.getWorld());
+				}
+			}).size();
+		}
 		return listings.size();
 	}
 	
-	public int getNumListings(String name) {
+	public int getNumListingsFor(String name) {
 		int amount = 0;
 		for (Listing listing : listings.values()) {
 			if (listing.getSeller().equalsIgnoreCase(name)) {
@@ -389,19 +423,19 @@ public class MarketStorage {
 		return listings;
 	}
 	
-	public Mail createMail(String owner, String from, int itemId, int amount) {
+	public Mail createMail(String owner, String from, int itemId, int amount, String world) {
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (owner, item, amount, sender, pickup) VALUES (?, ?, ?, ?, ?)")
 		.setValue(owner)
 		.setValue(itemId)
 		.setValue(amount)
 		.setValue(from)
 		.setValue(0));
-		Mail m = new Mail(owner, mailIndex++, itemId, amount, 0, from);
+		Mail m = new Mail(owner, mailIndex++, itemId, amount, 0, from, world);
 		mail.put(m.getId(), m);
 		return m;
 	}
 	
-	public Mail createMail(String owner, String from, ItemStack item, double pickup) {
+	public Mail createMail(String owner, String from, ItemStack item, double pickup, String world) {
 		int itemId = storeItem(item);
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (owner, item, amount, sender, pickup) VALUES (?, ?, ?, ?, ?)")
 		.setValue(owner)
@@ -409,12 +443,12 @@ public class MarketStorage {
 		.setValue(item.getAmount())
 		.setValue(from)
 		.setValue(pickup));
-		Mail m = new Mail(owner, mailIndex++, itemId, item.getAmount(), pickup, from);
+		Mail m = new Mail(owner, mailIndex++, itemId, item.getAmount(), pickup, from, world);
 		mail.put(m.getId(), m);
 		return m;
 	}
 	
-	public void storePayment(ItemStack item, String player, String buyer, double amount) {
+	public void storePayment(ItemStack item, String player, String buyer, double amount, String world) {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
 		if (meta == null) {
@@ -430,7 +464,7 @@ public class MarketStorage {
 						market.getLocale().get("transaction_log.amount_recieved", (amount-cut));
 		meta.setPages(logStr);
 		book.setItemMeta(meta);
-		createMail(player, buyer, book, amount - cut);
+		createMail(player, buyer, book, amount - cut, world);
 	}
 	
 	public Mail getMail(int id) {
@@ -440,9 +474,14 @@ public class MarketStorage {
 		return null;
 	}
 	
-	public List<Mail> getMail(final String owner, int page, int pageSize) {
+	public List<Mail> getMail(final String owner, int page, int pageSize, final String world) {
 		Collection<Mail> ownedMail = Collections2.filter(mail.values(), new Predicate<Mail>() {
 			public boolean apply(Mail mail) {
+				if (market.enableMultiworld()) {
+					if (!mail.getWorld().equalsIgnoreCase(world) && !market.areWorldsLinked(world, mail.getWorld())) {
+						return false;
+					}
+				}
 				return mail.getOwner().equals(owner);
 			}
 		});
@@ -474,12 +513,17 @@ public class MarketStorage {
 		.setValue(id));
 	}
 	
-	public int getNumMail(final String player) {
+	public int getNumMail(final String player, final String world) {
 		Collection<Mail> ownedMail = Collections2.filter(mail.values(), new Predicate<Mail>() {
-			public boolean apply(Mail mail) {
-				return mail.getOwner().equals(player);
-			}
-		});
+				public boolean apply(Mail mail) {
+					if (market.enableMultiworld()) {
+						if (!mail.getWorld().equalsIgnoreCase(world) && !market.areWorldsLinked(world, mail.getWorld())) {
+							return false;
+						}
+					}
+					return mail.getOwner().equals(player);
+				}
+			});
 		return ownedMail.size();
 	}
 

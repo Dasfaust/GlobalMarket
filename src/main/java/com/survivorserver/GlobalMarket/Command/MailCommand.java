@@ -54,7 +54,7 @@ public class MailCommand extends SubCommand {
 			}
 			MarketInterface gui = market.getInterfaceHandler().getInterface("Mail");
 			Inventory inv = market.getServer().createInventory(player, gui.getSize(), gui.getTitle() + " (" + viewAs + ")");
-			InterfaceViewer viewer = new InterfaceViewer(viewAs, player.getName(), inv, "Mail");
+			InterfaceViewer viewer = new InterfaceViewer(viewAs, player.getName(), inv, "Mail", player.getWorld().getName());
 			market.getInterfaceHandler().addViewer(viewer);
 			market.getInterfaceHandler().refreshViewer(viewer);
 			market.getInterfaceHandler().openGui(viewer);

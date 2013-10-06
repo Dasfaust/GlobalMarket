@@ -18,12 +18,14 @@ public class InterfaceViewer {
 	int lastClicked;
 	String interfaceName;
 	int clicks = 0;
+	String world;
 	
-	public InterfaceViewer(String name, String player, Inventory gui, String interfaceName) {
+	public InterfaceViewer(String name, String player, Inventory gui, String interfaceName, String world) {
 		this.name = name;
 		this.player = player;
 		this.gui = gui;
 		this.interfaceName = interfaceName;
+		this.world = world;
 	}
 	
 	public void setBoundSlots(Map<Integer, Integer> boundSlots) {
@@ -111,5 +113,9 @@ public class InterfaceViewer {
 	
 	public void incrementClicks() {
 		clicks++;
+	}
+	
+	public String getWorld() {
+		return world;
 	}
 }

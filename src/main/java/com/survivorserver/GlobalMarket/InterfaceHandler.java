@@ -56,14 +56,15 @@ public class InterfaceHandler {
 		return interfaces;
 	}
 	
-	public InterfaceViewer addViewer(String player, Inventory gui, String interfaceName) {
+	public InterfaceViewer addViewer(Player player, Inventory gui, String interfaceName) {
+		String name = player.getName();
 		for (InterfaceViewer viewer : viewers) {
-			if (viewer.getViewer().equalsIgnoreCase(player)) {
+			if (viewer.getViewer().equalsIgnoreCase(name)) {
 				gui = null;
 				return viewer;
 			}
 		}
-		InterfaceViewer viewer = new InterfaceViewer(player, player, gui, interfaceName);
+		InterfaceViewer viewer = new InterfaceViewer(name, name, gui, interfaceName, player.getWorld().getName());
 		viewers.add(viewer);
 		return viewer;
 	}
@@ -95,8 +96,8 @@ public class InterfaceHandler {
 	}
 	
 	public void openInterface(Player player, String search, String marketInterface) {
-		final MarketInterface gui = getInterface(marketInterface);
-		final InterfaceViewer viewer = addViewer(player.getName(), market.getServer().createInventory(player, gui.getSize(), gui.getTitle()), marketInterface);
+		MarketInterface gui = getInterface(marketInterface);
+		InterfaceViewer viewer = addViewer(player, market.getServer().createInventory(player, gui.getSize(), market.enableMultiworld() ? gui.getTitle() + " (" + player.getWorld().getName() + ")" : gui.getTitle()), marketInterface);
 		viewer.setSearch(search);
 		refreshInterface(viewer, gui);
 		openGui(viewer);

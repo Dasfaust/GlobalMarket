@@ -12,19 +12,21 @@ public class Mail implements MarketItem {
 	public int amount;
 	public double pickup;
 	public String sender;
+	public String world;
 	// Legacy
 	ItemStack item;
 	
 	public Mail() {
 	}
 	
-	public Mail(String owner, int id, int itemId, int amount, double pickup, String sender) {
+	public Mail(String owner, int id, int itemId, int amount, double pickup, String sender, String world) {
 		this.owner = owner;
 		this.id = id;
 		this.itemId = itemId;
 		this.amount = amount;
 		this.pickup = pickup;
 		this.sender = sender;
+		this.world = world;
 	}
 	
 	/*
@@ -65,6 +67,10 @@ public class Mail implements MarketItem {
 	
 	public String getSender() {
 		return sender;
+	}
+	
+	public String getWorld() {
+		return world;
 	}
 	
 	/**

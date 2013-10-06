@@ -47,6 +47,7 @@ public class SendCommand extends SubCommand {
 		String prefix = locale.get("cmd.prefix");
 		MarketStorage storageHandler = market.getStorage();
 		Player player = (Player) sender;
+		String world = player.getWorld().getName();
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
 			if (market.blacklistMail()) {
 				if (market.itemBlacklisted(player.getItemInHand())) {
@@ -92,19 +93,19 @@ public class SendCommand extends SubCommand {
 				}
 				toList.setAmount(amount);
 				if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-					market.getStorage().queueMail(args[1], sender.getName(), toList);
+					market.getStorage().queueMail(args[1], sender.getName(), toList, world);
 					sender.sendMessage(prefix + locale.get("item_will_send", market.getTradeTime()));
 				} else {
-					storageHandler.createMail(args[1], sender.getName(), toList, 0);
+					storageHandler.createMail(args[1], sender.getName(), toList, 0, world);
 					sender.sendMessage(prefix + locale.get("item_sent"));
 				}
 			} else {
 				ItemStack toList = new ItemStack(player.getItemInHand());
 				if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
-					market.getStorage().queueMail(args[1], sender.getName(), toList);
+					market.getStorage().queueMail(args[1], sender.getName(), toList, world);
 					sender.sendMessage(prefix + locale.get("item_will_send", market.getTradeTime()));
 				} else {
-					storageHandler.createMail(args[1], sender.getName(), toList, 0);
+					storageHandler.createMail(args[1], sender.getName(), toList, 0, world);
 					sender.sendMessage(prefix + locale.get("item_sent"));
 				}
 				player.setItemInHand(new ItemStack(Material.AIR));

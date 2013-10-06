@@ -63,7 +63,7 @@ public class MarketCore {
 				}
 			} else {
 				// Send a Transaction Log
-				storage.storePayment(item, seller, buyer, cutPrice);
+				storage.storePayment(item, seller, buyer, cutPrice, listing.getWorld());
 			}
 			// Seller's stats
 			market.getHistory().storeHistory(seller, buyer, MarketAction.LISTING_SOLD, listing.getItemId(), listing.getAmount(), originalPrice);
@@ -77,10 +77,10 @@ public class MarketCore {
 		// Transfer the item to where it belongs
 		if (mailItem) {
 			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-				storage.queueMail(buyer, null, listing.getItemId(), listing.getAmount());
+				storage.queueMail(buyer, null, listing.getItemId(), listing.getAmount(), listing.getWorld());
 				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
 			} else {
-				storage.createMail(buyer, null, listing.getItemId(), listing.getAmount());
+				storage.createMail(buyer, null, listing.getItemId(), listing.getAmount(), listing.getWorld());
 			}
 		}
 		if (!isInfinite && removeListing) {
@@ -96,10 +96,10 @@ public class MarketCore {
 	public void removeListing(Listing listing, Player player) {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
-				storage.queueMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount());
+				storage.queueMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount(), listing.getWorld());
 				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
 			} else {
-				storage.createMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount());
+				storage.createMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount(), listing.getWorld());
 			}
 		}
 		storage.removeListing(listing.getId());
@@ -115,7 +115,7 @@ public class MarketCore {
 	
 	public synchronized void expireListing(Listing listing) {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			storage.createMail(listing.getSeller(), "Expired", listing.getItemId(), listing.getAmount());
+			storage.createMail(listing.getSeller(), "Expired", listing.getItemId(), listing.getAmount(), listing.getWorld());
 		}
 		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
