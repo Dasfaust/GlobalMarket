@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -332,8 +333,10 @@ public class MarketStorage {
 	public List<Listing> getListings(int page, int pageSize) {
 		List<Listing> toReturn = new ArrayList<Listing>();
 		int index = (pageSize * page) - pageSize;
+		List<Listing> list = new ArrayList<Listing>(listings.values());
+		Collections.reverse(list);
 		while (listings.size() > index && toReturn.size() < pageSize) {
-			toReturn.add(listings.values().toArray(new Listing[0])[index]);
+			toReturn.add(list.get(index));
 			index++;
 		}
 		return toReturn;
@@ -445,8 +448,10 @@ public class MarketStorage {
 		});
 		List<Mail> toReturn = new ArrayList<Mail>();
 		int index = (pageSize * page) - pageSize;
+		List<Mail> list = new ArrayList<Mail>(ownedMail);
+		Collections.reverse(list);
 		while (ownedMail.size() > index && toReturn.size() < pageSize) {
-			toReturn.add(ownedMail.toArray(new Mail[0])[index]);
+			toReturn.add(list.get(index));
 			index++;
 		}
 		return toReturn;

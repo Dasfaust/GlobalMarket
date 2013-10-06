@@ -56,7 +56,7 @@ public class InterfaceListener implements Listener {
 					viewer.setLastActionSlot(slot);
 					
 					MarketInterface inter = handler.getInterface(viewer.getInterface());
-					if (rawSlot <= 44 && event.getCurrentItem() != null) {
+					if (viewer.getBoundSlots().containsKey(rawSlot)) {
 						// This item has an ID attached to it
 						MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getSlot()));
 						// Yay, we've got the MarketItem instance. Let's do stuff with it
@@ -95,16 +95,7 @@ public class InterfaceListener implements Listener {
 				// They're trying to put an item from their inventory into the Market inventory. Not bad for us, but they will lose their item. Cancel it because we're nice :)
 				event.setResult(Result.DENY);
 			}
-		} /*else if (isMarketItem(curItem)) {
-			
-			// Clicking a Market item and has no viewer object, probably not in the interface, destroy it at all costs!
-			event.setResult(Result.DENY);
-			curItem.setType(Material.AIR);
-			if (event.getCursor() != null) {
-				event.getCursor().setType(Material.AIR);
-			}
-			event.getCurrentItem().setType(Material.AIR);
-		}*/
+		}
 	}
 	
 	@EventHandler
