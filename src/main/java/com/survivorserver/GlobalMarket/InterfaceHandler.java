@@ -87,11 +87,11 @@ public class InterfaceHandler {
 		return null;
 	}
 	
-	public synchronized void removeViewer(InterfaceViewer viewer) {
+	public void removeViewer(InterfaceViewer viewer) {
 		viewers.remove(viewer);
 	}
 	
-	public synchronized void openGui(InterfaceViewer viewer) {
+	public void openGui(InterfaceViewer viewer) {
 		market.getServer().getPlayer(viewer.getViewer()).openInventory(viewer.getGui());
 	}
 	
@@ -103,7 +103,7 @@ public class InterfaceHandler {
 		openGui(viewer);
 	}
 	
-	public synchronized void refreshInterface(InterfaceViewer viewer, MarketInterface gui) {
+	public void refreshInterface(InterfaceViewer viewer, MarketInterface gui) {
 		Map<Integer, Integer> boundSlots = new HashMap<Integer, Integer>();
 		List<MarketItem> contents = gui.getContents(viewer);
 		Inventory inv = viewer.getGui();
