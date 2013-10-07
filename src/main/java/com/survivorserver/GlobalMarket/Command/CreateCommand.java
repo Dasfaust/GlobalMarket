@@ -75,7 +75,7 @@ public class CreateCommand extends SubCommand {
 				return true;
 			}
 			double fee = market.getCreationFee(player, price);
-			if (market.maxListings() > 0 && storage.getNumListingsFor(sender.getName()) >= market.maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
+			if (market.maxListings() > 0 && storage.getNumListingsFor(sender.getName(), player.getWorld().getName()) >= market.maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
 				sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 				return true;
 			}

@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,7 +33,9 @@ public class MarketStorage {
 	private AsyncDatabase asyncDb;
 	private Map<Integer, ItemStack> items;
 	private LinkedHashMap<Integer, Listing> listings;
+	private HashMap<String, List<Listing>> worldListings;
 	private LinkedHashMap<Integer, Mail> mail;
+	private HashMap<String, List<Mail>> worldMail;
 	private LinkedHashMap<Integer, QueueItem> queue;
 	private int itemIndex;
 	private int listingIndex;
@@ -46,7 +47,9 @@ public class MarketStorage {
 		this.asyncDb = asyncDb;
 		items = new HashMap<Integer, ItemStack>();
 		listings = new LinkedHashMap<Integer, Listing>();
+		worldListings = new HashMap<String, List<Listing>>();
 		mail = new LinkedHashMap<Integer, Mail>();
+		worldMail = new HashMap<String, List<Mail>>();
 		queue = new LinkedHashMap<Integer, QueueItem>();
 	}
 	
@@ -116,6 +119,7 @@ public class MarketStorage {
 				itemIds.add(id);
 			}
 			listings.put(listing.getId(), listing);
+			addWorldItem(listing);
 		}
 		/*
 		 * Synchronize the mail index with the database
@@ -129,6 +133,7 @@ public class MarketStorage {
 				itemIds.add(id);
 			}
 			mail.put(m.getId(), m);
+			addWorldItem(m);
 		}
 		mailIndex = 1;
 		res = db.createStatement("SELECT id FROM mail ORDER BY id DESC LIMIT 1").query();
@@ -187,6 +192,48 @@ public class MarketStorage {
 		asyncDb.startTask();
 	}
 	
+	private void addWorldItem(Listing listing) {
+		String world = listing.getWorld();
+		if (!worldListings.containsKey(world)) {
+			worldListings.put(world, new ArrayList<Listing>());
+		}
+		worldListings.get(world).add(listing);
+	}
+	
+	private void addWorldItem(Mail mailItem) {
+		String world = mailItem.getWorld();
+		if (!worldMail.containsKey(world)) {
+			worldMail.put(world, new ArrayList<Mail>());
+		}
+		worldMail.get(world).add(mailItem);
+	}
+	
+	private List<Listing> getListingsForWorld(String world) {
+		List<Listing> toReturn = new ArrayList<Listing>();
+		if (worldListings.containsKey(world)) {
+			toReturn.addAll(worldListings.get(world));
+		}
+		for (String w : market.getLinkedWorlds(world)) {
+			if (worldListings.containsKey(w)) {
+				toReturn.addAll(worldListings.get(w));
+			}
+		}
+		return toReturn;
+	}
+	
+	private List<Mail> getMailForWorld(String world) {
+		List<Mail> toReturn = new ArrayList<Mail>();
+		if (worldMail.containsKey(world)) {
+			toReturn.addAll(worldMail.get(world));
+		}
+		for (String w : market.getLinkedWorlds(world)) {
+			if (worldMail.containsKey(w)) {
+				toReturn.addAll(worldMail.get(w));
+			}
+		}
+		return toReturn;
+	}
+
 	public AsyncDatabase getAsyncDb() {
 		return asyncDb;
 	}
@@ -301,6 +348,7 @@ public class MarketStorage {
 		.setValue(time));
 		Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, world, time);
 		listings.put(listing.getId(), listing);
+		addWorldItem(listing);
 		return listing;
 	}
 	
@@ -314,6 +362,7 @@ public class MarketStorage {
 		.setValue(listing.getWorld())
 		.setValue(listing.getTime()));
 		listings.put(listing.getId(), listing);
+		addWorldItem(listing);
 	}
 	
 	public void storeMail(Mail m) {
@@ -326,6 +375,7 @@ public class MarketStorage {
 		.setValue(m.getWorld())
 		.setValue(m.getPickup()));
 		mail.put(m.getId(), m);
+		addWorldItem(m);
 	}
 	
 	public synchronized Listing getListing(int id) {
@@ -338,18 +388,7 @@ public class MarketStorage {
 	public List<Listing> getListings(int page, int pageSize, final String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
 		int index = (pageSize * page) - pageSize;
-		List<Listing> list;
-		if (market.enableMultiworld()) {
-			list = new ArrayList<Listing>(Collections2.filter(listings.values(), new Predicate<Listing>() {
-				@Override
-				public boolean apply(Listing listing) {
-					return listing.getWorld().equalsIgnoreCase(world) ? true : market.areWorldsLinked(world, listing.getWorld());
-				}
-			}));
-		} else {
-			list = new ArrayList<Listing>(listings.values());
-		}
-		Collections.reverse(list);
+		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values());
 		while (list.size() > index && toReturn.size() < pageSize) {
 			toReturn.add(list.get(index));
 			index++;
@@ -364,17 +403,7 @@ public class MarketStorage {
 	@SuppressWarnings("deprecation")
 	public List<Listing> getListings(int page, int pageSize, String search, final String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
-		List<Listing> list;
-		if (market.enableMultiworld()) {
-			list = new ArrayList<Listing>(Collections2.filter(listings.values(), new Predicate<Listing>() {
-				@Override
-				public boolean apply(Listing listing) {
-					return listing.getWorld().equalsIgnoreCase(world) ? true : market.areWorldsLinked(world, listing.getWorld());
-				}
-			}));
-		} else {
-			list = new ArrayList<Listing>(listings.values());
-		}
+		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values());
 		for (Listing listing : list) {
 			ItemStack item = getItem(listing.getItemId(), listing.getAmount());
 			String itemName = market.getItemName(item);
@@ -390,28 +419,20 @@ public class MarketStorage {
 	}
 	
 	public synchronized void removeListing(int id) {
-		if (listings.containsKey(id)) {
-			listings.remove(id);
-		}
+		Listing listing = listings.get(id);
+		listings.remove(id);
+		worldListings.get(listing.getWorld()).remove(listing);
 		asyncDb.addStatement(new QueuedStatement("DELETE FROM listings WHERE id=?")
 		.setValue(id));
 	}
 	
 	public int getNumListings(final String world) {
-		if (market.enableMultiworld()) {
-			return Collections2.filter(listings.values(), new Predicate<Listing>() {
-				@Override
-				public boolean apply(Listing listing) {
-					return listing.getWorld().equalsIgnoreCase(world) ? true : market.areWorldsLinked(world, listing.getWorld());
-				}
-			}).size();
-		}
-		return listings.size();
+		return market.enableMultiworld() ? getListingsForWorld(world).size() : listings.size();
 	}
 	
-	public int getNumListingsFor(String name) {
+	public int getNumListingsFor(String name, String world) {
 		int amount = 0;
-		for (Listing listing : listings.values()) {
+		for (Listing listing : market.enableMultiworld() ? getListingsForWorld(world) : listings.values()) {
 			if (listing.getSeller().equalsIgnoreCase(name)) {
 				amount++;
 			}
@@ -432,6 +453,7 @@ public class MarketStorage {
 		.setValue(0));
 		Mail m = new Mail(owner, mailIndex++, itemId, amount, 0, from, world);
 		mail.put(m.getId(), m);
+		addWorldItem(m);
 		return m;
 	}
 	
@@ -445,6 +467,7 @@ public class MarketStorage {
 		.setValue(pickup));
 		Mail m = new Mail(owner, mailIndex++, itemId, item.getAmount(), pickup, from, world);
 		mail.put(m.getId(), m);
+		addWorldItem(m);
 		return m;
 	}
 	
@@ -475,20 +498,14 @@ public class MarketStorage {
 	}
 	
 	public List<Mail> getMail(final String owner, int page, int pageSize, final String world) {
-		Collection<Mail> ownedMail = Collections2.filter(mail.values(), new Predicate<Mail>() {
+		Collection<Mail> ownedMail = Collections2.filter(market.enableMultiworld() ? getMailForWorld(world) : mail.values(), new Predicate<Mail>() {
 			public boolean apply(Mail mail) {
-				if (market.enableMultiworld()) {
-					if (!mail.getWorld().equalsIgnoreCase(world) && !market.areWorldsLinked(world, mail.getWorld())) {
-						return false;
-					}
-				}
 				return mail.getOwner().equals(owner);
 			}
 		});
 		List<Mail> toReturn = new ArrayList<Mail>();
 		int index = (pageSize * page) - pageSize;
 		List<Mail> list = new ArrayList<Mail>(ownedMail);
-		Collections.reverse(list);
 		while (ownedMail.size() > index && toReturn.size() < pageSize) {
 			toReturn.add(list.get(index));
 			index++;
@@ -506,21 +523,16 @@ public class MarketStorage {
 	}
 	
 	public void removeMail(int id) {
-		if (mail.containsKey(id)) {
-			mail.remove(id);
-		}
+		Mail m = mail.get(id);
+		mail.remove(id);
+		worldMail.get(m.getWorld()).remove(m);
 		asyncDb.addStatement(new QueuedStatement("DELETE FROM mail WHERE id=?")
 		.setValue(id));
 	}
 	
 	public int getNumMail(final String player, final String world) {
-		Collection<Mail> ownedMail = Collections2.filter(mail.values(), new Predicate<Mail>() {
+		Collection<Mail> ownedMail = Collections2.filter(market.enableMultiworld() ? getMailForWorld(world) : mail.values(), new Predicate<Mail>() {
 				public boolean apply(Mail mail) {
-					if (market.enableMultiworld()) {
-						if (!mail.getWorld().equalsIgnoreCase(world) && !market.areWorldsLinked(world, mail.getWorld())) {
-							return false;
-						}
-					}
 					return mail.getOwner().equals(player);
 				}
 			});

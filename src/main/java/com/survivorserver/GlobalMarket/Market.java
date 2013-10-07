@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
@@ -16,6 +17,7 @@ import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Sign;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -61,6 +63,7 @@ public class Market extends JavaPlugin implements Listener {
 	public String infiniteSeller;
 	private MarketStorage storage;
 	private boolean haultSync = false;
+	private Map<String, String[]> worldLinks;
 	String prefix;
 
 	public void onEnable() {
@@ -136,6 +139,7 @@ public class Market extends JavaPlugin implements Listener {
 		getCommand("market").setExecutor(cmd);
 		asyncDb = new AsyncDatabase(this);
 		storage = new MarketStorage(this, asyncDb);
+		worldLinks = new HashMap<String, String[]>();
 		initializeStorage();
 	}
 	
@@ -182,6 +186,9 @@ public class Market extends JavaPlugin implements Listener {
 		}
 		infiniteSeller = getConfig().getString("infinite.seller");
 		getServer().getPluginManager().registerEvents(this, this);
+		if (enableMultiworld()) {
+			buildWorldLinks();
+		}
 	}
 	
 	public Economy getEcon() {
@@ -405,13 +412,30 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getBoolean("multiworld.enable");
 	}
 	
-	public boolean areWorldsLinked(String world1, String world2) {
-		if (getConfig().isSet("multiworld.links." + world1)) {
-			return getConfig().getStringList("multiworld.links." + world1).contains(world2);
-		} else if(getConfig().isSet("multiworld.links." + world2)) {
-			return getConfig().getStringList("multiworld.links." + world2).contains(world1);
+	public String[] getLinkedWorlds(String world) {
+		return worldLinks.containsKey(world) ? worldLinks.get(world) : new String[0];
+	}
+	
+	public void buildWorldLinks() {
+		worldLinks.clear();
+		Map<String, List<String>> links = new HashMap<String, List<String>>();
+		Set<String> linkList = getConfig().getConfigurationSection("multiworld.links").getKeys(false);
+		for (World wor : getServer().getWorlds()) {
+			String world = wor.getName();
+			links.put(world, linkList.contains(world) ? getConfig().getStringList("multiworld.links." + world) : new ArrayList<String>());
+			for (String w : linkList) {
+				if (!w.equalsIgnoreCase(world)) {
+					if (getConfig().getStringList("multiworld.links." + w).contains(world)) {
+						if (!links.get(world).contains(w)) {
+							links.get(world).add(w);
+						}
+					}
+				}
+			}
 		}
-		return false;
+		for (Entry<String, List<String>> entry : links.entrySet()) {
+			worldLinks.put(entry.getKey(), entry.getValue().toArray(new String[0]));
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)

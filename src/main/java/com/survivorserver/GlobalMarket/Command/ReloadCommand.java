@@ -71,6 +71,7 @@ public class ReloadCommand extends SubCommand {
 		market.infiniteSeller = market.getConfig().getString("infinite.seller");
 		market.getConfigHandler().reloadLocaleYML();
 		locale.setSelected();
+		market.buildWorldLinks();
 		sender.sendMessage(locale.get("cmd.prefix") + market.getLocale().get("config_reloaded"));
 		return true;
 	}
