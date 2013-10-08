@@ -22,7 +22,7 @@ public class MarketCore {
 		this.storage = storage;
 	}
 	
-	public boolean buyListing(Listing listing, Player player, boolean removeListing, boolean mailItem, boolean refreshInterface) {
+	public boolean buyListing(Listing listing, Player player, InterfaceViewer viewer, boolean removeListing, boolean mailItem, boolean refreshInterface) {
 		double originalPrice = listing.getPrice();
 		double cutPrice = originalPrice;
 		Economy econ = market.getEcon();
@@ -30,9 +30,9 @@ public class MarketCore {
 		String infAccount = market.getInfiniteAccount();
 		boolean isInfinite = listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller());
 		String buyer = player.getName();
-		ItemStack item = storage.getItem(listing.getItemId(), listing.getAmount());
-		if (market.cutTransactions() && !market.hasCut(player, listing.getSeller())) {
-			cutPrice = originalPrice - market.getCut(originalPrice);
+		double cut = market.getCut(listing.getPrice(), listing.getSeller(), listing.getWorld());
+		if (cut > 0) {
+			cutPrice = originalPrice - cut;
 		}
 		// Make the transaction between buyer and seller
 		EconomyResponse response = econ.withdrawPlayer(buyer, originalPrice);
@@ -63,6 +63,7 @@ public class MarketCore {
 				}
 			} else {
 				// Send a Transaction Log
+				ItemStack item = viewer.getInterface().getItemStack(viewer, listing);
 				storage.storePayment(item, seller, buyer, cutPrice, listing.getWorld());
 			}
 			// Seller's stats

@@ -56,7 +56,7 @@ public class InterfaceHandler {
 		return interfaces;
 	}
 	
-	public InterfaceViewer addViewer(Player player, Inventory gui, String interfaceName) {
+	public InterfaceViewer addViewer(Player player, Inventory gui, MarketInterface mInterface) {
 		String name = player.getName();
 		for (InterfaceViewer viewer : viewers) {
 			if (viewer.getViewer().equalsIgnoreCase(name)) {
@@ -64,7 +64,7 @@ public class InterfaceHandler {
 				return viewer;
 			}
 		}
-		InterfaceViewer viewer = new InterfaceViewer(name, name, gui, interfaceName, player.getWorld().getName());
+		InterfaceViewer viewer = new InterfaceViewer(name, name, gui, mInterface, player.getWorld().getName());
 		viewers.add(viewer);
 		return viewer;
 	}
@@ -96,25 +96,28 @@ public class InterfaceHandler {
 	}
 	
 	public void openInterface(Player player, String search, String marketInterface) {
-		MarketInterface gui = getInterface(marketInterface);
-		InterfaceViewer viewer = addViewer(player, market.getServer().createInventory(player, gui.getSize(), market.enableMultiworld() ? gui.getTitle() + " (" + player.getWorld().getName() + ")" : gui.getTitle()), marketInterface);
+		MarketInterface mInterface = getInterface(marketInterface);
+		InterfaceViewer viewer = addViewer(player,
+				market.getServer().createInventory(player, mInterface.getSize(), market.enableMultiworld() ?  mInterface.getTitle() + " (" + player.getWorld().getName() + ")" :  mInterface.getTitle()),
+				mInterface);
 		viewer.setSearch(search);
-		refreshInterface(viewer, gui);
+		refreshInterface(viewer);
 		openGui(viewer);
 	}
 	
-	public void refreshInterface(InterfaceViewer viewer, MarketInterface gui) {
+	public void refreshInterface(InterfaceViewer viewer) {
+		MarketInterface mInterface = viewer.getInterface();
 		Map<Integer, Integer> boundSlots = new HashMap<Integer, Integer>();
-		List<MarketItem> contents = gui.getContents(viewer);
+		List<MarketItem> contents = mInterface.getContents(viewer);
 		Inventory inv = viewer.getGui();
 		ItemStack[] invContents = new ItemStack[viewer.getGui().getSize()];
-		gui.onInterfacePrepare(viewer, contents, invContents, inv);
-		if (gui.enableSearch()) {
+		mInterface.onInterfacePrepare(viewer, contents, invContents, inv);
+		if (mInterface.enableSearch()) {
 			setSearch(viewer.getSearch(), invContents);
 		}
 		String search = viewer.getSearch();
 		if (search != null) {
-			contents = gui.doSearch(viewer, viewer.getSearch());
+			contents = mInterface.doSearch(viewer, viewer.getSearch());
 		}
 		int slot = 0;
 		int p = 0;
@@ -147,7 +150,7 @@ public class InterfaceHandler {
 						}
 					}
 				}
-				ItemStack item = NbtFactory.getCraftItemStack(gui.prepareItem(marketItem, viewer, p, slot, left, shift));
+				ItemStack item = NbtFactory.getCraftItemStack(mInterface.prepareItem(marketItem, viewer, p, slot, left, shift));
 				NbtCompound comp = NbtFactory.fromItemTag(item);
 				comp.put("marketItem", 1);
 				if (item != null) {
@@ -162,7 +165,7 @@ public class InterfaceHandler {
 		}
 		inv.setContents(invContents);
 		setCurPage(invContents, viewer);
-		int t = gui.getTotalNumberOfItems(viewer);
+		int t = mInterface.getTotalNumberOfItems(viewer);
 		if (search != null) {
 			t = contents.size();
 		}
@@ -257,8 +260,7 @@ public class InterfaceHandler {
 	}
 	
 	public void refreshViewer(InterfaceViewer viewer) {
-		final MarketInterface gui = getInterface(viewer.getInterface());
-		refreshInterface(viewer, gui);
+		refreshInterface(viewer);
 	}
 	
 	public void updateAllViewers() {

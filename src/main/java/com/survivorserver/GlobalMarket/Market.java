@@ -80,17 +80,16 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("multiworld.enable", false);
 		String[] links = new String[]{"world_nether", "world_the_end"};
 		getConfig().addDefault("multiworld.links.world", Arrays.asList(links));
-		getConfig().addDefault("automatic_payments", false);
-		getConfig().addDefault("cut_amount", 0.05);
-		getConfig().addDefault("cut_account", "");
-		getConfig().addDefault("enable_metrics", true);
-		getConfig().addDefault("max_price", 0.0);
-		getConfig().addDefault("creation_fee", 0.0);
+		getConfig().addDefault("limits.default.cut", 0.0);
+		getConfig().addDefault("limits.default.max_price", 0.0);
+		getConfig().addDefault("limits.default.creation_fee", 0);
+		getConfig().addDefault("limits.default.max_listings", 0);
 		getConfig().addDefault("queue.trade_time", 0);
 		getConfig().addDefault("queue.mail_time", 0);
 		getConfig().addDefault("queue.queue_mail_on_buy", true);
 		getConfig().addDefault("queue.queue_on_cancel", true);
-		getConfig().addDefault("max_listings_per_player", 0);
+		getConfig().addDefault("automatic_payments", false);
+		getConfig().addDefault("enable_metrics", true);
 		getConfig().addDefault("expire_time", 168);
 		getConfig().addDefault("enable_history", true);
 		getConfig().addDefault("infinite.seller", "Server");
@@ -219,43 +218,39 @@ public class Market extends JavaPlugin implements Listener {
 		return interfaceHandler;
 	}
 	
-	public double getCut(double amount) {
-		if (amount < 10 || !cutTransactions()) {
-			return 0;
+	public double getCut(double amount, String player, String world) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (perms.has(world, player, "globalmarket.limits." + k)) {
+				return new BigDecimal(amount * getConfig().getDouble("limits." + k + ".cut")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+			}
 		}
-		double cut = new BigDecimal(amount * getConfig().getDouble("cut_amount")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
-		String cutAccount = getConfig().getString("cut_account");
-		if (cutAccount.length() >= 1) {
-			econ.depositPlayer(cutAccount, cut);
-		}
-		return cut;
+		return new BigDecimal(amount * getConfig().getDouble("limits.default.cut")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
 	}
 	
-	public double getCreationFee(double amount) {
-		return getConfig().getDouble("creation_fee");
-	}
-	
-	public double getCreationFee(Player player, double amount) {
-		if (player.hasPermission("globalmarket.nofee")) {
-			return 0;
+	public double getCreationFee(Player player) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getDouble("limits." + k + ".creation_fee");
+			}
 		}
-		return getConfig().getDouble("creation_fee");
+		return getConfig().getDouble("limits.default.creation_fee");
 	}
 	
 	public boolean autoPayment() {
 		return getConfig().getBoolean("automatic_payments");
 	}
 	
-	public boolean cutTransactions() {
-		return getConfig().getDouble("cut_amount") <= 0;
-	}
-	
 	public void addSearcher(String name, String interfaceName) {
 		searching.put(name, interfaceName);
 	}
 	
-	public double getMaxPrice() {
-		return getConfig().getDouble("max_price");
+	public double getMaxPrice(Player player) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getDouble("limits." + k + ".max_price");
+			}
+		}
+		return getConfig().getDouble("limits.default.max_price");
 	}
 	
 	public void startSearch(Player player, String interfaceName) {
@@ -293,8 +288,13 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getBoolean("queue.queue_mail_on_cancel");
 	}
 	
-	public int maxListings() {
-		return getConfig().getInt("max_listings_per_player");
+	public int maxListings(Player player) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".max_listings");
+			}
+		}
+		return getConfig().getInt("limits.default.max_listings");
 	}
 	
 	public double getExpireTime() {
@@ -391,13 +391,6 @@ public class Market extends JavaPlugin implements Listener {
 			itemName = locale.get("friendly_item_name", itemName);
 		}
 		return itemName;
-	}
-	
-	public boolean hasCut(Player buyer, String seller) {
-		if (perms != null) {
-			return perms.playerHas(buyer.getWorld(), seller, "globalmarket.nocut");
-		}
-		return false;
 	}
 	
 	public MarketCommand getCmd() {

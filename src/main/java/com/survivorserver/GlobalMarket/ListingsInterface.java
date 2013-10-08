@@ -113,7 +113,7 @@ public class ListingsInterface extends MarketInterface {
 	
 	@Override
 	public void handleLeftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
-		if (market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked(), true, true, true)) {
+		if (market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked(), viewer, true, true, true)) {
 			viewer.resetActions();
 		}
 	}
@@ -170,5 +170,10 @@ public class ListingsInterface extends MarketInterface {
 	@Override
 	public int getTotalNumberOfItems(InterfaceViewer viewer) {
 		return market.getStorage().getNumListings(viewer.getWorld());
+	}
+
+	@Override
+	public ItemStack getItemStack(InterfaceViewer viewer, MarketItem item) {
+		return market.getStorage().getItem(item.getId(), item.getAmount());
 	}
 }

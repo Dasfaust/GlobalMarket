@@ -5,6 +5,8 @@ import java.util.Map;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 
+import com.survivorserver.GlobalMarket.Interface.MarketInterface;
+
 public class InterfaceViewer {
 	
 	String name;
@@ -16,16 +18,16 @@ public class InterfaceViewer {
 	int lastActionSlot = 0;
 	String search;
 	int lastClicked;
-	String interfaceName;
 	int clicks = 0;
 	String world;
+	MarketInterface mInterface;
 	
-	public InterfaceViewer(String name, String player, Inventory gui, String interfaceName, String world) {
+	public InterfaceViewer(String name, String player, Inventory gui, MarketInterface mInterface, String world) {
 		this.name = name;
 		this.player = player;
 		this.gui = gui;
-		this.interfaceName = interfaceName;
 		this.world = world;
+		this.mInterface = mInterface;
 	}
 	
 	public void setBoundSlots(Map<Integer, Integer> boundSlots) {
@@ -92,12 +94,8 @@ public class InterfaceViewer {
 		return search;
 	}
 	
-	public String getInterface() {
-		return interfaceName;
-	}
-	
-	public void setInterface(String name) {
-		interfaceName = name;
+	public MarketInterface getInterface() {
+		return mInterface;
 	}
 	
 	public void resetActions() {

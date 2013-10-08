@@ -37,6 +37,8 @@ public abstract class MarketInterface {
 	
 	public abstract MarketItem getItem(InterfaceViewer viewer, int id);
 	
+	public abstract ItemStack getItemStack(InterfaceViewer viewer, MarketItem item);
+	
 	public abstract int getTotalNumberOfItems(InterfaceViewer viewer);
 	
 	public abstract boolean identifyItem(ItemMeta meta);
@@ -51,7 +53,7 @@ public abstract class MarketInterface {
 			if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
 				if (viewer.getSearch() == null) {
 					player.closeInventory();
-					market.startSearch(player, viewer.getInterface());
+					market.startSearch(player, viewer.getInterface().getName());
 					handler.removeViewer(viewer);
 					return;
 				} else {

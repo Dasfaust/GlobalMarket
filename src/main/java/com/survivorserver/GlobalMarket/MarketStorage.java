@@ -1,7 +1,5 @@
 package com.survivorserver.GlobalMarket;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -481,7 +479,7 @@ public class MarketStorage {
 			meta = (BookMeta) market.getServer().getItemFactory().getItemMeta(book.getType());
 		}
 		meta.setTitle(market.getLocale().get("transaction_log.item_name"));
-		double cut = new BigDecimal(market.getCut(amount)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+		double cut = market.getCut(amount, player, world);
 		String itemName = market.getItemName(item);
 		String logStr = market.getLocale().get("transaction_log.title") + "\n\n" +
 						market.getLocale().get("transaction_log.item_sold", itemName) + "\n\n" +

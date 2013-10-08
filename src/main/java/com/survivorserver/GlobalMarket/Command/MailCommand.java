@@ -52,9 +52,9 @@ public class MailCommand extends SubCommand {
 				sender.sendMessage(ChatColor.RED + locale.get("player_not_found", viewAs));
 				return true;
 			}
-			MarketInterface gui = market.getInterfaceHandler().getInterface("Mail");
-			Inventory inv = market.getServer().createInventory(player, gui.getSize(), gui.getTitle() + " (" + viewAs + ")");
-			InterfaceViewer viewer = new InterfaceViewer(viewAs, player.getName(), inv, "Mail", player.getWorld().getName());
+			MarketInterface mInterface = market.getInterfaceHandler().getInterface("Mail");
+			Inventory inv = market.getServer().createInventory(player, mInterface.getSize(), mInterface.getTitle() + " (" + viewAs + ")");
+			InterfaceViewer viewer = new InterfaceViewer(viewAs, player.getName(), inv, mInterface, player.getWorld().getName());
 			market.getInterfaceHandler().addViewer(viewer);
 			market.getInterfaceHandler().refreshViewer(viewer);
 			market.getInterfaceHandler().openGui(viewer);

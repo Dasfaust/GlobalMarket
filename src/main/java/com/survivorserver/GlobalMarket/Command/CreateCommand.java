@@ -69,13 +69,13 @@ public class CreateCommand extends SubCommand {
 				sender.sendMessage(prefix + locale.get("price_too_low"));
 				return true;
 			}
-			double maxPrice = market.getMaxPrice();
-			if (maxPrice > 0 && price > maxPrice && !sender.hasPermission("globalmarket.nolimit.maxprice")) {
+			double maxPrice = market.getMaxPrice(player);
+			if (maxPrice > 0 && price > maxPrice) {
 				sender.sendMessage(prefix + locale.get("price_too_high"));
 				return true;
 			}
-			double fee = market.getCreationFee(player, price);
-			if (market.maxListings() > 0 && storage.getNumListingsFor(sender.getName(), player.getWorld().getName()) >= market.maxListings() && !sender.hasPermission("globalmarket.nolimit.maxlistings")) {
+			int max = market.maxListings(player);
+			if (max > 0 && storage.getNumListingsFor(sender.getName(), player.getWorld().getName()) >= max) {
 				sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 				return true;
 			}
@@ -90,6 +90,7 @@ public class CreateCommand extends SubCommand {
 				infinite = true;
 			}
 			int amount = 0;
+			double fee = market.getCreationFee(player);
 			if ((args.length == 3 && extraArgs.isEmpty()) || (args.length == 4 && !extraArgs.isEmpty())) {
 				try {
 					amount = Integer.parseInt(args[2]);

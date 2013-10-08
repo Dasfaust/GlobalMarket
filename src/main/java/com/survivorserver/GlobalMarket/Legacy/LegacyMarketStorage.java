@@ -1,7 +1,5 @@
 package com.survivorserver.GlobalMarket.Legacy;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -153,7 +151,7 @@ public class LegacyMarketStorage {
 			meta = (BookMeta) market.getServer().getItemFactory().getItemMeta(book.getType());
 		}
 		meta.setTitle(market.getLocale().get("transaction_log.item_name"));
-		double cut = new BigDecimal(market.getCut(amount)).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+		double cut = 0;
 		String itemName = market.getItemName(item);
 		String logStr = market.getLocale().get("transaction_log.title") + "\n\n" +
 						market.getLocale().get("transaction_log.item_sold", itemName) + "\n\n" +

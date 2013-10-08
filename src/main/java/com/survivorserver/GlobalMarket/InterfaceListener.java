@@ -55,7 +55,7 @@ public class InterfaceListener implements Listener {
 					viewer.setLastAction(event.getAction());
 					viewer.setLastActionSlot(slot);
 					
-					MarketInterface inter = handler.getInterface(viewer.getInterface());
+					MarketInterface inter = viewer.getInterface();
 					if (viewer.getBoundSlots().containsKey(rawSlot)) {
 						// This item has an ID attached to it
 						MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getSlot()));
