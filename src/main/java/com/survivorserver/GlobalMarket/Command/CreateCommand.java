@@ -133,9 +133,10 @@ public class CreateCommand extends SubCommand {
 				player.setItemInHand(new ItemStack(Material.AIR));
 			}
 			String world = player.getWorld().getName();
-			if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
+			int tradeTime = market.getTradeTime(player);
+			if (tradeTime > 0) {
 				storage.queueListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price, world);
-				sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", market.getTradeTime()));
+				sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", tradeTime));
 			} else {
 				storage.createListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price, world);
 				sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));

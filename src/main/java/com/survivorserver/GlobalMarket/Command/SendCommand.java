@@ -69,6 +69,7 @@ public class SendCommand extends SubCommand {
 				return true;
 			}
 			args[1] = off.getName();
+			int mailTime = market.getMailTime(player);
 			if (args.length == 3) {
 				int amount = 0;
 				try {
@@ -92,18 +93,18 @@ public class SendCommand extends SubCommand {
 					player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
 				}
 				toList.setAmount(amount);
-				if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
+				if (mailTime > 0) {
 					market.getStorage().queueMail(args[1], sender.getName(), toList, world);
-					sender.sendMessage(prefix + locale.get("item_will_send", market.getTradeTime()));
+					sender.sendMessage(prefix + locale.get("item_will_send", mailTime));
 				} else {
 					storageHandler.createMail(args[1], sender.getName(), toList, 0, world);
 					sender.sendMessage(prefix + locale.get("item_sent"));
 				}
 			} else {
 				ItemStack toList = new ItemStack(player.getItemInHand());
-				if (market.getTradeTime() > 0 && !sender.hasPermission("globalmarket.noqueue")) {
+				if (mailTime > 0) {
 					market.getStorage().queueMail(args[1], sender.getName(), toList, world);
-					sender.sendMessage(prefix + locale.get("item_will_send", market.getTradeTime()));
+					sender.sendMessage(prefix + locale.get("item_will_send", mailTime));
 				} else {
 					storageHandler.createMail(args[1], sender.getName(), toList, 0, world);
 					sender.sendMessage(prefix + locale.get("item_sent"));

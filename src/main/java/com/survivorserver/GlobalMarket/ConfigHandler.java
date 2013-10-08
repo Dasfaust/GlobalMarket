@@ -33,6 +33,19 @@ public class ConfigHandler {
 		}
 	}
 	
+	public Database createConnection(StorageMethod type) {
+		if (type == StorageMethod.MYSQL) {
+			return new Database(market.getLogger(),
+					market.getConfig().getString("storage.mysql_user"),
+					market.getConfig().getString("storage.mysql_pass"),
+					market.getConfig().getString("storage.mysql_address"),
+					market.getConfig().getString("storage.mysql_database"),
+					market.getConfig().getInt("storage.mysql_port"));
+		} else {
+			return new Database(market.getLogger(), "", "", "", "data", market.getDataFolder().getAbsolutePath());
+		}
+	}
+	
 	public StorageMethod getStorageMethod() {
 		return StorageMethod.valueOf(market.getConfig().getString("storage.type").toUpperCase());
 	}

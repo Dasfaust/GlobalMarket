@@ -77,9 +77,10 @@ public class MarketCore {
 		}
 		// Transfer the item to where it belongs
 		if (mailItem) {
-			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
+			int mailTime = market.getMailTime(player);
+			if (mailTime > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
 				storage.queueMail(buyer, null, listing.getItemId(), listing.getAmount(), listing.getWorld());
-				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
+				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", mailTime));
 			} else {
 				storage.createMail(buyer, null, listing.getItemId(), listing.getAmount(), listing.getWorld());
 			}
@@ -96,9 +97,10 @@ public class MarketCore {
 	
 	public void removeListing(Listing listing, Player player) {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			if (market.getMailTime() > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
+			int mailTime = market.getMailTime(player);
+			if (mailTime > 0 && market.queueOnBuy() && !player.hasPermission("globalmarket.noqueue")) {
 				storage.queueMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount(), listing.getWorld());
-				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", market.getMailTime()));
+				player.sendMessage(ChatColor.GREEN + market.getLocale().get("item_will_send", mailTime));
 			} else {
 				storage.createMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount(), listing.getWorld());
 			}

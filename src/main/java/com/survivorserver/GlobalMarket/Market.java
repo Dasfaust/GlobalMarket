@@ -78,38 +78,28 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("storage.mysql_address", "localhost");
 		getConfig().addDefault("storage.mysql_port", 3306);
 		getConfig().addDefault("multiworld.enable", false);
-		String[] links = new String[]{"world_nether", "world_the_end"};
-		getConfig().addDefault("multiworld.links.world", Arrays.asList(links));
+		getConfig().addDefault("multiworld.links.world", Arrays.asList(new String[]{"world_nether", "world_the_end"}));
 		getConfig().addDefault("limits.default.cut", 0.0);
 		getConfig().addDefault("limits.default.max_price", 0.0);
 		getConfig().addDefault("limits.default.creation_fee", 0);
 		getConfig().addDefault("limits.default.max_listings", 0);
-		getConfig().addDefault("queue.trade_time", 0);
-		getConfig().addDefault("queue.mail_time", 0);
+		getConfig().addDefault("limits.default.expire_time", 0);
+		getConfig().addDefault("limits.default.queue_trade_time", 0);
+		getConfig().addDefault("limits.default.queue_mail_time", 0);
 		getConfig().addDefault("queue.queue_mail_on_buy", true);
 		getConfig().addDefault("queue.queue_on_cancel", true);
-		getConfig().addDefault("automatic_payments", false);
-		getConfig().addDefault("enable_metrics", true);
-		getConfig().addDefault("expire_time", 168);
-		getConfig().addDefault("enable_history", true);
 		getConfig().addDefault("infinite.seller", "Server");
 		getConfig().addDefault("infinite.account", "");
+		getConfig().addDefault("blacklist.item_name", Arrays.asList(new String[]{"Transaction Log", "Market History"}));
+		getConfig().addDefault("blacklist.item_id.0", 0);
+		getConfig().addDefault("blacklist.enchant_id", Arrays.asList(new String[0]));
+		getConfig().addDefault("blacklist.lore", Arrays.asList(new String[0]));
+		getConfig().addDefault("blacklist.use_with_mail", false);
+		getConfig().addDefault("automatic_payments", false);
+		getConfig().addDefault("enable_history", true);
+		getConfig().addDefault("enable_metrics", true);
 		getConfig().addDefault("notify_on_update", true);
 		
-		List<String> b1 = new ArrayList<String>();
-		b1.add("Transaction Log");
-		b1.add("Market History");
-		getConfig().addDefault("blacklist.item_name", b1);
-		
-		getConfig().addDefault("blacklist.item_id.0", 0);
-		
-		List<String> b3 = new ArrayList<String>();
-		getConfig().addDefault("blacklist.enchant_id", b3);
-		
-		List<String> b4 = new ArrayList<String>();
-		getConfig().addDefault("blacklist.lore", b4);
-		
-		getConfig().addDefault("blacklist.use_with_mail", false);
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 		
@@ -272,12 +262,40 @@ public class Market extends JavaPlugin implements Listener {
 		}
 	}
 	
-	public int getTradeTime() {
-		return getConfig().getInt("queue.trade_time");
+	public int getTradeTime(Player player) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".queue_trade_time");
+			}
+		}
+		return getConfig().getInt("limits.default.queue_trade_time");
 	}
 	
-	public int getMailTime() {
-		return getConfig().getInt("queue.mail_time");
+	public int getTradeTime(String player, String world) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".queue_trade_time");
+			}
+		}
+		return getConfig().getInt("limits.default.queue_trade_time");
+	}
+	
+	public int getMailTime(Player player) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".queue_mail_time");
+			}
+		}
+		return getConfig().getInt("limits.default.queue_mail_time");
+	}
+	
+	public int getMailTime(String player, String world) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".queue_mail_time");
+			}
+		}
+		return getConfig().getInt("limits.default.queue_mail_time");
 	}
 	
 	public boolean queueOnBuy() {
@@ -297,8 +315,13 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getInt("limits.default.max_listings");
 	}
 	
-	public double getExpireTime() {
-		return getConfig().getDouble("expire_time");
+	public double getExpireTime(String player, String world) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".expire_time");
+			}
+		}
+		return getConfig().getInt("limits.default.expire_time");
 	}
 	
 	public synchronized boolean haultSync() {
