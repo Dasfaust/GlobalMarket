@@ -53,141 +53,151 @@ public class MarketStorage {
 	
 	public void loadSchema(Database db) {
 		boolean sqlite = market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE;
-		// Create items table
-		db.createStatement("CREATE TABLE IF NOT EXISTS items ("
-				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
-				+ (sqlite ? "item MEDIUMTEXT" : "item MEDIUMTEXT CHARACTER SET utf8 COLLATE utf8_general_ci")
-				+ ")").execute();
-		// Create listings table
-		db.createStatement("CREATE TABLE IF NOT EXISTS listings ("
-				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ") 
-				+ "seller TINYTEXT, "
-				+ "item int, "
-				+ "amount int, "
-				+ "price DOUBLE, "
-				+ "world TINYTEXT, "
-				+ "time BIGINT)").execute();
-		// Create mail table
-		db.createStatement("CREATE TABLE IF NOT EXISTS mail ("
-				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
-				+ "owner TINYTEXT, "
-				+ "item int, "
-				+ "amount int, "
-				+ "sender TINYTEXT, "
-				+ "world TINYTEXT, "
-				+ "pickup DOUBLE)").execute();
-		// Create queue table
-		db.createStatement("CREATE TABLE IF NOT EXISTS queue ("
-				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
-				+ "data MEDIUMTEXT)").execute();
-		// Create users metadata table
-		db.createStatement("CREATE TABLE IF NOT EXISTS users ("
-				+ "name varchar(16) NOT NULL UNIQUE, "
-				+ "earned DOUBLE, "
-				+ "spent DOUBLE)").execute();
-		// Create history table
-		db.createStatement("CREATE TABLE IF NOT EXISTS history ("
-				+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
-				+ "player TINYTEXT, "
-				+ "action TINYTEXT, "
-				+ "who TINYTEXT, "
-				+ "item int, "
-				+ "amount int, "
-				+ "price DOUBLE, "
-				+ "time BIGINT)").execute();
+		try {
+			// Create items table
+			db.createStatement("CREATE TABLE IF NOT EXISTS items ("
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+					+ (sqlite ? "item MEDIUMTEXT" : "item MEDIUMTEXT CHARACTER SET utf8 COLLATE utf8_general_ci")
+					+ ")").execute();
+			// Create listings table
+			db.createStatement("CREATE TABLE IF NOT EXISTS listings ("
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ") 
+					+ "seller TINYTEXT, "
+					+ "item int, "
+					+ "amount int, "
+					+ "price DOUBLE, "
+					+ "world TINYTEXT, "
+					+ "time BIGINT)").execute();
+			// Create mail table
+			db.createStatement("CREATE TABLE IF NOT EXISTS mail ("
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+					+ "owner TINYTEXT, "
+					+ "item int, "
+					+ "amount int, "
+					+ "sender TINYTEXT, "
+					+ "world TINYTEXT, "
+					+ "pickup DOUBLE)").execute();
+			// Create queue table
+			db.createStatement("CREATE TABLE IF NOT EXISTS queue ("
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+					+ "data MEDIUMTEXT)").execute();
+			// Create users metadata table
+			db.createStatement("CREATE TABLE IF NOT EXISTS users ("
+					+ "name varchar(16) NOT NULL UNIQUE, "
+					+ "earned DOUBLE, "
+					+ "spent DOUBLE)").execute();
+			// Create history table
+			db.createStatement("CREATE TABLE IF NOT EXISTS history ("
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+					+ "player TINYTEXT, "
+					+ "action TINYTEXT, "
+					+ "who TINYTEXT, "
+					+ "item int, "
+					+ "amount int, "
+					+ "price DOUBLE, "
+					+ "time BIGINT)").execute();
+		} catch(Exception e) {
+			market.log.severe("Error while preparing database:");
+			e.printStackTrace();
+		}
 	}
 	
 	public void load(Database db) {
 		// Items we should cache in memory
 		List<Integer> itemIds = new ArrayList<Integer>();
-		/*
-		 * Synchronize the listing index with the database
-		 */
-		listings.clear();
-		listingIndex = 1;
-		MarketResult res = db.createStatement("SELECT id FROM listings ORDER BY id DESC LIMIT 1").query();
-		if (res.next()) {
-			listingIndex = res.getInt(1) + 1;
-		}
-		res = db.createStatement("SELECT * FROM listings ORDER BY id ASC").query();
-		while(res.next()) {
-			Listing listing = res.constructListing(this);
-			int id = listing.getItemId();
-			if (!itemIds.contains(id)) {
-				itemIds.add(id);
+		try {
+			/*
+			 * Synchronize the listing index with the database
+			 */
+			listings.clear();
+			listingIndex = 1;
+			MarketResult res = db.createStatement("SELECT id FROM listings ORDER BY id DESC LIMIT 1").query();
+			if (res.next()) {
+				listingIndex = res.getInt(1) + 1;
 			}
-			listings.put(listing.getId(), listing);
-			addWorldItem(listing);
-		}
-		/*
-		 * Synchronize the mail index with the database
-		 */
-		mail.clear();
-		res = db.createStatement("SELECT * FROM mail ORDER BY id ASC").query();
-		while(res.next()) {
-			Mail m = res.constructMail(this);
-			int id = m.getItemId();
-			if (!itemIds.contains(id)) {
-				itemIds.add(id);
+			res = db.createStatement("SELECT * FROM listings ORDER BY id ASC").query();
+			while(res.next()) {
+				Listing listing = res.constructListing(this);
+				int id = listing.getItemId();
+				if (!itemIds.contains(id)) {
+					itemIds.add(id);
+				}
+				listings.put(listing.getId(), listing);
+				addWorldItem(listing);
 			}
-			mail.put(m.getId(), m);
-			addWorldItem(m);
-		}
-		mailIndex = 1;
-		res = db.createStatement("SELECT id FROM mail ORDER BY id DESC LIMIT 1").query();
-		if (res.next()) {
-			mailIndex = res.getInt(1) + 1;
-		}
-		/*
-		 * Queue
-		 */
-		queue.clear();
-		res = db.createStatement("SELECT * FROM queue ORDER BY id ASC").query();
-		Yaml yaml = new Yaml(new CustomClassLoaderConstructor(Market.class.getClassLoader()));
-		while(res.next()) {
-			QueueItem item = yaml.loadAs(res.getString(2), QueueItem.class);
-			queue.put(item.getId(), item);
-			int itemId;
-			if (item.getMail() != null) {
-				itemId = item.getMail().getItemId();
-			} else {
-				itemId = item.getListing().getItemId();
+			/*
+			 * Synchronize the mail index with the database
+			 */
+			mail.clear();
+			res = db.createStatement("SELECT * FROM mail ORDER BY id ASC").query();
+			while(res.next()) {
+				Mail m = res.constructMail(this);
+				int id = m.getItemId();
+				if (!itemIds.contains(id)) {
+					itemIds.add(id);
+				}
+				mail.put(m.getId(), m);
+				addWorldItem(m);
 			}
-			if (!itemIds.contains(itemId)) {
-				itemIds.add(itemId);
+			mailIndex = 1;
+			res = db.createStatement("SELECT id FROM mail ORDER BY id DESC LIMIT 1").query();
+			if (res.next()) {
+				mailIndex = res.getInt(1) + 1;
 			}
-		}
-		queueIndex = 1;
-		res = db.createStatement("SELECT id FROM queue ORDER BY id DESC LIMIT 1").query();
-		if (res.next()) {
-			queueIndex = res.getInt(1) + 1;
-		}
-		/*
-		 * Synchronize needed items
-		 */
-		items.clear();
-		if (itemIds.size() > 0) {
-			StringBuilder query = new StringBuilder();
-			query.append("SELECT * FROM items WHERE id IN (");
-			for (int i = 0; i < itemIds.size(); i++) {
-				query.append(itemIds.get(i));
-				if (i + 1 == itemIds.size()) {
-					query.append(")");
+			/*
+			 * Queue
+			 */
+			queue.clear();
+			res = db.createStatement("SELECT * FROM queue ORDER BY id ASC").query();
+			Yaml yaml = new Yaml(new CustomClassLoaderConstructor(Market.class.getClassLoader()));
+			while(res.next()) {
+				QueueItem item = yaml.loadAs(res.getString(2), QueueItem.class);
+				queue.put(item.getId(), item);
+				int itemId;
+				if (item.getMail() != null) {
+					itemId = item.getMail().getItemId();
 				} else {
-					query.append(", ");
+					itemId = item.getListing().getItemId();
+				}
+				if (!itemIds.contains(itemId)) {
+					itemIds.add(itemId);
 				}
 			}
-			res = db.createStatement(query.toString()).query();
-			while(res.next()) {
-				items.put(res.getInt(1), res.getItemStack(2));
+			queueIndex = 1;
+			res = db.createStatement("SELECT id FROM queue ORDER BY id DESC LIMIT 1").query();
+			if (res.next()) {
+				queueIndex = res.getInt(1) + 1;
 			}
+			/*
+			 * Synchronize needed items
+			 */
+			items.clear();
+			if (itemIds.size() > 0) {
+				StringBuilder query = new StringBuilder();
+				query.append("SELECT * FROM items WHERE id IN (");
+				for (int i = 0; i < itemIds.size(); i++) {
+					query.append(itemIds.get(i));
+					if (i + 1 == itemIds.size()) {
+						query.append(")");
+					} else {
+						query.append(", ");
+					}
+				}
+				res = db.createStatement(query.toString()).query();
+				while(res.next()) {
+					items.put(res.getInt(1), res.getItemStack(2));
+				}
+			}
+			itemIndex = 1;
+			res = db.createStatement("SELECT id FROM items ORDER BY id DESC LIMIT 1").query();
+			if (res.next()) {
+				itemIndex = res.getInt(1) + 1;
+			}
+			asyncDb.startTask();
+		} catch(Exception e) {
+			market.log.severe("Error while loading:");
+			e.printStackTrace();
 		}
-		itemIndex = 1;
-		res = db.createStatement("SELECT id FROM items ORDER BY id DESC LIMIT 1").query();
-		if (res.next()) {
-			itemIndex = res.getInt(1) + 1;
-		}
-		asyncDb.startTask();
 	}
 	
 	private void addWorldItem(Listing listing) {

@@ -1,7 +1,10 @@
 package com.survivorserver.GlobalMarket.SQL;
 
 import java.util.ArrayList;
+
 import org.bukkit.inventory.ItemStack;
+
+import com.survivorserver.GlobalMarket.Market;
 
 public class QueuedStatement {
 
@@ -19,14 +22,20 @@ public class QueuedStatement {
 	}
 	
 	public MarketStatement buildStatement(Database db) {
-		MarketStatement statement = db.createStatement(query);
-		for (Object ob : values) {
-			if (ob instanceof ItemStack) {
-				statement.setItemStack((ItemStack) ob);
-			} else {
-				statement.setObject(ob);
+		try {
+			MarketStatement statement = db.createStatement(query);
+			for (Object ob : values) {
+				if (ob instanceof ItemStack) {
+					statement.setItemStack((ItemStack) ob);
+				} else {
+					statement.setObject(ob);
+				}
 			}
+			return statement;
+		} catch(Exception e) {
+			Market.getMarket().log.info("Error while building queued statement:");
+			e.printStackTrace();
+			return null;
 		}
-		return statement;
 	}
 }

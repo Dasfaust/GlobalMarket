@@ -95,35 +95,23 @@ public class Database {
 		}
 	}
 	
-	public MarketStatement createStatement(String query) {
+	public MarketStatement createStatement(String query) throws SQLException {
 		try {
 			if (lastStatement != null) {
 				lastStatement.close();
 			}
 		} catch(Exception ignored) { }
-		try {
-			lastStatement = con.prepareStatement(query);
-			return new MarketStatement(log, lastStatement);
-		} catch (SQLException e) {
-			log.info("Invalid query!");
-			e.printStackTrace();
-			return null;
-		}
+		lastStatement = con.prepareStatement(query);
+		return new MarketStatement(log, lastStatement);
 	}
 	
-	public MarketStatement createStatement(String query, String toReturn) {
+	public MarketStatement createStatement(String query, String toReturn) throws SQLException {
 		try {
 			if (lastStatement != null) {
 				lastStatement.close();
 			}
 		} catch(Exception ignored) { }
-		try {
-			lastStatement = con.prepareStatement(query, new String[]{toReturn});
-			return new MarketStatement(log, lastStatement);
-		} catch (SQLException e) {
-			log.info("Invalid query!");
-			e.printStackTrace();
-			return null;
-		}
+		lastStatement = con.prepareStatement(query, new String[]{toReturn});
+		return new MarketStatement(log, lastStatement);
 	}
 }
