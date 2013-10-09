@@ -12,6 +12,7 @@ import com.survivorserver.GlobalMarket.Listing;
 import com.survivorserver.GlobalMarket.LocaleHandler;
 import com.survivorserver.GlobalMarket.Market;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
+import com.survivorserver.GlobalMarket.SQL.QueuedStatement;
 
 public class ReloadCommand extends SubCommand {
 	
@@ -82,8 +83,12 @@ public class ReloadCommand extends SubCommand {
 					return listing.getSeller().equalsIgnoreCase(infiniteSeller);
 				}
 			});
+			String seller = market.getInfiniteSeller();
 			for (Listing listing : infinite) {
-				listing.seller = market.getInfiniteSeller();
+				listing.seller = seller;
+				market.getStorage().getAsyncDb().addStatement(new QueuedStatement("UPDATE listings SET seller=? WHERE id=?")
+				.setValue(seller)
+				.setValue(listing.getId()));
 			}
 			market.getInterfaceHandler().updateAllViewers();
 		}
