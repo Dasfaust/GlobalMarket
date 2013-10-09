@@ -75,7 +75,9 @@ public class Database {
 					con = DriverManager.getConnection("jdbc:sqlite://" + path + "/" + db + ".db");
 				} else {
 					Class.forName("com.mysql.jdbc.Driver");
-					con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + db, user, pass);
+					con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port, user, pass);
+					con.createStatement().executeUpdate("CREATE DATABASE IF NOT EXISTS " + db);
+					con.setCatalog(db);
 				}
 			}
 			return true;
