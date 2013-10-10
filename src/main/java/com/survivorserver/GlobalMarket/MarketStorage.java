@@ -336,10 +336,10 @@ public class MarketStorage {
 	}
 	
 	public ItemStack getItem(int id, int amount) {
-		ItemStack item = null;
-		if (items.containsKey(new Integer(id))) {
-			item = items.get(new Integer(id)).clone();
+		if (!items.containsKey(new Integer(id))) {
+			market.log.severe("Couldn't find an item with ID " + id);
 		}
+		ItemStack item = items.get(new Integer(id)).clone();
 		item.setAmount(amount);
 		return item;
 	}

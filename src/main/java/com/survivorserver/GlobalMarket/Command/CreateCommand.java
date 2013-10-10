@@ -6,6 +6,7 @@ import java.util.List;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -54,6 +55,10 @@ public class CreateCommand extends SubCommand {
 		Economy econ = market.getEcon();
 		Player player = (Player) sender;
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
+			if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {
+				player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
+				return true;
+			}
 			if (market.itemBlacklisted(player.getItemInHand())) {
 				sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted"));
 				return true;

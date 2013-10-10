@@ -1,5 +1,7 @@
 package com.survivorserver.GlobalMarket.Command;
 
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -48,6 +50,10 @@ public class ListingsCommand extends SubCommand {
 					search = search + " " + args[i];
 				}
 			}
+		}
+		if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {
+			player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
+			return true;
 		}
 		market.getInterfaceHandler().openInterface(player, search, "Listings");
 		return true;

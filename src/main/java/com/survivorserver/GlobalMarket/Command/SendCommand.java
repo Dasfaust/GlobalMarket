@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket.Command;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -49,6 +50,10 @@ public class SendCommand extends SubCommand {
 		Player player = (Player) sender;
 		String world = player.getWorld().getName();
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
+			if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {
+				player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
+				return true;
+			}
 			if (market.blacklistMail()) {
 				if (market.itemBlacklisted(player.getItemInHand())) {
 					sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted_from_mail"));

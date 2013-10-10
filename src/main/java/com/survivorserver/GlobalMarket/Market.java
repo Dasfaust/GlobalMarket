@@ -15,6 +15,7 @@ import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -86,6 +87,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("limits.default.expire_time", 0);
 		getConfig().addDefault("limits.default.queue_trade_time", 0);
 		getConfig().addDefault("limits.default.queue_mail_time", 0);
+		getConfig().addDefault("limits.default.allow_creative", true);
 		getConfig().addDefault("queue.queue_mail_on_buy", true);
 		getConfig().addDefault("queue.queue_on_cancel", true);
 		getConfig().addDefault("infinite.seller", "Server");
@@ -454,6 +456,15 @@ public class Market extends JavaPlugin implements Listener {
 		}
 	}
 	
+	public boolean allowCreative(Player player) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getBoolean("limits." + k + ".allow_creative");
+			}
+		}
+		return getConfig().getBoolean("limits.default.allow_creative");
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -486,10 +497,18 @@ public class Market extends JavaPlugin implements Listener {
 				int y = loc.getBlockY();
 				int z = loc.getBlockZ();
 				if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
+					if (player.getGameMode() == GameMode.CREATIVE && !allowCreative(player)) {
+						player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
+						return;
+					}
 					event.setCancelled(true);
 					interfaceHandler.openInterface(player, null, "Mail");
 				}
 				if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
+					if (player.getGameMode() == GameMode.CREATIVE && !allowCreative(player)) {
+						player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
+						return;
+					}
 					event.setCancelled(true);
 					if (event.getClickedBlock().getType() == Material.SIGN
 							|| event.getClickedBlock().getType() == Material.SIGN_POST

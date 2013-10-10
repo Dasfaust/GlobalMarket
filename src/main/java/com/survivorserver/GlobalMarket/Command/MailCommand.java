@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket.Command;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -59,6 +60,10 @@ public class MailCommand extends SubCommand {
 			market.getInterfaceHandler().refreshViewer(viewer);
 			market.getInterfaceHandler().openGui(viewer);
 		} else {
+			if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {
+				player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
+				return true;
+			}
 			market.getInterfaceHandler().openInterface(player, null, "Mail");
 		}
 		return true;
