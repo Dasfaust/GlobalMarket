@@ -177,6 +177,6 @@ public class ListingsInterface extends MarketInterface {
 
 	@Override
 	public ItemStack getItemStack(InterfaceViewer viewer, MarketItem item) {
-		return market.getStorage().getItem(item.getId(), item.getAmount());
+		return market.getStorage().getItem(item.getItemId(), item.getAmount());
 	}
 }

@@ -164,6 +164,6 @@ public class MailInterface extends MarketInterface {
 	
 	@Override
 	public ItemStack getItemStack(InterfaceViewer viewer, MarketItem item) {
-		return market.getStorage().getItem(item.getId(), item.getAmount());
+		return market.getStorage().getItem(item.getItemId(), item.getAmount());
 	}
 }
