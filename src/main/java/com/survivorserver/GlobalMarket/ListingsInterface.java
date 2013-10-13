@@ -12,6 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
+import com.survivorserver.GlobalMarket.Lib.SearchResult;
 
 public class ListingsInterface extends MarketInterface {
 
@@ -133,7 +134,9 @@ public class ListingsInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getPage(), getSize() - 9, search, viewer.getWorld());
+		SearchResult result = market.getStorage().getListings(viewer.getPage(), getSize() - 9, search, viewer.getWorld());
+		viewer.setSearchSize(result.getTotalFound());
+		return (List<MarketItem>)(List<?>) result.getPage();
 	}
 
 	@Override
@@ -169,7 +172,7 @@ public class ListingsInterface extends MarketInterface {
 	
 	@Override
 	public int getTotalNumberOfItems(InterfaceViewer viewer) {
-		return market.getStorage().getNumListings(viewer.getWorld());
+		return viewer.getSearch() == null ? market.getStorage().getNumListings(viewer.getWorld()) : viewer.getSearchSize();
 	}
 
 	@Override

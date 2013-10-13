@@ -14,5 +14,4 @@ public enum StorageMethod {
 	public String toString() {
 		return method;
 	}
-	
 }

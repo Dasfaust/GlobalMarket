@@ -21,6 +21,7 @@ public class InterfaceViewer {
 	int clicks = 0;
 	String world;
 	MarketInterface mInterface;
+	int searchSize = 0;
 	
 	public InterfaceViewer(String name, String player, Inventory gui, MarketInterface mInterface, String world) {
 		this.name = name;
@@ -115,5 +116,13 @@ public class InterfaceViewer {
 	
 	public String getWorld() {
 		return world;
+	}
+	
+	public int getSearchSize() {
+		return searchSize;
+	}
+	
+	public void setSearchSize(int searchSize) {
+		this.searchSize = searchSize;
 	}
 }

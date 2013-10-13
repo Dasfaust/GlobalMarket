@@ -19,6 +19,7 @@ import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.survivorserver.GlobalMarket.Lib.SearchResult;
 import com.survivorserver.GlobalMarket.SQL.Database;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
 import com.survivorserver.GlobalMarket.SQL.MarketResult;
@@ -393,10 +394,9 @@ public class MarketStorage {
 		return null;
 	}
 	
-	public List<Listing> getListings(int page, int pageSize, final String world) {
+	public List<Listing> getListings(int page, int pageSize, String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
 		int index = (pageSize * page) - pageSize;
-		
 		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values());
 		while (list.size() > index && toReturn.size() < pageSize) {
 			toReturn.add(list.get(index));
@@ -410,8 +410,8 @@ public class MarketStorage {
 	}
 	
 	@SuppressWarnings("deprecation")
-	public List<Listing> getListings(int page, int pageSize, String search, final String world) {
-		List<Listing> toReturn = new ArrayList<Listing>();
+	public SearchResult getListings(int page, int pageSize, String search, String world) {
+		List<Listing> found = new ArrayList<Listing>();
 		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values());
 		for (Listing listing : list) {
 			ItemStack item = getItem(listing.getItemId(), listing.getAmount());
@@ -421,10 +421,17 @@ public class MarketStorage {
 					|| isInDisplayName(search.toLowerCase(), item)
 					|| isInEnchants(search.toLowerCase(), item)
 					|| isInLore(search.toLowerCase(), item)) {
-				toReturn.add(listing);
+				found.add(listing);
 			}
 		}
-		return toReturn;
+		list.clear();
+		int index = (pageSize * page) - pageSize;
+		List<Listing> toReturn = new ArrayList<Listing>();
+		while (found.size() > index && toReturn.size() < pageSize) {
+			toReturn.add(found.get(index));
+			index++;
+		}
+		return new SearchResult(found.size(), toReturn);
 	}
 	
 	public synchronized void removeListing(int id) {
@@ -435,7 +442,7 @@ public class MarketStorage {
 		.setValue(id));
 	}
 	
-	public int getNumListings(final String world) {
+	public int getNumListings(String world) {
 		return market.enableMultiworld() ? getListingsForWorld(world).size() : listings.size();
 	}
 	

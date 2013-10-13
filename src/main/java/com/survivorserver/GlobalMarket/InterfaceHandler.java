@@ -166,9 +166,6 @@ public class InterfaceHandler {
 		inv.setContents(invContents);
 		setCurPage(invContents, viewer);
 		int t = mInterface.getTotalNumberOfItems(viewer);
-		if (search != null) {
-			t = contents.size();
-		}
 		if (n < t) {
 			setNextPage(invContents, viewer);
 		}
