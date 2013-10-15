@@ -67,13 +67,12 @@ public class MarketCore {
 				storage.storePayment(item, seller, buyer, cutPrice, listing.getWorld());
 			}
 			// Seller's stats
-			market.getHistory().storeHistory(seller, buyer, MarketAction.LISTING_SOLD, listing.getItemId(), listing.getAmount(), originalPrice);
-			market.getHistory().incrementEarned(seller, cutPrice);
-			/*storage.incrementEarned(seller, cutPrice);
-			storage.storeHistory(seller, market.getLocale().get("history.item_sold", friendlyItemName, cutPrice));*/
-			// Buyer's stats
-			market.getHistory().incrementSpent(buyer, originalPrice);
-			market.getHistory().storeHistory(buyer, seller, MarketAction.LISTING_BOUGHT, listing.getItemId(), listing.getAmount(), originalPrice);
+			if (market.enableHistory()) {
+				market.getHistory().storeHistory(seller, buyer, MarketAction.LISTING_SOLD, listing.getItemId(), listing.getAmount(), originalPrice);
+				market.getHistory().incrementEarned(seller, cutPrice);
+				market.getHistory().incrementSpent(buyer, originalPrice);
+				market.getHistory().storeHistory(buyer, seller, MarketAction.LISTING_BOUGHT, listing.getItemId(), listing.getAmount(), originalPrice);
+			}
 		}
 		// Transfer the item to where it belongs
 		if (mailItem) {
@@ -107,11 +106,13 @@ public class MarketCore {
 		}
 		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
-		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			if (listing.getSeller().equalsIgnoreCase(player.getName())) {;
-				market.getHistory().storeHistory(listing.getSeller(), "You", MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
-			} else {
-				market.getHistory().storeHistory(listing.getSeller(), player.getName(), MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
+		if (market.enableHistory()) {
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				if (listing.getSeller().equalsIgnoreCase(player.getName())) {;
+					market.getHistory().storeHistory(listing.getSeller(), "You", MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
+				} else {
+					market.getHistory().storeHistory(listing.getSeller(), player.getName(), MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
+				}
 			}
 		}
 	}
@@ -123,7 +124,9 @@ public class MarketCore {
 		storage.removeListing(listing.getId());
 		handler.updateAllViewers();
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
-			market.getHistory().storeHistory(listing.getSeller(), null, MarketAction.LISTING_EXPIRED, listing.getItemId(), listing.getAmount(), 0);
+			if (market.enableHistory()) {
+				market.getHistory().storeHistory(listing.getSeller(), null, MarketAction.LISTING_EXPIRED, listing.getItemId(), listing.getAmount(), 0);
+			}
 		}
 	}
 	

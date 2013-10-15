@@ -146,7 +146,9 @@ public class CreateCommand extends SubCommand {
 				storage.createListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price, world);
 				sender.sendMessage(ChatColor.GREEN + locale.get("item_listed"));
 			}
-			market.getHistory().storeHistory(player.getName(), "", MarketAction.LISTING_CREATED, toList, price);
+			if (market.enableHistory()) {
+				market.getHistory().storeHistory(player.getName(), "", MarketAction.LISTING_CREATED, toList, price);
+			}
 		} else {
 			sender.sendMessage(prefix + locale.get("hold_an_item") + " " + locale.get("cmd.create_syntax"));
 		}

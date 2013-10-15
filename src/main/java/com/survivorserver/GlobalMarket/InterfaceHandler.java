@@ -2,11 +2,9 @@ package com.survivorserver.GlobalMarket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -16,6 +14,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
 import com.survivorserver.GlobalMarket.Lib.NbtFactory;
@@ -26,13 +25,15 @@ public class InterfaceHandler {
 	Market market;
 	MarketStorage storage;
 	List<InterfaceViewer> viewers;
-	Set<MarketInterface> interfaces;
+	List<MarketInterface> interfaces;
+	List<Handler> handlers;
 	
 	public InterfaceHandler(Market market, MarketStorage storage) {
 		this.market = market;
 		this.storage = storage;
 		viewers = new ArrayList<InterfaceViewer>();
-		interfaces = new HashSet<MarketInterface>();
+		interfaces = new ArrayList<MarketInterface>();
+		handlers = new ArrayList<Handler>();
 	}
 	
 	public void registerInterface(MarketInterface gui) {
@@ -52,8 +53,16 @@ public class InterfaceHandler {
 		throw new IllegalArgumentException("Interface " + name + " was not found");
 	}
 	
-	public Set<MarketInterface> getInterfaces() {
+	public List<MarketInterface> getInterfaces() {
 		return interfaces;
+	}
+	
+	public void registerHandler(Handler handler) {
+		handlers.add(handler);
+	}
+	
+	public void unregisterHandler(Handler handler) {
+		handlers.remove(handler);
 	}
 	
 	public InterfaceViewer addViewer(Player player, Inventory gui, MarketInterface mInterface) {
@@ -258,6 +267,9 @@ public class InterfaceHandler {
 	
 	public void refreshViewer(InterfaceViewer viewer) {
 		refreshInterface(viewer);
+		for (Handler handler : handlers) {
+			handler.updateViewer(viewer.getViewer());;
+		}
 	}
 	
 	public void updateAllViewers() {
@@ -277,6 +289,9 @@ public class InterfaceHandler {
 			for (InterfaceViewer viewer : inactive) {
 				removeViewer(viewer);
 			}
+		}
+		for (Handler handler : handlers) {
+			handler.updateAllViewers();
 		}
 	}
 	

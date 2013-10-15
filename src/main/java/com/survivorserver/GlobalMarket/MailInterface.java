@@ -107,10 +107,12 @@ public class MailInterface extends MarketInterface {
 			}
 			player.sendMessage(ChatColor.GREEN + market.getLocale().get("picked_up_your_earnings", market.getEcon().format(market.getEcon().getBalance(player.getName()))));
 			market.getStorage().nullifyMailPayment(item.getId());
-			if (viewer.getName().equalsIgnoreCase(viewer.getViewer())) {
-				market.getHistory().storeHistory(viewer.getName(), "You", MarketAction.EARNINGS_RETRIEVED, item.getItemId(), item.getAmount(), amount);
-			} else {
-				market.getHistory().storeHistory(viewer.getName(), viewer.getViewer(), MarketAction.EARNINGS_RETRIEVED, item.getItemId(), item.getAmount(), amount);
+			if (market.enableHistory()) {
+				if (viewer.getName().equalsIgnoreCase(viewer.getViewer())) {
+					market.getHistory().storeHistory(viewer.getName(), "You", MarketAction.EARNINGS_RETRIEVED, item.getItemId(), item.getAmount(), amount);
+				} else {
+					market.getHistory().storeHistory(viewer.getName(), viewer.getViewer(), MarketAction.EARNINGS_RETRIEVED, item.getItemId(), item.getAmount(), amount);
+				}
 			}
 		}
 		Inventory inv = player.getInventory();
