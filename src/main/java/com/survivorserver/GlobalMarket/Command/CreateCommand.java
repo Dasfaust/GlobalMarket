@@ -116,7 +116,9 @@ public class CreateCommand extends SubCommand {
 			if (fee > 0) {
 				if (econ.has(sender.getName(), fee)) {
 					econ.withdrawPlayer(sender.getName(), fee);
-					market.getHistory().incrementSpent(sender.getName(), fee);
+					if (market.enableHistory()) {
+						market.getHistory().incrementSpent(sender.getName(), fee);
+					}
 					player.sendMessage(ChatColor.GREEN + locale.get("charged_fee", econ.format(fee)));
 				} else {
 					sender.sendMessage(ChatColor.RED + locale.get("you_cant_pay_this_fee"));

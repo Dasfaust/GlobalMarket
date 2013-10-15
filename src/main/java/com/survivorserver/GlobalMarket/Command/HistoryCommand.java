@@ -1,5 +1,6 @@
 package com.survivorserver.GlobalMarket.Command;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -41,6 +42,10 @@ public class HistoryCommand extends SubCommand {
 
 	@Override
 	public boolean onCommand(CommandSender sender, String[] args) {
+		if (!market.enableHistory()) {
+			sender.sendMessage(ChatColor.RED + locale.get("history_not_enabled"));
+			return true;
+		}
 		final Player player = (Player) sender;
 		new BukkitRunnable() {
 			public void run() {

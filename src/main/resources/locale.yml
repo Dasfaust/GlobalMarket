@@ -114,3 +114,4 @@ english:
         price_per_item: "Average price per item: %s"
         price_per_stack: "Average price per stack: %s"
     not_allowed_while_in_creative: "You can't do this while in creative mode"
+    history_not_enabled: "This command is currently unavailable"

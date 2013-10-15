@@ -1,5 +1,6 @@
 package com.survivorserver.GlobalMarket.Command;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -43,6 +44,10 @@ public class PriceCheckCommand extends SubCommand {
 
 	@Override
 	public boolean onCommand(CommandSender sender, String[] args) {
+		if (!market.enableHistory()) {
+			sender.sendMessage(ChatColor.RED + locale.get("history_not_enabled"));
+			return true;
+		}
 		final Player player = (Player) sender;
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR) {
 			final ItemStack item = player.getItemInHand();
