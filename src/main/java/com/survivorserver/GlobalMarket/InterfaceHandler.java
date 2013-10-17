@@ -65,6 +65,10 @@ public class InterfaceHandler {
 		handlers.remove(handler);
 	}
 	
+	public List<Handler> getHandlers() {
+		return handlers;
+	}
+	
 	public InterfaceViewer addViewer(Player player, Inventory gui, MarketInterface mInterface) {
 		String name = player.getName();
 		for (InterfaceViewer viewer : viewers) {
@@ -267,6 +271,13 @@ public class InterfaceHandler {
 	
 	public void refreshViewer(InterfaceViewer viewer) {
 		refreshInterface(viewer);
+	}
+	
+	public void refreshViewer(String name) {
+		InterfaceViewer viewer = findViewer(name);
+		if (viewer != null) {
+			refreshViewer(viewer);
+		}
 		for (Handler handler : handlers) {
 			handler.updateViewer(viewer.getViewer());;
 		}

@@ -104,6 +104,7 @@ public class SendCommand extends SubCommand {
 				} else {
 					storageHandler.createMail(args[1], sender.getName(), toList, 0, world);
 					sender.sendMessage(prefix + locale.get("item_sent"));
+					market.notifyPlayer(args[1], market.getLocale().get("you_have_new_mail"));
 				}
 			} else {
 				ItemStack toList = new ItemStack(player.getItemInHand());
@@ -113,6 +114,7 @@ public class SendCommand extends SubCommand {
 				} else {
 					storageHandler.createMail(args[1], sender.getName(), toList, 0, world);
 					sender.sendMessage(prefix + locale.get("item_sent"));
+					market.notifyPlayer(args[1], market.getLocale().get("you_have_new_mail"));
 				}
 				player.setItemInHand(new ItemStack(Material.AIR));
 			}

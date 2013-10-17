@@ -34,6 +34,7 @@ public class MarketCore {
 		if (cut > 0) {
 			cutPrice = originalPrice - cut;
 		}
+		ItemStack item = viewer.getInterface().getItemStack(viewer, listing);
 		// Make the transaction between buyer and seller
 		EconomyResponse response = econ.withdrawPlayer(buyer, originalPrice);
 		if (!response.transactionSuccess()) {
@@ -63,7 +64,6 @@ public class MarketCore {
 				}
 			} else {
 				// Send a Transaction Log
-				ItemStack item = viewer.getInterface().getItemStack(viewer, listing);
 				storage.storePayment(item, seller, buyer, cutPrice, listing.getWorld());
 			}
 			// Seller's stats
@@ -91,6 +91,10 @@ public class MarketCore {
 		if (refreshInterface) {
 			handler.updateAllViewers();
 		}
+		String itemName = market.getItemName(item);
+		market.notifyPlayer(seller, market.autoPayment() ? market.getLocale().get("you_sold_your_listing_of", itemName) :
+			market.getLocale().get("listing_purchased_mailbox", itemName));
+		market.notifyPlayer(buyer, market.getLocale().get("you_have_new_mail"));
 		return true;
 	}
 	
@@ -115,6 +119,7 @@ public class MarketCore {
 				}
 			}
 		}
+		market.notifyPlayer(listing.getSeller(), market.getLocale().get("you_have_new_mail"));
 	}
 	
 	public synchronized void expireListing(Listing listing) {
@@ -128,6 +133,7 @@ public class MarketCore {
 				market.getHistory().storeHistory(listing.getSeller(), null, MarketAction.LISTING_EXPIRED, listing.getItemId(), listing.getAmount(), 0);
 			}
 		}
+		market.notifyPlayer(listing.getSeller(), market.getLocale().get("you_have_new_mail"));
 	}
 	
 	public void retrieveMail(Mail mail, InterfaceViewer viewer, Player player) {
@@ -135,13 +141,6 @@ public class MarketCore {
 		ItemStack item = storage.getItem(mail.getItemId(), mail.getAmount());
 		playerInv.addItem(item);
 		storage.removeMail(mail.getId());
-	}
-	
-	public void notifyPlayer(String player, String notification) {
-		Player p = market.getServer().getPlayer(player);
-		if (p != null) {
-			p.sendMessage(notification);
-		}
 	}
 	
 	/*public void showHistory(Player player) {

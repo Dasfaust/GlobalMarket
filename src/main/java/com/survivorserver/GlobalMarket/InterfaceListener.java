@@ -69,7 +69,6 @@ public class InterfaceListener implements Listener {
 							} else {
 								inter.handleLeftClickAction(viewer, item, event);
 							}
-							handler.refreshViewer(viewer);
 						} else {
 							handler.refreshViewer(viewer);
 							if (viewer.getClicks() == 2) {
@@ -79,7 +78,6 @@ public class InterfaceListener implements Listener {
 									inter.handleLeftClickAction(viewer, item, event);
 								}
 							}
-							handler.refreshViewer(viewer);
 						}
 					} else {
 						inter.onUnboundClick(market, handler, viewer, slot, event, invSize);

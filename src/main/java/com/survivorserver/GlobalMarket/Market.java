@@ -37,6 +37,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.Command.MarketCommand;
+import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Legacy.Importer;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
 import com.survivorserver.GlobalMarket.SQL.Database;
@@ -463,6 +464,16 @@ public class Market extends JavaPlugin implements Listener {
 			}
 		}
 		return getConfig().getBoolean("limits.default.allow_creative");
+	}
+	
+	public void notifyPlayer(String who, String notification) {
+		Player player = getServer().getPlayer(who);
+		if (player != null) {
+			player.sendMessage(locale.get("cmd.prefix") + notification);
+		}
+		for (Handler handler : interfaceHandler.getHandlers()) {
+			handler.notifyPlayer(who, notification);
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
