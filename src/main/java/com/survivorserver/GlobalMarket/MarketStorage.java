@@ -19,6 +19,7 @@ import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import com.survivorserver.GlobalMarket.Lib.SearchResult;
 import com.survivorserver.GlobalMarket.SQL.Database;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
@@ -397,7 +398,7 @@ public class MarketStorage {
 	public List<Listing> getListings(int page, int pageSize, String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
 		int index = (pageSize * page) - pageSize;
-		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values());
+		List<Listing> list = Lists.reverse(market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values()));
 		while (list.size() > index && toReturn.size() < pageSize) {
 			toReturn.add(list.get(index));
 			index++;
@@ -412,7 +413,7 @@ public class MarketStorage {
 	@SuppressWarnings("deprecation")
 	public SearchResult getListings(int page, int pageSize, String search, String world) {
 		List<Listing> found = new ArrayList<Listing>();
-		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values());
+		List<Listing> list = Lists.reverse(market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values()));
 		for (Listing listing : list) {
 			ItemStack item = getItem(listing.getItemId(), listing.getAmount());
 			String itemName = market.getItemName(item);
@@ -523,7 +524,7 @@ public class MarketStorage {
 		});
 		List<Mail> toReturn = new ArrayList<Mail>();
 		int index = (pageSize * page) - pageSize;
-		List<Mail> list = new ArrayList<Mail>(ownedMail);
+		List<Mail> list = Lists.reverse(new ArrayList<Mail>(ownedMail));
 		while (ownedMail.size() > index && toReturn.size() < pageSize) {
 			toReturn.add(list.get(index));
 			index++;
