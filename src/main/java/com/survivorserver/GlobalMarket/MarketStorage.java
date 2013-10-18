@@ -544,7 +544,9 @@ public class MarketStorage {
 		.setValue(0)
 		.setValue(id));
 		if (mail.containsKey(id)) {
-			mail.get(id).setPickup(0);
+			Mail m = mail.get(id);
+			m.setPickup(0);
+			market.getInterfaceHandler().refreshViewer(m.getOwner());
 		}
 	}
 	
@@ -554,6 +556,7 @@ public class MarketStorage {
 		worldMail.get(m.getWorld()).remove(m);
 		asyncDb.addStatement(new QueuedStatement("DELETE FROM mail WHERE id=?")
 		.setValue(id));
+		market.getInterfaceHandler().refreshViewer(m.getOwner());
 	}
 	
 	public int getNumMail(final String player, final String world) {

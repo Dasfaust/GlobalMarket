@@ -279,7 +279,7 @@ public class InterfaceHandler {
 			refreshViewer(viewer);
 		}
 		for (Handler handler : handlers) {
-			handler.updateViewer(viewer.getViewer());;
+			handler.updateViewer(name);;
 		}
 	}
 	
