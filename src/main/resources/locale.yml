@@ -109,7 +109,7 @@ english:
     friendly_item_name: "%s"
     friendly_item_name_with_amount: "%1$s %2$s"
     prices:
-        no_data: "No data available for %s. Please note that price data will not be available until the item has been traded"
+        no_data: "No data available for %s. Price data will not be available until the item has been traded"
         header: "%s Pricing:"
         price_per_item: "Average price per item: %s"
         price_per_stack: "Average price per stack: %s"
