@@ -98,6 +98,76 @@ public class MarketCore {
 		return true;
 	}
 	
+	public synchronized boolean buyListing(Listing listing, String buyer, boolean removeListing, boolean refreshInterface) {
+		double originalPrice = listing.getPrice();
+		double cutPrice = originalPrice;
+		Economy econ = market.getEcon();
+		String seller = listing.getSeller();
+		String infAccount = market.getInfiniteAccount();
+		boolean isInfinite = listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller());
+		double cut = market.getCut(listing.getPrice(), listing.getSeller(), listing.getWorld());
+		if (cut > 0) {
+			cutPrice = originalPrice - cut;
+		}
+		ItemStack item = storage.getItem(listing.getItemId(), listing.getAmount());
+		if (!econ.has(buyer, listing.getPrice())) {
+			return false;
+		}
+		// Make the transaction between buyer and seller
+		EconomyResponse response = econ.withdrawPlayer(buyer, originalPrice);
+		if (!response.transactionSuccess()) {
+			if (response.type == ResponseType.NOT_IMPLEMENTED) {
+				market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the withdrawPlayer() function.");
+			}
+			return false;
+		}
+		if (isInfinite && infAccount.length() >= 1) {
+			// Put the money earned in the infinite seller's account
+			response = econ.depositPlayer(infAccount, cutPrice);
+			if (!response.transactionSuccess()) {
+				if (response.type == ResponseType.NOT_IMPLEMENTED) {
+					market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
+				}
+				return false;
+			}
+		} else {
+			// Direct deposit?
+			if (market.autoPayment()) {
+				response = econ.depositPlayer(seller, cutPrice);
+				if (!response.transactionSuccess()) {
+					if (response.type == ResponseType.NOT_IMPLEMENTED) {
+						market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
+					}
+					return false;
+				}
+			} else {
+				// Send a Transaction Log
+				storage.storePayment(item, seller, buyer, cutPrice, listing.getWorld());
+			}
+			// Seller's stats
+			if (market.enableHistory()) {
+				market.getHistory().storeHistory(seller, buyer, MarketAction.LISTING_SOLD, listing.getItemId(), listing.getAmount(), originalPrice);
+				market.getHistory().incrementEarned(seller, cutPrice);
+				market.getHistory().incrementSpent(buyer, originalPrice);
+				market.getHistory().storeHistory(buyer, seller, MarketAction.LISTING_BOUGHT, listing.getItemId(), listing.getAmount(), originalPrice);
+			}
+		}
+		// Transfer the item to where it belongs
+		storage.createMail(buyer, null, listing.getItemId(), listing.getAmount(), listing.getWorld());
+		if (!isInfinite && removeListing) {
+			storage.removeListing(listing.getId());
+		}
+		// Update viewers
+		if (refreshInterface) {
+			handler.updateAllViewers();
+		}
+		String itemName = market.getItemName(item);
+		market.notifyPlayer(seller, market.autoPayment() ? market.getLocale().get("you_sold_your_listing_of", itemName) :
+			market.getLocale().get("listing_purchased_mailbox", itemName));
+		market.notifyPlayer(buyer, market.getLocale().get("you_have_new_mail"));
+		return true;
+	}
+	
 	public void removeListing(Listing listing, Player player) {
 		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
 			int mailTime = market.getMailTime(player);
@@ -116,6 +186,24 @@ public class MarketCore {
 					market.getHistory().storeHistory(listing.getSeller(), "You", MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
 				} else {
 					market.getHistory().storeHistory(listing.getSeller(), player.getName(), MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
+				}
+			}
+		}
+		market.notifyPlayer(listing.getSeller(), market.getLocale().get("you_have_new_mail"));
+	}
+	
+	public synchronized void removeListing(Listing listing, String player) {
+		if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+			storage.createMail(listing.getSeller(), null, listing.getItemId(), listing.getAmount(), listing.getWorld());
+		}
+		storage.removeListing(listing.getId());
+		handler.updateAllViewers();
+		if (market.enableHistory()) {
+			if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+				if (listing.getSeller().equalsIgnoreCase(player)) {;
+					market.getHistory().storeHistory(listing.getSeller(), "You", MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
+				} else {
+					market.getHistory().storeHistory(listing.getSeller(), player, MarketAction.LISTING_REMOVED, listing.getItemId(), listing.getAmount(), 0);
 				}
 			}
 		}

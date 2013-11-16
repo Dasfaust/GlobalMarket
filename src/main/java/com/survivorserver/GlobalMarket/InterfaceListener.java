@@ -60,7 +60,6 @@ public class InterfaceListener implements Listener {
 						// This item has an ID attached to it
 						MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
 						// Yay, we've got the MarketItem instance. Let's do stuff with it
-						market.log.info(viewer.getViewer() + ": Slot " + rawSlot);
 						viewer.setLastItem(item.getId());
 						viewer.incrementClicks();
 						

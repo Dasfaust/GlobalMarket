@@ -195,7 +195,6 @@ public class MarketStorage {
 			if (res.next()) {
 				itemIndex = res.getInt(1) + 1;
 			}
-			asyncDb.startTask();
 		} catch(Exception e) {
 			market.log.severe("Error while loading:");
 			e.printStackTrace();
@@ -411,6 +410,22 @@ public class MarketStorage {
 		return toReturn;
 	}
 	
+	public List<Listing> getOwnedListings(int page, int pageSize, String world, String name) {
+		List<Listing> list = new ArrayList<Listing>();
+		for (Listing listing : market.enableMultiworld() ? getListingsForWorld(world) : listings.values()) {
+			if (listing.getSeller().equalsIgnoreCase(name)) {
+				list.add(listing);
+			}
+		}
+		int index = (pageSize * page) - pageSize;
+		List<Listing> toReturn = new ArrayList<Listing>();
+		while (list.size() > index && toReturn.size() < pageSize) {
+			toReturn.add(list.get(index));
+			index++;
+		}
+		return toReturn;
+	}
+	
 	public synchronized List<Listing> getAllListings() {
 		return new ArrayList<Listing>(listings.values());
 	}
@@ -567,7 +582,7 @@ public class MarketStorage {
 			});
 		return ownedMail.size();
 	}
-
+	
 	/*
 	 * Basic search method
 	 */

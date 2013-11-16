@@ -144,6 +144,7 @@ public class Market extends JavaPlugin implements Listener {
 		storage.loadSchema(db);
 		storage.load(db);
 		db.close();
+		asyncDb.startTask();
 		if (interfaceHandler == null) {
 			intialize();
 		}
@@ -185,6 +186,10 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public Economy getEcon() {
 		return econ;
+	}
+	
+	public Permission getPerms() {
+		return perms;
 	}
 	
 	public static Market getMarket() {
@@ -240,6 +245,15 @@ public class Market extends JavaPlugin implements Listener {
 	public double getMaxPrice(Player player) {
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getDouble("limits." + k + ".max_price");
+			}
+		}
+		return getConfig().getDouble("limits.default.max_price");
+	}
+	
+	public double getMaxPrice(String player, String world) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
 				return getConfig().getDouble("limits." + k + ".max_price");
 			}
 		}
@@ -312,6 +326,15 @@ public class Market extends JavaPlugin implements Listener {
 	public int maxListings(Player player) {
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".max_listings");
+			}
+		}
+		return getConfig().getInt("limits.default.max_listings");
+	}
+	
+	public int maxListings(String player, String world) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
 				return getConfig().getInt("limits." + k + ".max_listings");
 			}
 		}

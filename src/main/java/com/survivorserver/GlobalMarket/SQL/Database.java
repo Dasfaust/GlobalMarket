@@ -59,7 +59,7 @@ public class Database {
 	public boolean isConnected() {
 		try {
 			Statement s = con.createStatement();
-            ResultSet r = s.executeQuery("SELECT 1 from DUAL WHERE 1=0");
+            ResultSet r = s.executeQuery("SELECT 1");
             r.close();
             return true;
 		} catch(Exception e) {
@@ -82,6 +82,7 @@ public class Database {
 			}
 			return true;
 		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 	}

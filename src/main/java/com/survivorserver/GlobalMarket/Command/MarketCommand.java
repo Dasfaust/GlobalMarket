@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket.Command;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.bukkit.ChatColor;
@@ -68,12 +69,18 @@ public class MarketCommand implements CommandExecutor {
 		return false;
 	}
 	
-	public void registerSubCommand(SubCommand sub) {
+	public synchronized void registerSubCommand(SubCommand sub) {
 		executors.add(sub);
 	}
 	
-	public void unregisterSubCommand(SubCommand sub) {
-		executors.remove(sub);
+	public synchronized void unregisterSubCommand(Class<?> unreg) {
+		Iterator<SubCommand> it = executors.iterator();
+		while(it.hasNext()) {
+			SubCommand cmd = it.next();
+			if (cmd.getClass().equals(unreg)) {
+				it.remove();
+			}
+		}
 	}
 	
 	public SubCommand findExecutor(String cmd) {

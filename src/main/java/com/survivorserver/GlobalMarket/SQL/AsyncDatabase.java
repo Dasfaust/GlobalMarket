@@ -20,10 +20,13 @@ public class AsyncDatabase {
 	public AsyncDatabase(Market market) {
 		this.market = market;
 		queue = new CopyOnWriteArrayList<QueuedStatement>();
-		db = market.getConfigHandler().createConnection();
 	}
 	
 	public void startTask() {
+		if (db == null) {
+			db = market.getConfigHandler().createConnection();
+			db.connect();
+		}
 		taskId = new BukkitRunnable() {
 			
 			@Override
@@ -37,6 +40,7 @@ public class AsyncDatabase {
 	}
 	
 	public void processQueue(boolean debug) {
+		debug = true;
 		if (!db.isConnected()) {
 			db.connect();
 		}
@@ -62,6 +66,7 @@ public class AsyncDatabase {
 	}
 	
 	public void addStatement(QueuedStatement statement) {
+		market.log.info("Adding item to queue: " + statement.toString());
 		queue.add(statement);
 	}
 	
