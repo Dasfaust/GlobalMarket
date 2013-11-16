@@ -40,7 +40,6 @@ public class AsyncDatabase {
 	}
 	
 	public void processQueue(boolean debug) {
-		debug = true;
 		if (!db.isConnected()) {
 			db.connect();
 		}
@@ -66,7 +65,6 @@ public class AsyncDatabase {
 	}
 	
 	public void addStatement(QueuedStatement statement) {
-		market.log.info("Adding item to queue: " + statement.toString());
 		queue.add(statement);
 	}
 	
