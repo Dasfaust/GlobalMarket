@@ -34,7 +34,7 @@ public class ExpireTask extends BukkitRunnable {
 			}
 		});
 		for (Listing ex : expired) {
-			market.getCore().equals(ex);
+			market.getCore().expireListing(ex);
 		}
 	}
 }

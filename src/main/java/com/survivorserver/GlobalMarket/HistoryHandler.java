@@ -173,7 +173,7 @@ public class HistoryHandler {
 	}
 	
 	public String getPricesInformation(ItemStack it, Database db) {
-		ItemStack item = it.clone();
+		ItemStack item = new ItemStack(it);
 		item.setAmount(1);
 		String itemName = market.getItemName(item);
 		int itemId = 0;

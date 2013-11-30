@@ -25,9 +25,14 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
  
 
+
+
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
  
+
+
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.BiMap;
@@ -70,15 +75,24 @@ public class NbtFactory {
  
         // Unique NBT id
         public final int id;
+        private Class<?> type;
         
         private NbtType(int id, Class<?> type) {
             this.id = id;
             NBT_CLASS.put(id, type);
             NBT_ENUM.put(id, this);
+            this.type = type;
         }
         
-        private String getFieldName() {
-            if (this == TAG_COMPOUND) 
+        private String getFieldName(Class<?> handle) {
+        	if (Bukkit.getServer().getVersion().contains("MCPC")) {
+        		for (Field f : handle.getFields()) {
+        			if (f.getType().equals(this.type)) {
+        				return f.getName();
+        			}
+        		}
+        	}
+        	if (this == TAG_COMPOUND) 
                 return "map";
             else if (this == TAG_LIST)
                 return "list";
@@ -92,6 +106,7 @@ public class NbtFactory {
     private Class<?> COMPOUND_CLASS;
     private Method NBT_CREATE_TAG;
     private Method NBT_GET_TYPE;
+    private Field NBT_LIST_TYPE;
     private final Field[] DATA_FIELD = new Field[12];
  
     // CraftItemStack
@@ -309,25 +324,74 @@ public class NbtFactory {
                 // Keep in mind that I do use hard-coded field names - but it's okay as long as we're dealing 
                 // with CraftBukkit or its derivatives. This does not work in MCPC+ however.
                 ClassLoader loader = NbtFactory.class.getClassLoader();
-                //String packageName = "org.bukkit.craftbukkit.v1_6_R2"; 
-                String packageName = Bukkit.getServer().getClass().getPackage().getName();
-                Class<?> offlinePlayer = loader.loadClass(packageName + ".CraftOfflinePlayer");
                 
-                // Prepare NBT
-                COMPOUND_CLASS = getMethod(0, Modifier.STATIC, offlinePlayer, "getData").getReturnType();
-                BASE_CLASS = COMPOUND_CLASS.getSuperclass();
-                NBT_GET_TYPE = getMethod(0, Modifier.STATIC, BASE_CLASS, "getTypeId");
-                NBT_CREATE_TAG = getMethod(Modifier.STATIC, 0, BASE_CLASS, "createTag", byte.class, String.class);
-                
-                // Prepare CraftItemStack
-                CRAFT_STACK = loader.loadClass(packageName + ".inventory.CraftItemStack");
-                CRAFT_HANDLE = getField(null, CRAFT_STACK, "handle");
-                STACK_TAG = getField(null, CRAFT_HANDLE.getType(), "tag");
-                
-                // Loading/saving
-                LOAD_COMPOUND = getMethod(Modifier.STATIC, 0, BASE_CLASS, null, DataInput.class);
-                SAVE_COMPOUND = getMethod(Modifier.STATIC, 0, BASE_CLASS, null, BASE_CLASS, DataOutput.class);
-                
+                // Support for MCPC+
+                if (Bukkit.getServer().getVersion().contains("MCPC")) {
+                	//String packageName = "org.bukkit.craftbukkit.v1_6_R2"; 
+                    String packageName = Bukkit.getServer().getClass().getPackage().getName();
+                    Class<?> offlinePlayer = loader.loadClass(packageName + ".CraftOfflinePlayer");
+                    
+                    // Prepare NBT
+                    COMPOUND_CLASS = getMethod(0, Modifier.STATIC, offlinePlayer, "getData").getReturnType();
+                    BASE_CLASS = COMPOUND_CLASS.getSuperclass();
+                    for (Method method : BASE_CLASS.getMethods()) {
+                    	if (method.getReturnType().equals(byte.class) && method.getParameterTypes().length == 0) {
+                    		if (NBT_GET_TYPE == null) {
+                    			NBT_GET_TYPE = getMethod(0, Modifier.STATIC, BASE_CLASS, method.getName());
+                    			break;
+                    		}
+                    	}
+                    	if (method.getParameterTypes().length == 2) {
+                    		Class<?>[] types = method.getParameterTypes();
+                    		if (types[0].equals(byte.class) && types[1].equals(String.class)) {
+                    			if (NBT_CREATE_TAG == null) {
+                        			NBT_CREATE_TAG = getMethod(Modifier.STATIC, 0, BASE_CLASS, method.getName(), byte.class, String.class);
+                        			break;
+                    			}
+                    		}
+                    	}
+                    }
+                    
+                    // Prepare CraftItemStack
+                    CRAFT_STACK = loader.loadClass(packageName + ".inventory.CraftItemStack");
+                    try {
+						CRAFT_HANDLE = CRAFT_STACK.getDeclaredField("handle");
+					} catch (NoSuchFieldException e) {
+						e.printStackTrace();
+					} catch (SecurityException e) {
+						e.printStackTrace();
+					}
+                    CRAFT_HANDLE.setAccessible(true);
+                    for (Field f : CRAFT_HANDLE.getType().getFields()) {
+                    	if (f.getType().getSuperclass() != null && f.getType().getSuperclass().equals(BASE_CLASS)) {
+                    		STACK_TAG = f;
+                            STACK_TAG.setAccessible(true);
+                    	}
+                    }
+                    
+                    // Loading/saving
+                    LOAD_COMPOUND = getMethod(Modifier.STATIC, 0, BASE_CLASS, null, DataInput.class);
+                    SAVE_COMPOUND = getMethod(Modifier.STATIC, 0, BASE_CLASS, null, BASE_CLASS, DataOutput.class);
+                } else {
+                	//String packageName = "org.bukkit.craftbukkit.v1_6_R2"; 
+                    String packageName = Bukkit.getServer().getClass().getPackage().getName();
+                    Class<?> offlinePlayer = loader.loadClass(packageName + ".CraftOfflinePlayer");
+                    
+                    // Prepare NBT
+                    COMPOUND_CLASS = getMethod(0, Modifier.STATIC, offlinePlayer, "getData").getReturnType();
+                    BASE_CLASS = COMPOUND_CLASS.getSuperclass();
+                    NBT_GET_TYPE = getMethod(0, Modifier.STATIC, BASE_CLASS, "getTypeId");
+                    NBT_CREATE_TAG = getMethod(Modifier.STATIC, 0, BASE_CLASS, "createTag", byte.class, String.class);
+                    
+                    // Prepare CraftItemStack
+                    CRAFT_STACK = loader.loadClass(packageName + ".inventory.CraftItemStack");
+                    CRAFT_HANDLE = getField(null, CRAFT_STACK, "handle");
+                    STACK_TAG = getField(null, CRAFT_HANDLE.getType(), "tag");
+                    
+                    // Loading/saving
+                    LOAD_COMPOUND = getMethod(Modifier.STATIC, 0, BASE_CLASS, null, DataInput.class);
+                    SAVE_COMPOUND = getMethod(Modifier.STATIC, 0, BASE_CLASS, null, BASE_CLASS, DataOutput.class);
+                }
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException("Unable to find offline player.", e);
             }
@@ -378,6 +442,19 @@ public class NbtFactory {
     public static NbtCompound createCompound() {
         return get().new NbtCompound(
             INSTANCE.createNbtTag(NbtType.TAG_COMPOUND, "", null)
+        );
+    }
+    
+    /**
+     * Construct a new NBT root compound.
+     * <p>
+     * This compound must be given a name, as it is the root object.
+     * @param name - the name of the compound.
+     * @return The NBT compound.
+     */
+    public static NbtCompound createRootCompound(String name) {
+        return get().new NbtCompound(
+            INSTANCE.createNbtTag(NbtType.TAG_COMPOUND, name, null)
         );
     }
     
@@ -488,8 +565,7 @@ public class NbtFactory {
         
         // Create the tag if it doesn't exist
         if (tag == null) {
-            NbtCompound compound = createCompound();
-            
+            NbtCompound compound = createRootCompound("tag");
             setItemTag(stack, compound);
             return compound;
         }
@@ -519,13 +595,12 @@ public class NbtFactory {
      * Ensure that the given stack can store arbitrary NBT information.
      * @param stack - the stack to check.
      */
-    @SuppressWarnings("deprecation")
-	private static void checkItemStack(ItemStack stack) {
+    private static void checkItemStack(ItemStack stack) {
         if (stack == null)
             throw new IllegalArgumentException("Stack cannot be NULL.");
         if (!get().CRAFT_STACK.isAssignableFrom(stack.getClass()))
             throw new IllegalArgumentException("Stack must be a CraftItemStack.");
-        if (stack.getTypeId() == 0)
+        if (stack.getType() == Material.AIR)
             throw new IllegalArgumentException("ItemStacks representing air cannot store NMS information.");
     }
     
@@ -603,7 +678,7 @@ public class NbtFactory {
      */
     private Field getDataField(NbtType type, Object nms) {
         if (DATA_FIELD[type.id] == null) 
-            DATA_FIELD[type.id] = getField(nms, null, type.getFieldName());
+            DATA_FIELD[type.id] = getField(nms, null, type.getFieldName(nms.getClass()));
         return DATA_FIELD[type.id];
     }
     
@@ -666,7 +741,7 @@ public class NbtFactory {
     }
     
     /**
-     * Search for the first publicly and privately defined method of the given name and parameter count.
+     * Search for the first publically and privately defined method of the given name and parameter count.
      * @param requireMod - modifiers that are required.
      * @param bannedMod - modifiers that are banned.
      * @param clazz - a class to start with.
@@ -695,7 +770,7 @@ public class NbtFactory {
     }
     
     /**
-     * Search for the first publicly and privately defined field of the given name. 
+     * Search for the first publically and privately defined field of the given name. 
      * @param instance - an instance of the class with the field.
      * @param clazz - an optional class to start with, or NULL to deduce it from instance.
      * @param fieldName - the field name.
@@ -856,6 +931,8 @@ public class NbtFactory {
         private final CachedNativeWrapper cache = new CachedNativeWrapper();
         
         public ConvertedList(Object handle, List<Object> original) {
+            if (NBT_LIST_TYPE == null)
+                NBT_LIST_TYPE = getField(handle, null, "type");
             this.handle = handle;
             this.original = original;
         }
@@ -883,7 +960,12 @@ public class NbtFactory {
         }
         @Override
         public void add(int index, Object element) {
-            original.add(index, unwrapIncoming(element));
+            Object nbt = unwrapIncoming(element);
+            
+            // Set the list type if its the first element
+            if (size() == 0) 
+                setFieldValue(NBT_LIST_TYPE, handle, (byte)getNbtType(nbt).id);
+            original.add(index, nbt);
         }
         @Override
         public Object remove(int index) {

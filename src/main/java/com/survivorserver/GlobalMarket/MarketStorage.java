@@ -2,6 +2,7 @@ package com.survivorserver.GlobalMarket;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,11 +33,11 @@ public class MarketStorage {
 	private Market market;
 	private AsyncDatabase asyncDb;
 	private Map<Integer, ItemStack> items;
-	private LinkedHashMap<Integer, Listing> listings;
-	private HashMap<String, List<Listing>> worldListings;
-	private LinkedHashMap<Integer, Mail> mail;
-	private HashMap<String, List<Mail>> worldMail;
-	private LinkedHashMap<Integer, QueueItem> queue;
+	private Map<Integer, Listing> listings;
+	private Map<String, List<Listing>> worldListings;
+	private Map<Integer, Mail> mail;
+	private Map<String, List<Mail>> worldMail;
+	private Map<Integer, QueueItem> queue;
 	private int itemIndex;
 	private int listingIndex;
 	private int mailIndex;
@@ -45,12 +46,12 @@ public class MarketStorage {
 	public MarketStorage(Market market, AsyncDatabase asyncDb) {
 		this.market = market;
 		this.asyncDb = asyncDb;
-		items = new HashMap<Integer, ItemStack>();
-		listings = new LinkedHashMap<Integer, Listing>();
-		worldListings = new HashMap<String, List<Listing>>();
-		mail = new LinkedHashMap<Integer, Mail>();
-		worldMail = new HashMap<String, List<Mail>>();
-		queue = new LinkedHashMap<Integer, QueueItem>();
+		items = Collections.synchronizedMap(new HashMap<Integer, ItemStack>());
+		listings = Collections.synchronizedMap(new LinkedHashMap<Integer, Listing>());
+		worldListings = Collections.synchronizedMap(new HashMap<String, List<Listing>>());
+		mail = Collections.synchronizedMap(new LinkedHashMap<Integer, Mail>());
+		worldMail = Collections.synchronizedMap(new HashMap<String, List<Mail>>());
+		queue = Collections.synchronizedMap(new LinkedHashMap<Integer, QueueItem>());
 	}
 	
 	public void loadSchema(Database db) {
@@ -294,7 +295,7 @@ public class MarketStorage {
 	
 	public static String itemStackToString(ItemStack item) {
 		YamlConfiguration conf = new YamlConfiguration();
-		ItemStack toSave = item.clone();
+		ItemStack toSave = new ItemStack(item);
 		toSave.setAmount(1);
 		conf.set("item", toSave);
 		return conf.saveToString();
@@ -340,7 +341,7 @@ public class MarketStorage {
 		if (!items.containsKey(new Integer(id))) {
 			market.log.severe("Couldn't find an item with ID " + id);
 		}
-		ItemStack item = items.get(new Integer(id)).clone();
+		ItemStack item = new ItemStack(items.get(new Integer(id)));
 		item.setAmount(amount);
 		return item;
 	}
@@ -477,7 +478,7 @@ public class MarketStorage {
 		return amount;
 	}
 	
-	public LinkedHashMap<Integer, Listing> getCachedListingIndex() {
+	public Map<Integer, Listing> getCachedListingIndex() {
 		return listings;
 	}
 	

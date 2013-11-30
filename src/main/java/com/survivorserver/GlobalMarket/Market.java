@@ -117,6 +117,8 @@ public class Market extends JavaPlugin implements Listener {
 		RegisteredServiceProvider<net.milkbowl.vault.permission.Permission> permsProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
 		if (permsProvider != null) {
 			perms = permsProvider.getProvider();
+		} else {
+			log.warning("You do not have a Vault-enabled permissions plugin. Defaulting to default player limits.");
 		}
 		try {
 			Class.forName("net.milkbowl.vault.item.Items");
@@ -160,9 +162,7 @@ public class Market extends JavaPlugin implements Listener {
 		core = new MarketCore(this, interfaceHandler, storage);
 		listener = new InterfaceListener(this, interfaceHandler, storage, core);
 		getServer().getPluginManager().registerEvents(listener, this);
-		if (getConfig().getDouble("expire_time") > 0) {
-			tasks.add(new ExpireTask(this, config, core, storage).runTaskTimerAsynchronously(this, 0, 72000).getTaskId());
-		}
+		tasks.add(new ExpireTask(this, config, core, storage).runTaskTimerAsynchronously(this, 0, 72000).getTaskId());
 		tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new CleanTask(this, interfaceHandler), 0, 20));
 		tasks.add(new Queue(this).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
 		if (getConfig().getBoolean("enable_metrics")) {
@@ -252,6 +252,9 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public double getMaxPrice(String player, String world) {
+		if (perms == null) {
+			return getConfig().getDouble("limits.default.max_price");
+		}
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
 				return getConfig().getDouble("limits." + k + ".max_price");
@@ -289,6 +292,9 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public int getTradeTime(String player, String world) {
+		if (perms == null) {
+			return getConfig().getInt("limits.default.queue_trade_time");
+		}
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
 				return getConfig().getInt("limits." + k + ".queue_trade_time");
@@ -307,6 +313,9 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public int getMailTime(String player, String world) {
+		if (perms == null) {
+			return getConfig().getInt("limits.default.queue_mail_time");
+		}
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
 				return getConfig().getInt("limits." + k + ".queue_mail_time");
@@ -333,6 +342,9 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public int maxListings(String player, String world) {
+		if (perms == null) {
+			return getConfig().getInt("limits.default.max_listings");
+		}
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
 				return getConfig().getInt("limits." + k + ".max_listings");
@@ -342,6 +354,9 @@ public class Market extends JavaPlugin implements Listener {
 	}
 	
 	public double getExpireTime(String player, String world) {
+		if (perms == null) {
+			return getConfig().getInt("limits.default.expire_time");
+		}
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
 				return getConfig().getInt("limits." + k + ".expire_time");
