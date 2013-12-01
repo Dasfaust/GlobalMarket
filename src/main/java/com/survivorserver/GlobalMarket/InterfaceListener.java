@@ -11,11 +11,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.ItemStack;
-
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
-import com.survivorserver.GlobalMarket.Lib.NbtFactory;
-import com.survivorserver.GlobalMarket.Lib.NbtFactory.NbtCompound;
 
 public class InterfaceListener implements Listener {
 
@@ -42,6 +39,7 @@ public class InterfaceListener implements Listener {
 			//int guiSize = handler.getInterface(viewer.getInterface()).getSize() - 1;
 			if (rawSlot <= 53) {
 				// We've clicked a Market item
+				event.setCancelled(true);
 				event.setResult(Result.DENY);
 				
 				int invSize = viewer.getGui().getContents().length;
@@ -91,7 +89,15 @@ public class InterfaceListener implements Listener {
 					|| event.getAction() == InventoryAction.SWAP_WITH_CURSOR)
 					&& event.getRawSlot() == event.getSlot()) {
 				// They're trying to put an item from their inventory into the Market inventory. Not bad for us, but they will lose their item. Cancel it because we're nice :)
+				event.setCancelled(true);
 				event.setResult(Result.DENY);
+			}
+		} else {
+			if (isMarketItem(event.getCurrentItem())) {
+				event.setCancelled(true);
+				event.setResult(Result.DENY);
+				event.getCurrentItem().setType(Material.AIR);
+				event.getCursor().setType(Material.AIR);
 			}
 		}
 	}
@@ -155,10 +161,15 @@ public class InterfaceListener implements Listener {
 	}
 	
 	public boolean isMarketItem(ItemStack item) {
-		if (item != null) {
-			if (item.getType() != Material.AIR) {
-				NbtCompound comp = NbtFactory.fromItemTag(item.clone());
-				return comp == null ? false : comp.containsKey("marketItem");
+		if (item == null) {
+			return false;
+		}
+		if (!item.hasItemMeta()) {
+			return false;
+		}
+		for (MarketInterface in : handler.getInterfaces()) {
+			if (in.identifyItem(item.getItemMeta())) {
+				return true;
 			}
 		}
 		return false;
