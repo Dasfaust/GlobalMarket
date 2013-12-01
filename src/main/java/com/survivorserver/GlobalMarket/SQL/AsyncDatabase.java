@@ -33,7 +33,7 @@ public class AsyncDatabase {
 			
 			@Override
 			public void run() {
-				processQueue(true);
+				processQueue(false);
 				if (market.isEnabled()) {
 					startTask();
 				}
@@ -85,7 +85,6 @@ public class AsyncDatabase {
 	
 	public synchronized void addStatement(QueuedStatement statement) {
 		queue.add(statement);
-		market.log.info("Added statement to DB queue. Current size: " + queue.size());
 	}
 	
 	public synchronized boolean isProcessing() {

@@ -30,7 +30,7 @@ public class ExpireTask extends BukkitRunnable {
 		Collection<Listing> expired = Collections2.filter(market.getStorage().getAllListings(), new Predicate<Listing>() {
 			public boolean apply(Listing listing) {
 				long diff = System.currentTimeMillis() - listing.getTime();
-				return diff / 60 * 60 * 1000 >= market.getExpireTime(listing.getSeller(), listing.getWorld());
+				return diff / (60 * 60 * 1000) >= market.getExpireTime(listing.getSeller(), listing.getWorld());
 			}
 		});
 		for (Listing ex : expired) {
