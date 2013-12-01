@@ -359,7 +359,10 @@ public class MarketStorage {
 		Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, world, time);
 		listings.put(listing.getId(), listing);
 		addWorldItem(listing);
-		market.getInterfaceHandler().updateAllViewers();
+		if (market.getInterfaceHandler() != null) {
+			// This will be null if the importer is running
+			market.getInterfaceHandler().updateAllViewers();
+		}
 		return listing;
 	}
 	
@@ -375,7 +378,10 @@ public class MarketStorage {
 		listings.put(listing.getId(), listing);
 		addWorldItem(listing);
 		market.notifyPlayer(listing.getSeller(), market.getLocale().get("your_listing_has_been_added", market.getItemName(getItem(listing.getItemId(), listing.getAmount()))));
-		market.getInterfaceHandler().updateAllViewers();
+		if (market.getInterfaceHandler() != null) {
+			// This will be null if the importer is running
+			market.getInterfaceHandler().updateAllViewers();
+		}
 	}
 	
 	public void storeMail(Mail m) {
@@ -390,7 +396,10 @@ public class MarketStorage {
 		mail.put(m.getId(), m);
 		addWorldItem(m);
 		market.notifyPlayer(m.getOwner(), market.getLocale().get("you_have_new_mail"));
-		market.getInterfaceHandler().refreshViewer(m.getOwner());
+		if (market.getInterfaceHandler() != null) {
+			// This will be null if the importer is running
+			market.getInterfaceHandler().refreshViewer(m.getOwner());
+		}
 	}
 	
 	public synchronized Listing getListing(int id) {
@@ -493,7 +502,10 @@ public class MarketStorage {
 		Mail m = new Mail(owner, mailIndex++, itemId, amount, 0, from, world);
 		mail.put(m.getId(), m);
 		addWorldItem(m);
-		market.getInterfaceHandler().refreshViewer(m.getOwner());
+		if (market.getInterfaceHandler() != null) {
+			// This will be null if the importer is running
+			market.getInterfaceHandler().refreshViewer(m.getOwner());
+		}
 		return m;
 	}
 	
@@ -509,7 +521,10 @@ public class MarketStorage {
 		Mail m = new Mail(owner, mailIndex++, itemId, item.getAmount(), pickup, from, world);
 		mail.put(m.getId(), m);
 		addWorldItem(m);
-		market.getInterfaceHandler().refreshViewer(m.getOwner());
+		if (market.getInterfaceHandler() != null) {
+			// This will be null if the importer is running
+			market.getInterfaceHandler().refreshViewer(m.getOwner());
+		}
 		return m;
 	}
 	
@@ -562,7 +577,10 @@ public class MarketStorage {
 		if (mail.containsKey(id)) {
 			Mail m = mail.get(id);
 			m.setPickup(0);
-			market.getInterfaceHandler().refreshViewer(m.getOwner());
+			if (market.getInterfaceHandler() != null) {
+				// This will be null if the importer is running
+				market.getInterfaceHandler().refreshViewer(m.getOwner());
+			}
 		}
 	}
 	
@@ -572,7 +590,10 @@ public class MarketStorage {
 		worldMail.get(m.getWorld()).remove(m);
 		asyncDb.addStatement(new QueuedStatement("DELETE FROM mail WHERE id=?")
 		.setValue(id));
-		market.getInterfaceHandler().refreshViewer(m.getOwner());
+		if (market.getInterfaceHandler() != null) {
+			// This will be null if the importer is running
+			market.getInterfaceHandler().refreshViewer(m.getOwner());
+		}
 	}
 	
 	public int getNumMail(final String player, final String world) {

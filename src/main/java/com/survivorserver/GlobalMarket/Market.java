@@ -353,7 +353,7 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getInt("limits.default.max_listings");
 	}
 	
-	public double getExpireTime(String player, String world) {
+	public int getExpireTime(String player, String world) {
 		if (perms == null) {
 			return getConfig().getInt("limits.default.expire_time");
 		}

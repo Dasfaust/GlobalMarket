@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
@@ -163,7 +162,6 @@ public class InterfaceHandler {
 					}
 				}
 				ItemStack item = mInterface.prepareItem(marketItem, viewer, p, slot, left, shift);
-				markItem(item);
 				boundSlots.put(slot, marketItem.getId());
 				invContents[slot] = item;
 			}
@@ -187,7 +185,6 @@ public class InterfaceHandler {
 
 	public void setNextPage(ItemStack[] contents, InterfaceViewer viewer) {
 		ItemStack nextPage = new ItemStack(Material.PAPER, viewer.getPage() + 1);
-		markItem(nextPage);
 		ItemMeta nextMeta = nextPage.getItemMeta();
 		if (nextMeta == null) {
 			nextMeta = market.getServer().getItemFactory().getItemMeta(nextPage.getType());
@@ -202,7 +199,6 @@ public class InterfaceHandler {
 	
 	public void setCurPage(ItemStack[] contents, InterfaceViewer viewer) {
 		ItemStack curPage = new ItemStack(Material.PAPER, viewer.getPage());
-		markItem(curPage);
 		ItemMeta curMeta = curPage.getItemMeta();
 		if (curMeta == null) {
 			curMeta = market.getServer().getItemFactory().getItemMeta(curPage.getType());
@@ -217,7 +213,6 @@ public class InterfaceHandler {
 	
 	public void setPrevPage(ItemStack[] contents, InterfaceViewer viewer) {
 		ItemStack prevPage = new ItemStack(Material.PAPER, viewer.getPage() - 1);
-		markItem(prevPage);
 		ItemMeta prevMeta = prevPage.getItemMeta();
 		if (prevMeta == null) {
 			prevMeta = market.getServer().getItemFactory().getItemMeta(prevPage.getType());
@@ -232,7 +227,6 @@ public class InterfaceHandler {
 	
 	public void setSearch(String search, ItemStack[] contents) {
 		ItemStack searchItem = new ItemStack(Material.PAPER);
-		markItem(searchItem);
 		if (search == null) {
 			ItemMeta meta = searchItem.getItemMeta();
 			if (meta == null) {
@@ -319,9 +313,5 @@ public class InterfaceHandler {
 			}
 		}
 		return market.getPerms().playerHas(market.getServer().getWorlds().get(0).getName(), name, "globalmarket.admin");
-	}
-	
-	public void markItem(ItemStack item) {
-		item.getItemMeta().addEnchant(Enchantment.PROTECTION_FALL, 1000, true);
 	}
 }
