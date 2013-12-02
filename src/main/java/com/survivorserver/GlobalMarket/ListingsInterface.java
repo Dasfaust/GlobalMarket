@@ -158,9 +158,11 @@ public class ListingsInterface extends MarketInterface {
 				return true;
 			}
 		}
-		for (String lore : meta.getLore()) {
-			if (lore.contains(market.getLocale().get("price")) || lore.contains(market.getLocale().get("click_to_retrieve"))) {
-				return true;
+		if (meta.hasLore()) {
+			for (String lore : meta.getLore()) {
+				if (lore.contains(market.getLocale().get("price")) || lore.contains(market.getLocale().get("click_to_retrieve"))) {
+					return true;
+				}
 			}
 		}
 		return false;

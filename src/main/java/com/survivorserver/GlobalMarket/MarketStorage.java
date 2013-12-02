@@ -295,7 +295,7 @@ public class MarketStorage {
 	
 	public static String itemStackToString(ItemStack item) {
 		YamlConfiguration conf = new YamlConfiguration();
-		ItemStack toSave = new ItemStack(item);
+		ItemStack toSave = item.clone();
 		toSave.setAmount(1);
 		conf.set("item", toSave);
 		return conf.saveToString();
@@ -305,7 +305,7 @@ public class MarketStorage {
 		YamlConfiguration conf = new YamlConfiguration();
 		try {
 			conf.loadFromString(item);
-			return new ItemStack(conf.getItemStack("item"));
+			return conf.getItemStack("item").clone();
 		} catch (InvalidConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -341,7 +341,7 @@ public class MarketStorage {
 		if (!items.containsKey(new Integer(id))) {
 			market.log.severe("Couldn't find an item with ID " + id);
 		}
-		ItemStack item = new ItemStack(items.get(new Integer(id)));
+		ItemStack item = items.get(new Integer(id)).clone();
 		item.setAmount(amount);
 		return item;
 	}

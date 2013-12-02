@@ -91,7 +91,7 @@ public class SendCommand extends SubCommand {
 					player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
 					return true;
 				}
-				ItemStack toList = new ItemStack(player.getItemInHand());
+				ItemStack toList = player.getItemInHand().clone();
 				if (player.getItemInHand().getAmount() == amount) {
 					player.setItemInHand(new ItemStack(Material.AIR));
 				} else {
@@ -107,7 +107,7 @@ public class SendCommand extends SubCommand {
 					market.notifyPlayer(args[1], market.getLocale().get("you_have_new_mail"));
 				}
 			} else {
-				ItemStack toList = new ItemStack(player.getItemInHand());
+				ItemStack toList = player.getItemInHand().clone();
 				if (mailTime > 0) {
 					market.getStorage().queueMail(args[1], sender.getName(), toList, world);
 					sender.sendMessage(prefix + locale.get("item_will_send", mailTime));

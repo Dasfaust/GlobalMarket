@@ -112,7 +112,7 @@ public class CreateCommand extends SubCommand {
 					return true;
 				}
 			}
-			ItemStack toList = new ItemStack(player.getItemInHand());
+			ItemStack toList = player.getItemInHand().clone();
 			if (fee > 0) {
 				if (econ.has(sender.getName(), fee)) {
 					econ.withdrawPlayer(sender.getName(), fee);
