@@ -528,23 +528,22 @@ public class MarketStorage {
 		return m;
 	}
 	
-	public void storePayment(ItemStack item, String player, String buyer, double amount, String world) {
+	public void storePayment(ItemStack item, String player, String buyer, double fullAmount, double amount, double cut, String world) {
 		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
 		if (meta == null) {
 			meta = (BookMeta) market.getServer().getItemFactory().getItemMeta(book.getType());
 		}
 		meta.setTitle(market.getLocale().get("transaction_log.item_name"));
-		double cut = market.getCut(amount, player, world);
 		String itemName = market.getItemName(item);
 		String logStr = market.getLocale().get("transaction_log.title") + "\n\n" +
 						market.getLocale().get("transaction_log.item_sold", itemName) + "\n\n" +
-						market.getLocale().get("transaction_log.sale_price", amount) + "\n\n" +
+						market.getLocale().get("transaction_log.sale_price", fullAmount) + "\n\n" +
 						market.getLocale().get("transaction_log.market_cut", cut) +  "\n\n" +
-						market.getLocale().get("transaction_log.amount_recieved", (amount-cut));
+						market.getLocale().get("transaction_log.amount_recieved", amount);
 		meta.setPages(logStr);
 		book.setItemMeta(meta);
-		createMail(player, buyer, book, amount - cut, world);
+		createMail(player, buyer, book, amount, world);
 	}
 	
 	public Mail getMail(int id) {

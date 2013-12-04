@@ -64,7 +64,7 @@ public class MarketCore {
 				}
 			} else {
 				// Send a Transaction Log
-				storage.storePayment(item, seller, buyer, cutPrice, listing.getWorld());
+				storage.storePayment(item, seller, buyer, originalPrice, cutPrice, cut, listing.getWorld());
 			}
 			// Seller's stats
 			if (market.enableHistory()) {
@@ -142,7 +142,7 @@ public class MarketCore {
 				}
 			} else {
 				// Send a Transaction Log
-				storage.storePayment(item, seller, buyer, cutPrice, listing.getWorld());
+				storage.storePayment(item, seller, buyer, originalPrice, cutPrice, cut, listing.getWorld());
 			}
 			// Seller's stats
 			if (market.enableHistory()) {
