@@ -525,7 +525,6 @@ public class MarketStorage {
 				found.add(listing);
 			}
 		}
-		list.clear();
 		int index = (pageSize * page) - pageSize;
 		List<Listing> toReturn = new ArrayList<Listing>();
 		while (found.size() > index && toReturn.size() < pageSize) {
