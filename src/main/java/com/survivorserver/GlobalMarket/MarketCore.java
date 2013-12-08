@@ -100,8 +100,6 @@ public class MarketCore {
 	}
 	
 	public synchronized boolean buyListing(Listing listing, String buyer, boolean removeListing, boolean refreshInterface) {
-		market.log.info("### Buying...");
-		long start = System.nanoTime();
 		double originalPrice = listing.getPrice();
 		double cutPrice = originalPrice;
 		Economy econ = market.getEcon();
@@ -164,8 +162,6 @@ public class MarketCore {
 		market.notifyPlayer(seller, market.autoPayment() ? market.getLocale().get("you_sold_your_listing_of", itemName) :
 			market.getLocale().get("listing_purchased_mailbox", itemName));
 		market.notifyPlayer(buyer, market.getLocale().get("you_have_new_mail"));
-		long time = System.nanoTime() - start;
-		market.log.info(String.format("### Buying finished in %.5f", time/1e9));
 		// Update viewers
 		if (refreshInterface) {
 			handler.updateAllViewers();
