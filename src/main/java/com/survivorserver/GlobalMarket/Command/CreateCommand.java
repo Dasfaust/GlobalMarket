@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.milkbowl.vault.economy.Economy;
-
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;

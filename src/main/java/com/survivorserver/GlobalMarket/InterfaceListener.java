@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.ItemStack;
+
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
 
@@ -37,26 +38,28 @@ public class InterfaceListener implements Listener {
 		// Verify we're in a Market interface
 		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
 			//int guiSize = handler.getInterface(viewer.getInterface()).getSize() - 1;
-			if (rawSlot <= 53) {
+			if (rawSlot <= 53 && rawSlot > -1) {
 				// We've clicked a Market item
 				event.setCancelled(true);
 				event.setResult(Result.DENY);
 				
 				int invSize = viewer.getGui().getContents().length;
-				if (event.isRightClick()) {
-					// Cancel any existing actions and start over
-					viewer.resetActions();
-					handler.refreshViewer(viewer);
-				} else {
-					// We've left clicked or shift clicked
-					// Let's update the viewer object with what's happened, so the handler can do stuff with it
-					viewer.setLastAction(event.getAction());
-					viewer.setLastActionSlot(slot);
+				// We've left clicked or shift clicked
+				// Let's update the viewer object with what's happened, so the handler can do stuff with it
+				
+				MarketInterface inter = viewer.getInterface();
+				if (viewer.getBoundSlots().containsKey(rawSlot)) {
+					// This item has an ID attached to it
+					MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
 					
-					MarketInterface inter = viewer.getInterface();
-					if (viewer.getBoundSlots().containsKey(rawSlot)) {
-						// This item has an ID attached to it
-						MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
+					if (event.isRightClick()) {
+						// Drop everything and start over
+						viewer.resetActions();
+						handler.refreshSlot(viewer, slot, item);
+					} else {
+						viewer.setLastAction(event.getAction());
+						viewer.setLastActionSlot(slot);
+						
 						// Yay, we've got the MarketItem instance. Let's do stuff with it
 						viewer.setLastItem(item.getId());
 						viewer.incrementClicks();
@@ -68,7 +71,7 @@ public class InterfaceListener implements Listener {
 								inter.handleLeftClickAction(viewer, item, event);
 							}
 						} else {
-							handler.refreshViewer(viewer);
+							handler.refreshSlot(viewer, slot, item);
 							if (viewer.getClicks() == 2) {
 								if (event.isShiftClick()) {
 									inter.handleShiftClickAction(viewer, item, event);
@@ -77,10 +80,9 @@ public class InterfaceListener implements Listener {
 								}
 							}
 						}
-					} else {
-						inter.onUnboundClick(market, handler, viewer, slot, event, invSize);
-						handler.refreshViewer(viewer);
 					}
+				} else {
+					inter.onUnboundClick(market, handler, viewer, slot, event, invSize);
 				}
 			} else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
 					|| (event.getAction() == InventoryAction.PLACE_ALL

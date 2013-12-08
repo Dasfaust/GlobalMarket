@@ -57,7 +57,7 @@ public class MailCommand extends SubCommand {
 			Inventory inv = market.getServer().createInventory(player, mInterface.getSize(), mInterface.getTitle() + " (" + viewAs + ")");
 			InterfaceViewer viewer = new InterfaceViewer(viewAs, player.getName(), inv, mInterface, player.getWorld().getName());
 			market.getInterfaceHandler().addViewer(viewer);
-			market.getInterfaceHandler().refreshViewer(viewer);
+			market.getInterfaceHandler().refreshViewer(viewer, "Mail");
 			market.getInterfaceHandler().openGui(viewer);
 		} else {
 			if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {

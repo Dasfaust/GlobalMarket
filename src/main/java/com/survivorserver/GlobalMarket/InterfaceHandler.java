@@ -116,6 +116,32 @@ public class InterfaceHandler {
 		openGui(viewer);
 	}
 	
+	public void refreshSlot(InterfaceViewer viewer, int slot, MarketItem item) {
+		MarketInterface mInterface = viewer.getInterface();
+		Inventory inv = viewer.getGui();
+		boolean left = false;
+		boolean shift = false;
+		if (viewer.getLastAction() != null) {
+			if (viewer.getLastAction() == InventoryAction.PICKUP_ALL) {
+				if (viewer.getLastActionSlot() == slot) {
+					if (viewer.getLastItem() >= 0 && viewer.getLastItem() == item.getId()) {
+						left = true;
+					}
+				}
+			}
+		}
+		if (viewer.getLastAction() != null) {
+			if (viewer.getLastAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+				if (viewer.getLastActionSlot() == slot) {
+					if (viewer.getLastItem() >= 0 && viewer.getLastItem() == item.getId()) {
+						shift = true;
+					}
+				}
+			}
+		}
+		inv.setItem(slot, mInterface.prepareItem(item, viewer, viewer.getPage(), slot, left, shift));
+	}
+	
 	public void refreshInterface(InterfaceViewer viewer) {
 		MarketInterface mInterface = viewer.getInterface();
 		Map<Integer, Integer> boundSlots = new HashMap<Integer, Integer>();
@@ -252,17 +278,19 @@ public class InterfaceHandler {
 		}
 	}
 	
-	public void refreshViewer(InterfaceViewer viewer) {
-		refreshInterface(viewer);
+	public void refreshViewer(InterfaceViewer viewer, String view) {
+		if (viewer.getInterface().getName().equalsIgnoreCase(view)) {
+			refreshInterface(viewer);
+		}
 	}
 	
-	public void refreshViewer(String name) {
+	public void refreshViewer(String name, String view) {
 		InterfaceViewer viewer = findViewer(name);
 		if (viewer != null) {
-			refreshViewer(viewer);
+			refreshViewer(viewer, view);
 		}
 		for (Handler handler : handlers) {
-			handler.updateViewer(name);;
+			handler.updateViewer(name);
 		}
 	}
 	
@@ -277,7 +305,7 @@ public class InterfaceHandler {
 				inactive.add(viewer);
 				continue;
 			}
-			refreshViewer(viewer);
+			refreshViewer(viewer, viewer.getInterface().getName());
 		}
 		if (!inactive.isEmpty()) {
 			for (InterfaceViewer viewer : inactive) {

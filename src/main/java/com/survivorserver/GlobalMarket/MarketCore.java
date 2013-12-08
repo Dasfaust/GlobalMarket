@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
 import com.survivorserver.GlobalMarket.HistoryHandler.MarketAction;
 
 public class MarketCore {
@@ -87,18 +88,20 @@ public class MarketCore {
 		if (!isInfinite && removeListing) {
 			storage.removeListing(listing.getId());
 		}
-		// Update viewers
-		if (refreshInterface) {
-			handler.updateAllViewers();
-		}
 		String itemName = market.getItemName(item);
 		market.notifyPlayer(seller, market.autoPayment() ? market.getLocale().get("you_sold_your_listing_of", itemName) :
 			market.getLocale().get("listing_purchased_mailbox", itemName));
 		market.notifyPlayer(buyer, market.getLocale().get("you_have_new_mail"));
+		// Update viewers
+		if (refreshInterface) {
+			handler.updateAllViewers();
+		}
 		return true;
 	}
 	
 	public synchronized boolean buyListing(Listing listing, String buyer, boolean removeListing, boolean refreshInterface) {
+		market.log.info("### Buying...");
+		long start = System.nanoTime();
 		double originalPrice = listing.getPrice();
 		double cutPrice = originalPrice;
 		Economy econ = market.getEcon();
@@ -157,14 +160,16 @@ public class MarketCore {
 		if (!isInfinite && removeListing) {
 			storage.removeListing(listing.getId());
 		}
-		// Update viewers
-		if (refreshInterface) {
-			handler.updateAllViewers();
-		}
 		String itemName = market.getItemName(item);
 		market.notifyPlayer(seller, market.autoPayment() ? market.getLocale().get("you_sold_your_listing_of", itemName) :
 			market.getLocale().get("listing_purchased_mailbox", itemName));
 		market.notifyPlayer(buyer, market.getLocale().get("you_have_new_mail"));
+		long time = System.nanoTime() - start;
+		market.log.info(String.format("### Buying finished in %.5f", time/1e9));
+		// Update viewers
+		if (refreshInterface) {
+			handler.updateAllViewers();
+		}
 		return true;
 	}
 	

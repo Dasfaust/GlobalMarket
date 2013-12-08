@@ -1,10 +1,14 @@
 package com.survivorserver.GlobalMarket;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.bukkit.inventory.ItemStack;
 
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
 
-public class Listing implements MarketItem {
+public class Listing implements MarketItem, Comparable<Listing> {
 
 	public int id;
 	public int itemId;
@@ -13,6 +17,7 @@ public class Listing implements MarketItem {
 	public double price;
 	String world;
 	public Long time;
+	private List<Listing> stacked;
 	// Legacy
 	ItemStack item;
 	
@@ -27,6 +32,7 @@ public class Listing implements MarketItem {
 		this.price = price;
 		this.world = world;
 		this.time = time;
+		this.stacked = new ArrayList<Listing>();
 	}
 	
 	/*
@@ -75,5 +81,40 @@ public class Listing implements MarketItem {
 	 */
 	public ItemStack getItem() {
 		return item;
+	}
+
+	@Override
+	public int compareTo(Listing l) {
+		if (isStackable(l)) {
+			return (int) (time / 1000);
+		}
+		return 0;
+	}
+	
+	public boolean isStackable(Listing l) {
+		if (l.getSeller().equalsIgnoreCase(this.seller) && l.getItemId() == this.itemId && (l.getPrice() / l.getAmount()) == (this.price / this.amount)) {
+			return true;
+		}
+		return false;
+	}
+	
+	public void addSibling(Listing l) {
+		if (!stacked.contains(l)) {
+			stacked.add(l);
+		}
+	}
+	
+	public int countSiblings() {
+		stacked.removeAll(Collections.singleton(null));
+		return stacked.size();
+	}
+	
+	public List<Listing> getSiblings() {
+		return stacked;
+	}
+	
+	public void setSiblings(List<Listing> siblings) {
+		stacked.clear();
+		stacked.addAll(siblings);
 	}
 }

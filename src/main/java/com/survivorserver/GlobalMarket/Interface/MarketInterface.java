@@ -60,6 +60,7 @@ public abstract class MarketInterface {
 					// Cancel search
 					viewer.setSearch(null);
 					viewer.resetActions();
+					handler.refreshViewer(viewer, viewer.getInterface().getName());
 				}
 			}
 		}
@@ -69,6 +70,7 @@ public abstract class MarketInterface {
 			if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
 				viewer.setPage(viewer.getPage() + 1);
 				viewer.resetActions();
+				handler.refreshViewer(viewer, viewer.getInterface().getName());
 			}
 		}
 		
@@ -77,6 +79,7 @@ public abstract class MarketInterface {
 			if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
 				viewer.setPage(viewer.getPage() - 1);
 				viewer.resetActions();
+				handler.refreshViewer(viewer, viewer.getInterface().getName());
 			}
 		}
 	}

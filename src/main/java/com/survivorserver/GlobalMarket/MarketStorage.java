@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ public class MarketStorage {
 	private Map<Integer, Mail> mail;
 	private Map<String, List<Mail>> worldMail;
 	private Map<Integer, QueueItem> queue;
+	private List<Listing> condensedListings;
 	private int itemIndex;
 	private int listingIndex;
 	private int mailIndex;
@@ -47,11 +49,12 @@ public class MarketStorage {
 		this.market = market;
 		this.asyncDb = asyncDb;
 		items = Collections.synchronizedMap(new HashMap<Integer, ItemStack>());
-		listings = Collections.synchronizedMap(new LinkedHashMap<Integer, Listing>());
+		listings = new LinkedHashMap<Integer, Listing>();
 		worldListings = Collections.synchronizedMap(new HashMap<String, List<Listing>>());
 		mail = Collections.synchronizedMap(new LinkedHashMap<Integer, Mail>());
 		worldMail = Collections.synchronizedMap(new HashMap<String, List<Mail>>());
 		queue = Collections.synchronizedMap(new LinkedHashMap<Integer, QueueItem>());
+		condensedListings = new ArrayList<Listing>();
 	}
 	
 	public void loadSchema(Database db) {
@@ -127,6 +130,7 @@ public class MarketStorage {
 				}
 				listings.put(listing.getId(), listing);
 				addWorldItem(listing);
+				buildCondensed();
 			}
 			/*
 			 * Synchronize the mail index with the database
@@ -207,7 +211,14 @@ public class MarketStorage {
 		if (!worldListings.containsKey(world)) {
 			worldListings.put(world, new ArrayList<Listing>());
 		}
-		worldListings.get(world).add(listing);
+		List<Listing> listings = worldListings.get(world);
+		for (int i = 0; i < listings.size(); i++) {
+			Listing l = listings.get(i);
+			if (l.isStackable(listing)) {
+				return;
+			}
+		}
+		worldListings.get(world).add(0, listing);
 	}
 	
 	private void addWorldItem(Mail mailItem) {
@@ -326,14 +337,16 @@ public class MarketStorage {
 	}
 	
 	public int storeItem(ItemStack item) {
+		ItemStack storable = item.clone();
+		storable.setAmount(1);
 		for (Entry<Integer, ItemStack> ent : items.entrySet()) {
-			if (ent.getValue().equals(item)) {
+			if (ent.getValue().equals(storable)) {
 				return ent.getKey();
 			}
 		}
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO items (item) VALUES (?)")
-		.setValue(item));
-		items.put(itemIndex, item);
+		.setValue(storable));
+		items.put(itemIndex, storable);
 		return itemIndex++;
 	}
 	
@@ -359,6 +372,7 @@ public class MarketStorage {
 		Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, world, time);
 		listings.put(listing.getId(), listing);
 		addWorldItem(listing);
+		addToCondensed(listing);
 		if (market.getInterfaceHandler() != null) {
 			// This will be null if the importer is running
 			market.getInterfaceHandler().updateAllViewers();
@@ -377,9 +391,10 @@ public class MarketStorage {
 		.setValue(listing.getTime()));
 		listings.put(listing.getId(), listing);
 		addWorldItem(listing);
-		market.notifyPlayer(listing.getSeller(), market.getLocale().get("your_listing_has_been_added", market.getItemName(getItem(listing.getItemId(), listing.getAmount()))));
+		addToCondensed(listing);
 		if (market.getInterfaceHandler() != null) {
 			// This will be null if the importer is running
+			market.notifyPlayer(listing.getSeller(), market.getLocale().get("your_listing_has_been_added", market.getItemName(getItem(listing.getItemId(), listing.getAmount()))));
 			market.getInterfaceHandler().updateAllViewers();
 		}
 	}
@@ -398,7 +413,7 @@ public class MarketStorage {
 		market.notifyPlayer(m.getOwner(), market.getLocale().get("you_have_new_mail"));
 		if (market.getInterfaceHandler() != null) {
 			// This will be null if the importer is running
-			market.getInterfaceHandler().refreshViewer(m.getOwner());
+			market.getInterfaceHandler().refreshViewer(m.getOwner(), "Mail");
 		}
 	}
 	
@@ -409,15 +424,70 @@ public class MarketStorage {
 		return null;
 	}
 	
-	public List<Listing> getListings(int page, int pageSize, String world) {
+	public List<Listing> getListings(String viewer, int page, int pageSize, String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
 		int index = (pageSize * page) - pageSize;
-		List<Listing> list = Lists.reverse(market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values()));
+		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : condensedListings;
 		while (list.size() > index && toReturn.size() < pageSize) {
-			toReturn.add(list.get(index));
+			Listing l = list.get(index);
+			toReturn.add(l);
 			index++;
 		}
 		return toReturn;
+	}
+	
+	private void buildCondensed() {
+		List<Listing> list = Lists.reverse(new ArrayList<Listing>(listings.values()));
+		Collections.sort(list);
+		Iterator<Listing> it = list.iterator();
+		Listing stackStarter = null;
+		while(it.hasNext()) {
+			Listing current = it.next();
+			if (stackStarter == null) {
+				stackStarter = current;
+			}
+			if (!stackStarter.equals(current) && stackStarter.isStackable(current)) {
+				stackStarter.addSibling(current);
+				it.remove();
+			} else if (!stackStarter.isStackable(current)) {
+				stackStarter = current;
+			}
+		}
+		condensedListings.clear();
+		condensedListings.addAll(list);
+	}
+	
+	private void addToCondensed(Listing listing) {
+		for (int i = 0; i < condensedListings.size(); i++) {
+			Listing l = condensedListings.get(i);
+			if (l.isStackable(listing)) {
+				l.addSibling(listing);
+				return;
+			}
+		}
+		condensedListings.add(0, listing);
+	}
+	
+	private void removeFromCondensed(Listing listing) {
+		List<Listing> world = worldListings.get(listing.getWorld());
+		int index = condensedListings.indexOf(listing);
+		if (index >= 0) {
+			List<Listing> siblings = condensedListings.get(index).getSiblings();
+			condensedListings.remove(index);
+			int worldIndex = world.indexOf(listing);
+			if (worldIndex >= 0) {
+				world.remove(worldIndex);
+			}
+			if (siblings.size() > 0) {
+				Listing next = siblings.get(0);
+				condensedListings.add(index, next);
+				siblings.remove(next);
+				next.setSiblings(siblings);
+				if (worldIndex >= 0) {
+					world.add(worldIndex, next);
+				}
+			}
+		}
 	}
 	
 	public List<Listing> getOwnedListings(int page, int pageSize, String world, String name) {
@@ -441,9 +511,9 @@ public class MarketStorage {
 	}
 	
 	@SuppressWarnings("deprecation")
-	public SearchResult getListings(int page, int pageSize, String search, String world) {
+	public SearchResult getListings(String viewer, int page, int pageSize, String search, String world) {
 		List<Listing> found = new ArrayList<Listing>();
-		List<Listing> list = Lists.reverse(market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(listings.values()));
+		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : condensedListings;
 		for (Listing listing : list) {
 			ItemStack item = getItem(listing.getItemId(), listing.getAmount());
 			String itemName = market.getItemName(item);
@@ -467,14 +537,14 @@ public class MarketStorage {
 	
 	public synchronized void removeListing(int id) {
 		Listing listing = listings.get(id);
+		removeFromCondensed(listing);
 		listings.remove(id);
-		worldListings.get(listing.getWorld()).remove(listing);
 		asyncDb.addStatement(new QueuedStatement("DELETE FROM listings WHERE id=?")
 		.setValue(id));
 	}
 	
 	public int getNumListings(String world) {
-		return market.enableMultiworld() ? getListingsForWorld(world).size() : listings.size();
+		return market.enableMultiworld() ? getListingsForWorld(world).size() : condensedListings.size();
 	}
 	
 	public int getNumListingsFor(String name, String world) {
@@ -504,7 +574,7 @@ public class MarketStorage {
 		addWorldItem(m);
 		if (market.getInterfaceHandler() != null) {
 			// This will be null if the importer is running
-			market.getInterfaceHandler().refreshViewer(m.getOwner());
+			market.getInterfaceHandler().refreshViewer(m.getOwner(), "Mail");
 		}
 		return m;
 	}
@@ -523,7 +593,7 @@ public class MarketStorage {
 		addWorldItem(m);
 		if (market.getInterfaceHandler() != null) {
 			// This will be null if the importer is running
-			market.getInterfaceHandler().refreshViewer(m.getOwner());
+			market.getInterfaceHandler().refreshViewer(m.getOwner(), "Mail");
 		}
 		return m;
 	}
@@ -578,7 +648,7 @@ public class MarketStorage {
 			m.setPickup(0);
 			if (market.getInterfaceHandler() != null) {
 				// This will be null if the importer is running
-				market.getInterfaceHandler().refreshViewer(m.getOwner());
+				market.getInterfaceHandler().refreshViewer(m.getOwner(), "Mail");
 			}
 		}
 	}
@@ -591,7 +661,7 @@ public class MarketStorage {
 		.setValue(id));
 		if (market.getInterfaceHandler() != null) {
 			// This will be null if the importer is running
-			market.getInterfaceHandler().refreshViewer(m.getOwner());
+			market.getInterfaceHandler().refreshViewer(m.getOwner(), "Mail");
 		}
 	}
 	

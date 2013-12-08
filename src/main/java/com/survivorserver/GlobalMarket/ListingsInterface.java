@@ -107,6 +107,17 @@ public class ListingsInterface extends MarketInterface {
 			lore.add(ChatColor.LIGHT_PURPLE + market.getLocale().get("interface.infinite"));
 		}
 		
+		int siblings = listing.countSiblings();
+		if (siblings > 0) {
+			int count = 0;
+			if (siblings <= 15) {
+				for (Listing l : listing.getSiblings()) {
+					count += l.getAmount();
+				}
+			}
+			lore.add(ChatColor.AQUA + market.getLocale().get("interface.stacked", listing.getAmount(), count > 0 ? (count + listing.getAmount()) : market.getLocale().get("interface.stacked_many")));
+		}
+		
 		meta.setLore(lore);
 		item.setItemMeta(meta);
 		return item;
@@ -128,13 +139,13 @@ public class ListingsInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getPage(), getSize() - 9, viewer.getWorld());
+		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getViewer(), viewer.getPage(), getSize() - 9, viewer.getWorld());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
-		SearchResult result = market.getStorage().getListings(viewer.getPage(), getSize() - 9, search, viewer.getWorld());
+		SearchResult result = market.getStorage().getListings(viewer.getViewer(), viewer.getPage(), getSize() - 9, search, viewer.getWorld());
 		viewer.setSearchSize(result.getTotalFound());
 		return (List<MarketItem>)(List<?>) result.getPage();
 	}
