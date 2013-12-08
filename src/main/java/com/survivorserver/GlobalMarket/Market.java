@@ -93,6 +93,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("queue.queue_on_cancel", true);
 		getConfig().addDefault("infinite.seller", "Server");
 		getConfig().addDefault("infinite.account", "");
+		getConfig().addDefault("blacklist.custom_names", false);
 		getConfig().addDefault("blacklist.item_name", Arrays.asList(new String[]{"Transaction Log", "Market History"}));
 		getConfig().addDefault("blacklist.item_id.0", 0);
 		getConfig().addDefault("blacklist.enchant_id", Arrays.asList(new String[0]));
@@ -385,6 +386,9 @@ public class Market extends JavaPlugin implements Listener {
 			ItemMeta meta = item.getItemMeta();
 			List<String> bl = getConfig().getStringList("blacklist.item_name");
 			if (meta.hasDisplayName()) {
+				if (getConfig().getBoolean("blacklist.custom_names")) {
+					return true;
+				}
 				for (String str : bl) {
 					if (meta.getDisplayName().equalsIgnoreCase(str)) {
 						return true;
