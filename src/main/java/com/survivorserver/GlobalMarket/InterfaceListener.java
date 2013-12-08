@@ -51,7 +51,6 @@ public class InterfaceListener implements Listener {
 				if (viewer.getBoundSlots().containsKey(rawSlot)) {
 					// This item has an ID attached to it
 					MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
-					
 					if (event.isRightClick()) {
 						// Drop everything and start over
 						viewer.resetActions();

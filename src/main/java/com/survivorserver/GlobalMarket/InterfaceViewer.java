@@ -6,6 +6,7 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
+import com.survivorserver.GlobalMarket.Lib.SortMethod;
 
 public class InterfaceViewer {
 	
@@ -22,6 +23,7 @@ public class InterfaceViewer {
 	String world;
 	MarketInterface mInterface;
 	int searchSize = 0;
+	SortMethod sort;
 	
 	public InterfaceViewer(String name, String player, Inventory gui, MarketInterface mInterface, String world) {
 		this.name = name;
@@ -29,6 +31,7 @@ public class InterfaceViewer {
 		this.gui = gui;
 		this.world = world;
 		this.mInterface = mInterface;
+		sort = SortMethod.DEFAULT;
 	}
 	
 	public void setBoundSlots(Map<Integer, Integer> boundSlots) {
@@ -124,5 +127,13 @@ public class InterfaceViewer {
 	
 	public void setSearchSize(int searchSize) {
 		this.searchSize = searchSize;
+	}
+	
+	public SortMethod getSort() {
+		return sort;
+	}
+	
+	public void setSort(SortMethod sort) {
+		this.sort = sort;
 	}
 }

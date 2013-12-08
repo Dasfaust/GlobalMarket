@@ -45,11 +45,6 @@ public class MailInterface extends MarketInterface {
 	}
 
 	@Override
-	public boolean enableSearch() {
-		return false;
-	}
-
-	@Override
 	public boolean doSingleClickActions() {
 		return true;
 	}
@@ -169,5 +164,13 @@ public class MailInterface extends MarketInterface {
 	@Override
 	public ItemStack getItemStack(InterfaceViewer viewer, MarketItem item) {
 		return market.getStorage().getItem(item.getItemId(), item.getAmount());
+	}
+	
+	@Override
+	public void buildFunctionBar(Market market, InterfaceHandler handler, InterfaceViewer viewer, ItemStack[] contents, boolean pPage, boolean nPage) {
+		super.buildFunctionBar(market, handler, viewer, contents, pPage, nPage);
+		
+		// Unset search
+		contents[contents.length - 7] = null;
 	}
 }

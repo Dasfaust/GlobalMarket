@@ -7,13 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
 import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
@@ -149,9 +146,6 @@ public class InterfaceHandler {
 		Inventory inv = viewer.getGui();
 		ItemStack[] invContents = new ItemStack[viewer.getGui().getSize()];
 		mInterface.onInterfacePrepare(viewer, contents, invContents, inv);
-		if (mInterface.enableSearch()) {
-			setSearch(viewer.getSearch(), invContents);
-		}
 		String search = viewer.getSearch();
 		if (search != null) {
 			contents = mInterface.doSearch(viewer, viewer.getSearch());
@@ -193,88 +187,20 @@ public class InterfaceHandler {
 			}
 			slot++;
 		}
-		inv.setContents(invContents);
-		setCurPage(invContents, viewer);
+		boolean nextPage = false;
+		boolean prevPage = false;
 		int t = mInterface.getTotalNumberOfItems(viewer);
 		if (n < t) {
-			setNextPage(invContents, viewer);
+			nextPage = true;
 		}
 		if (n > (invContents.length - 9)) {
-			setPrevPage(invContents, viewer);
+			prevPage = true;
 		}
+		mInterface.buildFunctionBar(market, this, viewer, invContents, prevPage, nextPage);
 		inv.setContents(invContents);
 		viewer.setBoundSlots(boundSlots);
 		if (!clicked) {
 			viewer.resetActions();
-		}
-	}
-
-	public void setNextPage(ItemStack[] contents, InterfaceViewer viewer) {
-		ItemStack nextPage = new ItemStack(Material.PAPER, viewer.getPage() + 1);
-		ItemMeta nextMeta = nextPage.getItemMeta();
-		if (nextMeta == null) {
-			nextMeta = market.getServer().getItemFactory().getItemMeta(nextPage.getType());
-		}
-		nextMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.page", (viewer.getPage() + 1)));
-		List<String> nextLore = new ArrayList<String>();
-		nextLore.add(ChatColor.YELLOW + market.getLocale().get("interface.next_page"));
-		nextMeta.setLore(nextLore);
-		nextPage.setItemMeta(nextMeta);
-		contents[contents.length - 1] = nextPage;
-	}
-	
-	public void setCurPage(ItemStack[] contents, InterfaceViewer viewer) {
-		ItemStack curPage = new ItemStack(Material.PAPER, viewer.getPage());
-		ItemMeta curMeta = curPage.getItemMeta();
-		if (curMeta == null) {
-			curMeta = market.getServer().getItemFactory().getItemMeta(curPage.getType());
-		}
-		curMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.page", viewer.getPage()));
-		List<String> curLore = new ArrayList<String>();
-		curLore.add(ChatColor.YELLOW + market.getLocale().get("interface.cur_page"));
-		curMeta.setLore(curLore);
-		curPage.setItemMeta(curMeta);
-		contents[contents.length - 5] = curPage;
-	}
-	
-	public void setPrevPage(ItemStack[] contents, InterfaceViewer viewer) {
-		ItemStack prevPage = new ItemStack(Material.PAPER, viewer.getPage() - 1);
-		ItemMeta prevMeta = prevPage.getItemMeta();
-		if (prevMeta == null) {
-			prevMeta = market.getServer().getItemFactory().getItemMeta(prevPage.getType());
-		}
-		prevMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.page", (viewer.getPage() - 1)));
-		List<String> prevLore = new ArrayList<String>();
-		prevLore.add(ChatColor.YELLOW + market.getLocale().get("interface.prev_page"));
-		prevMeta.setLore(prevLore);
-		prevPage.setItemMeta(prevMeta);
-		contents[contents.length - 9] = prevPage;
-	}
-	
-	public void setSearch(String search, ItemStack[] contents) {
-		ItemStack searchItem = new ItemStack(Material.PAPER);
-		if (search == null) {
-			ItemMeta meta = searchItem.getItemMeta();
-			if (meta == null) {
-				meta = market.getServer().getItemFactory().getItemMeta(searchItem.getType());
-			}
-			meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.search"));
-			List<String> lore = new ArrayList<String>();
-			lore.add(ChatColor.YELLOW + market.getLocale().get("interface.start_search"));
-			meta.setLore(lore);
-			searchItem.setItemMeta(meta);
-			contents[contents.length - 7] = searchItem;
-		} else {
-			ItemMeta meta = searchItem.getItemMeta();
-			if (meta == null) {
-				meta = market.getServer().getItemFactory().getItemMeta(searchItem.getType());
-			}
-			meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.cancel_search"));
-			List<String> lore = new ArrayList<String>();
-			lore.add(ChatColor.YELLOW + market.getLocale().get("interface.searching_for", search));
-			meta.setLore(lore);
-			searchItem.setItemMeta(meta);
-			contents[contents.length - 7] = searchItem;
 		}
 	}
 	

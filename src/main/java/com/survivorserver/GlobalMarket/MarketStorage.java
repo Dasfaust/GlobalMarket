@@ -23,6 +23,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.survivorserver.GlobalMarket.Lib.SearchResult;
+import com.survivorserver.GlobalMarket.Lib.SortMethod;
 import com.survivorserver.GlobalMarket.SQL.Database;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
 import com.survivorserver.GlobalMarket.SQL.MarketResult;
@@ -424,10 +425,23 @@ public class MarketStorage {
 		return null;
 	}
 	
-	public List<Listing> getListings(String viewer, int page, int pageSize, String world) {
+	public List<Listing> getListings(String viewer, SortMethod sort, int page, int pageSize, String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
 		int index = (pageSize * page) - pageSize;
-		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : condensedListings;
+		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(condensedListings);
+		switch(sort) {
+			default:
+				break;
+			case PRICE_HIGHEST:
+				Collections.sort(list, Listing.Comparators.PRICE_HIGHEST);
+				break;
+			case PRICE_LOWEST:
+				Collections.sort(list, Listing.Comparators.PRICE_LOWEST);
+				break;
+			case AMOUNT_HIGHEST:
+				Collections.sort(list, Listing.Comparators.AMOUNT_HIGHEST);
+				break;
+		}
 		while (list.size() > index && toReturn.size() < pageSize) {
 			Listing l = list.get(index);
 			toReturn.add(l);
@@ -511,9 +525,9 @@ public class MarketStorage {
 	}
 	
 	@SuppressWarnings("deprecation")
-	public SearchResult getListings(String viewer, int page, int pageSize, String search, String world) {
+	public SearchResult getListings(String viewer, SortMethod sort, int page, int pageSize, String search, String world) {
 		List<Listing> found = new ArrayList<Listing>();
-		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : condensedListings;
+		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(condensedListings);
 		for (Listing listing : list) {
 			ItemStack item = getItem(listing.getItemId(), listing.getAmount());
 			String itemName = market.getItemName(item);
@@ -524,6 +538,19 @@ public class MarketStorage {
 					|| isInLore(search.toLowerCase(), item)) {
 				found.add(listing);
 			}
+		}
+		switch(sort) {
+			default:
+				break;
+			case PRICE_HIGHEST:
+				Collections.sort(found, Listing.Comparators.PRICE_HIGHEST);
+				break;
+			case PRICE_LOWEST:
+				Collections.sort(found, Listing.Comparators.PRICE_LOWEST);
+				break;
+			case AMOUNT_HIGHEST:
+				Collections.sort(found, Listing.Comparators.AMOUNT_HIGHEST);
+				break;
 		}
 		int index = (pageSize * page) - pageSize;
 		List<Listing> toReturn = new ArrayList<Listing>();
@@ -720,4 +747,6 @@ public class MarketStorage {
 		}
 		return false;
 	}
+	
+	
 }
