@@ -73,7 +73,7 @@ public class CreateCommand extends SubCommand {
 				sender.sendMessage(prefix + locale.get("price_too_low"));
 				return true;
 			}
-			double maxPrice = market.getMaxPrice(player);
+			double maxPrice = market.getMaxPrice(player, player.getItemInHand());
 			if (maxPrice > 0 && price > maxPrice) {
 				sender.sendMessage(prefix + locale.get("price_too_high"));
 				return true;

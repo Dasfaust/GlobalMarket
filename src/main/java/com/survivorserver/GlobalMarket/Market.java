@@ -83,6 +83,8 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("multiworld.links.world", Arrays.asList(new String[]{"world_nether", "world_the_end"}));
 		getConfig().addDefault("limits.default.cut", 0.0);
 		getConfig().addDefault("limits.default.max_price", 0.0);
+		getConfig().addDefault("limits.default.max_item_prices.air.dmg", 0);
+		getConfig().addDefault("limits.default.max_item_prices.air.price", 50.0);
 		getConfig().addDefault("limits.default.creation_fee", 0);
 		getConfig().addDefault("limits.default.max_listings", 0);
 		getConfig().addDefault("limits.default.expire_time", 0);
@@ -242,14 +244,22 @@ public class Market extends JavaPlugin implements Listener {
 	public void addSearcher(String name, String interfaceName) {
 		searching.put(name, interfaceName);
 	}
-	
-	public double getMaxPrice(Player player) {
+
+	public double getMaxPrice(Player player, ItemStack item) {
+		String limitGroup = "default";
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (player.hasPermission("globalmarket.limits." + k)) {
-				return getConfig().getDouble("limits." + k + ".max_price");
+				limitGroup = k;
 			}
 		}
-		return getConfig().getDouble("limits.default.max_price");
+		String itemPath = "limits." + limitGroup + ".max_item_prices." + item.getType().toString().toLowerCase();
+		if (getConfig().isSet(itemPath)) {
+			int dmg = getConfig().getInt(itemPath + ".dmg");
+			if (dmg == -1 || dmg == item.getDurability()) {
+				return getConfig().getDouble(itemPath + ".price");
+			}
+		}
+		return getConfig().getDouble("limits." + limitGroup + ".max_price");
 	}
 	
 	public double getMaxPrice(String player, String world) {
