@@ -262,16 +262,22 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getDouble("limits." + limitGroup + ".max_price");
 	}
 	
-	public double getMaxPrice(String player, String world) {
-		if (perms == null) {
-			return getConfig().getDouble("limits.default.max_price");
-		}
+	
+	public double getMaxPrice(String player, String world, ItemStack item) {
+		String limitGroup = "default";
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (perms.playerHas(world, player, "globalmarket.limits." + k)) {
-				return getConfig().getDouble("limits." + k + ".max_price");
+				limitGroup = k;
 			}
 		}
-		return getConfig().getDouble("limits.default.max_price");
+		String itemPath = "limits." + limitGroup + ".max_item_prices." + item.getType().toString().toLowerCase();
+		if (getConfig().isSet(itemPath)) {
+			int dmg = getConfig().getInt(itemPath + ".dmg");
+			if (dmg == -1 || dmg == item.getDurability()) {
+				return getConfig().getDouble(itemPath + ".price");
+			}
+		}
+		return getConfig().getDouble("limits." + limitGroup + ".max_price");
 	}
 	
 	public void startSearch(Player player, String interfaceName) {
