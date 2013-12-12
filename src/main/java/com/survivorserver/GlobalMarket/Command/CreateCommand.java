@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.milkbowl.vault.economy.Economy;
+
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -53,6 +55,24 @@ public class CreateCommand extends SubCommand {
 		MarketStorage storage = market.getStorage();
 		Economy econ = market.getEcon();
 		Player player = (Player) sender;
+		int createDistance = market.getStallRadius();
+		if (createDistance > 0) {
+			boolean near = false;
+			Location playerLoc = player.getLocation();
+			List<Location> locs = market.getStallLocations();
+			for (Location loc : locs) {
+				if (loc.getWorld().getName().equalsIgnoreCase(playerLoc.getWorld().getName())) {
+					if (loc.distance(playerLoc) <= createDistance) {
+						near = true;
+						break;
+					}
+				}
+			}
+			if (!near) {
+				player.sendMessage(ChatColor.RED + locale.get("not_near_stall"));
+				return true;
+			}
+		}
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
 			if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {
 				player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));

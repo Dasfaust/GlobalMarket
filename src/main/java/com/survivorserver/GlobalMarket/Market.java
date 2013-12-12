@@ -14,11 +14,13 @@ import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -26,6 +28,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -104,6 +107,8 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("automatic_payments", false);
 		getConfig().addDefault("enable_history", true);
 		getConfig().addDefault("announce_new_listings", true);
+		getConfig().addDefault("stall_radius", 0);
+		getConfig().addDefault("mailbox_radius", 0);
 		getConfig().addDefault("enable_metrics", true);
 		getConfig().addDefault("notify_on_update", true);
 		
@@ -218,6 +223,14 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public InterfaceHandler getInterfaceHandler() {
 		return interfaceHandler;
+	}
+	
+	public int getStallRadius() {
+		return getConfig().getInt("stall_radius");
+	}
+	
+	public int getMailboxRadius() {
+		return getConfig().getInt("mailbox_radius");
 	}
 	
 	public boolean announceOnCreate() {
@@ -549,6 +562,54 @@ public class Market extends JavaPlugin implements Listener {
 		}
 	}
 	
+	public List<Location> getStallLocations() {
+		List<Location> locations = new ArrayList<Location>();
+		if (getConfig().isSet("stall")) {
+			for (String loc : getConfig().getConfigurationSection("stall").getKeys(false)) {
+				try {
+					locations.add(locationFromString(loc));
+				} catch(IllegalArgumentException ignored) {}
+			}
+		}
+		return locations;
+	}
+	
+	public List<Location> getMailboxLocations() {
+		List<Location> locations = new ArrayList<Location>();
+		if (getConfig().isSet("mailbox")) {
+			for (String loc : getConfig().getConfigurationSection("mailbox").getKeys(false)) {
+				try {
+					locations.add(locationFromString(loc));
+				} catch(IllegalArgumentException ignored) {}
+			}
+		}
+		return locations;
+	}
+	
+	public String locationToString(Location loc) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(loc.getWorld().getName());
+		sb.append(",");
+		sb.append(loc.getBlockX());
+		sb.append(",");
+		sb.append(loc.getBlockY());
+		sb.append(",");
+		sb.append(loc.getBlockZ());
+		return sb.toString();
+	}
+	
+	public Location locationFromString(String loc) {
+		String[] xyz = loc.split(",");
+		if (xyz.length < 4) {
+			throw new IllegalArgumentException("Invalid location string");
+		}
+		World world = Bukkit.getServer().getWorld(xyz[0]);
+		if (world == null) {
+			throw new IllegalArgumentException("World no longer exists");
+		}
+		return new Location(world, Double.parseDouble(xyz[1]), Double.parseDouble(xyz[2]), Double.parseDouble(xyz[3]));
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -576,11 +637,9 @@ public class Market extends JavaPlugin implements Listener {
 					|| event.getClickedBlock().getType() == Material.SIGN_POST
 					|| event.getClickedBlock().getType() == Material.WALL_SIGN) {
 				Player player = event.getPlayer();
-				Location loc = event.getClickedBlock().getLocation();
-				int x = loc.getBlockX();
-				int y = loc.getBlockY();
-				int z = loc.getBlockZ();
-				if (getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
+				Location location = event.getClickedBlock().getLocation();
+				String loc = locationToString(location);
+				if (getConfig().isSet("mailbox." + loc)) {
 					if (player.getGameMode() == GameMode.CREATIVE && !allowCreative(player)) {
 						player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
 						return;
@@ -588,7 +647,7 @@ public class Market extends JavaPlugin implements Listener {
 					event.setCancelled(true);
 					interfaceHandler.openInterface(player, null, "Mail");
 				}
-				if (getConfig().isSet("stall." + x + "," + y + "," + z)) {
+				if (getConfig().isSet("stall." + loc)) {
 					if (player.getGameMode() == GameMode.CREATIVE && !allowCreative(player)) {
 						player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
 						return;
@@ -615,6 +674,31 @@ public class Market extends JavaPlugin implements Listener {
 		ItemStack item = event.getPlayer().getItemInHand();
 		if (item != null && listener.isMarketItem(item)) {
 			item.setType(Material.AIR);
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent event) {
+		Block block = event.getBlock();
+		if (block.getType() == Material.CHEST
+				// Trapped chest
+				|| block.getTypeId() == 146
+				|| block.getType() == Material.SIGN
+				|| block.getType() == Material.SIGN_POST
+				|| block.getType() == Material.WALL_SIGN) {
+			Location location = block.getLocation();
+			String loc = locationToString(location);
+			if (getConfig().isSet("mailbox." + loc)) {
+				getConfig().set("mailbox." + loc, null);
+				saveConfig();
+				event.getPlayer().sendMessage(ChatColor.YELLOW + locale.get("mailbox_removed"));
+			}
+			if (getConfig().isSet("stall." + loc)) {
+				getConfig().set("stall." + loc, null);
+				saveConfig();
+				event.getPlayer().sendMessage(ChatColor.YELLOW + locale.get("stall_removed"));
+			}
 		}
 	}
 	

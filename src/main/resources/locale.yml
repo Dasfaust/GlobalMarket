@@ -119,3 +119,5 @@ english:
     not_allowed_while_in_creative: "You can't do this while in creative mode"
     history_not_enabled: "This command is currently unavailable"
     your_listing_has_been_added: "Your listing of %s has been added"
+    not_near_stall: "You need to be near a stall to do this"
+    not_near_mailbox: "You need to be near a mailbox to do this"

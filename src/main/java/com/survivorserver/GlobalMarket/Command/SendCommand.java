@@ -1,7 +1,10 @@
 package com.survivorserver.GlobalMarket.Command;
 
+import java.util.List;
+
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -49,6 +52,24 @@ public class SendCommand extends SubCommand {
 		MarketStorage storageHandler = market.getStorage();
 		Player player = (Player) sender;
 		String world = player.getWorld().getName();
+		int sendDistance = market.getMailboxRadius();
+		if (sendDistance > 0) {
+			boolean near = false;
+			Location playerLoc = player.getLocation();
+			List<Location> locs = market.getMailboxLocations();
+			for (Location loc : locs) {
+				if (loc.getWorld().getName().equalsIgnoreCase(playerLoc.getWorld().getName())) {
+					if (loc.distance(playerLoc) <= sendDistance) {
+						near = true;
+						break;
+					}
+				}
+			}
+			if (!near) {
+				player.sendMessage(ChatColor.RED + locale.get("not_near_mailbox"));
+				return true;
+			}
+		}
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
 			if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {
 				player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));

@@ -45,7 +45,7 @@ public class MailboxCommand extends SubCommand {
 	@Override
 	public boolean onCommand(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
-		Location loc = null;
+		Location location = null;
 		Block block = player.getTargetBlock(null, 4);
 		if (block.getType() == Material.CHEST
 				// Trapped chest
@@ -53,17 +53,15 @@ public class MailboxCommand extends SubCommand {
 				|| block.getType() == Material.SIGN
 				|| block.getType() == Material.SIGN_POST
 				|| block.getType() == Material.WALL_SIGN) {
-			loc = block.getLocation();
+			location = block.getLocation();
 		} else {
 			player.sendMessage(ChatColor.RED + locale.get("aim_cursor_at_chest_or_sign"));
 			return true;
 		}
-		int x = loc.getBlockX();
-		int y = loc.getBlockY();
-		int z = loc.getBlockZ();
+		String loc = market.locationToString(location);
 		if (args.length == 2 && args[1].equalsIgnoreCase("remove")) {
-			if (market.getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
-				market.getConfig().set("mailbox." + x + "," + y + "," + z, null);
+			if (market.getConfig().isSet("mailbox." + loc)) {
+				market.getConfig().set("mailbox." + loc, null);
 				market.saveConfig();
 				player.sendMessage(ChatColor.YELLOW + locale.get("mailbox_removed"));
 				return true;
@@ -72,11 +70,11 @@ public class MailboxCommand extends SubCommand {
 				return true;
 			}
 		}
-		if (market.getConfig().isSet("mailbox." + x + "," + y + "," + z)) {
+		if (market.getConfig().isSet("mailbox." + loc)) {
 			sender.sendMessage(ChatColor.RED + locale.get("mailbox_already_exists"));
 			return true;
 		}
-		market.getConfig().set("mailbox." + x + "," + y + "," + z, true);
+		market.getConfig().set("mailbox." + loc, true);
 		market.saveConfig();
 		sender.sendMessage(ChatColor.GREEN + locale.get("mailbox_added"));
 		return true;
