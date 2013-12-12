@@ -192,8 +192,20 @@ public class MarketStorage {
 					}
 				}
 				res = db.createStatement(query.toString()).query();
+				Map<Integer, String> sanitizedItems = new HashMap<Integer, String>();
 				while(res.next()) {
-					items.put(res.getInt(1), res.getItemStack(2));
+					try {
+						items.put(res.getInt(1), itemStackFromString(res.getString(2)));
+					} catch(InvalidConfigurationException e) {
+						int itemId = res.getInt(1);
+						market.log.info("Item ID " + itemId + " has invalid characters");
+						String san = res.getString(2).replaceAll("[\\p{Cc}&&[^\r\n\t]]", "");
+						sanitizedItems.put(itemId, san);
+						items.put(res.getInt(1), itemStackFromString(san));
+					}
+				}
+				for (Entry<Integer, String> entry : sanitizedItems.entrySet()) {
+					db.createStatement("UPDATE items SET item=? WHERE id=?").setString(entry.getValue()).setInt(entry.getKey()).execute();
 				}
 			}
 			itemIndex = 1;
@@ -313,15 +325,10 @@ public class MarketStorage {
 		return conf.saveToString();
 	}
 	
-	public static ItemStack itemStackFromString(String item) {
+	public static ItemStack itemStackFromString(String item) throws InvalidConfigurationException {
 		YamlConfiguration conf = new YamlConfiguration();
-		try {
-			conf.loadFromString(item);
-			return conf.getItemStack("item").clone();
-		} catch (InvalidConfigurationException e) {
-			e.printStackTrace();
-		}
-		return null;
+		conf.loadFromString(item);
+		return conf.getItemStack("item").clone();
 	}
 	
 	public static ItemStack itemStackFromString(String item, int amount) {

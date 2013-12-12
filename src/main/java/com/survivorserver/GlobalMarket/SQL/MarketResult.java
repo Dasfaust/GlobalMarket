@@ -168,18 +168,6 @@ public class MarketResult {
 		}
 	}
 	
-	public ItemStack getItemStack(int index) {
-		try {
-			if (set.isBeforeFirst()) {
-				set.next();
-			}
-			return MarketStorage.itemStackFromString(set.getString("item"));
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
 	public Listing constructListing(MarketStorage storage) {
 		try {
 			if (set.isBeforeFirst()) {
