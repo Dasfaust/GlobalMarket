@@ -103,6 +103,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("blacklist.use_with_mail", false);
 		getConfig().addDefault("automatic_payments", false);
 		getConfig().addDefault("enable_history", true);
+		getConfig().addDefault("announce_new_listings", true);
 		getConfig().addDefault("enable_metrics", true);
 		getConfig().addDefault("notify_on_update", true);
 		
@@ -217,6 +218,10 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public InterfaceHandler getInterfaceHandler() {
 		return interfaceHandler;
+	}
+	
+	public boolean announceOnCreate() {
+		return getConfig().getBoolean("announce_new_listings");
 	}
 	
 	public double getCut(double amount, String player, String world) {
