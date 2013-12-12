@@ -250,6 +250,7 @@ public class Market extends JavaPlugin implements Listener {
 		searching.put(name, interfaceName);
 	}
 
+	@SuppressWarnings("deprecation")
 	public double getMaxPrice(Player player, ItemStack item) {
 		String limitGroup = "default";
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
@@ -258,7 +259,16 @@ public class Market extends JavaPlugin implements Listener {
 			}
 		}
 		String itemPath = "limits." + limitGroup + ".max_item_prices." + item.getType().toString().toLowerCase();
+		boolean hasPrice = false;
 		if (getConfig().isSet(itemPath)) {
+			hasPrice = true;
+		} else {
+			itemPath = "limits." + limitGroup + ".max_item_prices." + item.getTypeId();
+			if (getConfig().isSet(itemPath)) {
+				hasPrice = true;
+			}
+		}
+		if (hasPrice) {
 			int dmg = getConfig().getInt(itemPath + ".dmg");
 			if (dmg == -1 || dmg == item.getDurability()) {
 				return getConfig().getDouble(itemPath + ".price");
