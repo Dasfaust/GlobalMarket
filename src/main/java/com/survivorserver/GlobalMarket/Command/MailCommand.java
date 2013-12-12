@@ -30,7 +30,7 @@ public class MailCommand extends SubCommand {
 
 	@Override
 	public String getPermissionNode() {
-		return "globalmarket.quicklist";
+		return "globalmarket.quickmail";
 	}
 
 	@Override
