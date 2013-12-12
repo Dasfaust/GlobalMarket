@@ -52,6 +52,7 @@ english:
         sale_price: "Sale price: %s"
         market_cut: "Market cut: %s"
         amount_recieved: "Amount received: %s"
+        buyer: "Buyer: %s"
     listing_purchased_mailbox: "Your listing of %s has been purchased, pick up your earnings at a mailbox"
     history:
         prefix: "%1$s. <%2$s> "

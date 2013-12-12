@@ -641,6 +641,7 @@ public class MarketStorage {
 		String itemName = market.getItemName(item);
 		String logStr = market.getLocale().get("transaction_log.title") + "\n\n" +
 						market.getLocale().get("transaction_log.item_sold", itemName) + "\n\n" +
+						market.getLocale().get("transaction_log.buyer", buyer) + "\n\n" +
 						market.getLocale().get("transaction_log.sale_price", fullAmount) + "\n\n" +
 						market.getLocale().get("transaction_log.market_cut", cut) +  "\n\n" +
 						market.getLocale().get("transaction_log.amount_recieved", amount);
