@@ -97,6 +97,8 @@ public class MailInterface extends MarketInterface {
 			if (!response.transactionSuccess()) {
 				if (response.type == ResponseType.NOT_IMPLEMENTED) {
 					market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
+				} else {
+					market.log.severe("Recieved failed economy response from " + econ.getName() + ": " + response.errorMessage);
 				}
 				return;
 			}

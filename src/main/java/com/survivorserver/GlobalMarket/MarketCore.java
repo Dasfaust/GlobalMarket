@@ -41,6 +41,8 @@ public class MarketCore {
 		if (!response.transactionSuccess()) {
 			if (response.type == ResponseType.NOT_IMPLEMENTED) {
 				market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the withdrawPlayer() function.");
+			} else {
+				market.log.severe("Recieved failed economy response from " + econ.getName() + ": " + response.errorMessage);
 			}
 			return false;
 		}
@@ -50,6 +52,8 @@ public class MarketCore {
 			if (!response.transactionSuccess()) {
 				if (response.type == ResponseType.NOT_IMPLEMENTED) {
 					market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
+				} else {
+					market.log.severe("Recieved failed economy response from " + econ.getName() + ": " + response.errorMessage);
 				}
 				return false;
 			}
@@ -60,6 +64,8 @@ public class MarketCore {
 				if (!response.transactionSuccess()) {
 					if (response.type == ResponseType.NOT_IMPLEMENTED) {
 						market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
+					} else {
+						market.log.severe("Recieved failed economy response from " + econ.getName() + ": " + response.errorMessage);
 					}
 					return false;
 				}
