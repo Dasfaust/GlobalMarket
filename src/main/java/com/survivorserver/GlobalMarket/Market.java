@@ -42,7 +42,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import com.survivorserver.GlobalMarket.Command.MarketCommand;
 import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Legacy.Importer;
-import com.survivorserver.GlobalMarket.Lib.PaperMailHandler;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
 import com.survivorserver.GlobalMarket.SQL.Database;
 import com.survivorserver.GlobalMarket.SQL.StorageMethod;
@@ -70,7 +69,6 @@ public class Market extends JavaPlugin implements Listener {
 	private MarketStorage storage;
 	private boolean haultSync = false;
 	private Map<String, String[]> worldLinks;
-	private PaperMailHandler mailHandler;
 	String prefix;
 
 	public void onEnable() {
@@ -111,7 +109,6 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("announce_new_listings", true);
 		getConfig().addDefault("stall_radius", 0);
 		getConfig().addDefault("mailbox_radius", 0);
-		getConfig().addDefault("PaperMail_as_mailbox", false);
 		getConfig().addDefault("enable_metrics", true);
 		getConfig().addDefault("notify_on_update", true);
 		
@@ -194,14 +191,6 @@ public class Market extends JavaPlugin implements Listener {
 		if (enableMultiworld()) {
 			buildWorldLinks();
 		}
-		if (getConfig().getBoolean("PaperMail_as_mailbox")) {
-			try {
-				Class.forName("com.github.derwisch.paperMail.Inbox");
-				mailHandler = new PaperMailHandler(this);
-			} catch(ClassNotFoundException e) {
-				log.warning("PaperMail support is enabled but the plugin is not installed. Defaulting to Market mailboxes.");
-			}
-		}
 	}
 	
 	public Economy getEcon() {
@@ -234,17 +223,6 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public InterfaceHandler getInterfaceHandler() {
 		return interfaceHandler;
-	}
-	
-	public boolean usePaperMail() {
-		if(getConfig().getBoolean("PaperMail_as_mailbox")) {
-			return mailHandler != null;
-		}
-		return false;
-	}
-	
-	public PaperMailHandler getPaperMailHandler() {
-		return mailHandler;
 	}
 	
 	public int getStallRadius() {
