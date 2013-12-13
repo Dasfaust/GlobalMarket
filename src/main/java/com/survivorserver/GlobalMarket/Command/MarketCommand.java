@@ -31,6 +31,7 @@ public class MarketCommand implements CommandExecutor {
 		registerSubCommand(new MailboxCommand(market, locale));
 		registerSubCommand(new StallCommand(market, locale));
 		registerSubCommand(new HistoryCommand(market, locale));
+		registerSubCommand(new CancelSearchCommand(market, locale));
 		registerSubCommand(new ReloadCommand(market, locale));
 	}
 	
