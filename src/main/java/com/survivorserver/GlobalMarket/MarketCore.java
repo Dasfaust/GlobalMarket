@@ -95,7 +95,7 @@ public class MarketCore {
 			storage.removeListing(listing.getId());
 		}
 		String itemName = market.getItemName(item);
-		market.notifyPlayer(seller, market.autoPayment() ? market.getLocale().get("you_sold_your_listing_of", itemName) :
+		market.notifyPlayer(seller, market.autoPayment() ? market.getLocale().get("you_sold_your_listing", itemName) :
 			market.getLocale().get("listing_purchased_mailbox", itemName));
 		market.notifyPlayer(buyer, market.getLocale().get("you_have_new_mail"));
 		// Update viewers
