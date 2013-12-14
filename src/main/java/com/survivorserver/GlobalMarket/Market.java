@@ -84,11 +84,11 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("storage.mysql_port", 3306);
 		getConfig().addDefault("multiworld.enable", false);
 		getConfig().addDefault("multiworld.links.world", Arrays.asList(new String[]{"world_nether", "world_the_end"}));
-		getConfig().addDefault("limits.default.cut", 0.0);
+		getConfig().addDefault("limits.default.cut", 0.05);
 		getConfig().addDefault("limits.default.max_price", 0.0);
 		getConfig().addDefault("limits.default.max_item_prices.air.dmg", 0);
 		getConfig().addDefault("limits.default.max_item_prices.air.price", 50.0);
-		getConfig().addDefault("limits.default.creation_fee", 0);
+		getConfig().addDefault("limits.default.creation_fee", 0.05);
 		getConfig().addDefault("limits.default.max_listings", 0);
 		getConfig().addDefault("limits.default.expire_time", 0);
 		getConfig().addDefault("limits.default.queue_trade_time", 0);
@@ -240,19 +240,35 @@ public class Market extends JavaPlugin implements Listener {
 	public double getCut(double amount, String player, String world) {
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (perms.has(world, player, "globalmarket.limits." + k)) {
-				return new BigDecimal(amount * getConfig().getDouble("limits." + k + ".cut")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+				if (getConfig().isDouble("limits." + k + ".cut")) {
+					return new BigDecimal(amount * getConfig().getDouble("limits." + k + ".cut")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+				} else {
+					return getConfig().getDouble("limits." + k + ".cut");
+				}
 			}
 		}
-		return new BigDecimal(amount * getConfig().getDouble("limits.default.cut")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+		if (getConfig().isDouble("limits.default.cut")) {
+			return new BigDecimal(amount * getConfig().getDouble("limits.default.cut")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+		} else {
+			return getConfig().getDouble("limits.default.cut");
+		}
 	}
 	
-	public double getCreationFee(Player player) {
+	public double getCreationFee(Player player, double price) {
 		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
 			if (player.hasPermission("globalmarket.limits." + k)) {
-				return getConfig().getDouble("limits." + k + ".creation_fee");
+				if (getConfig().isDouble("limits." + k + ".creation_fee")) {
+					return new BigDecimal(price * getConfig().getDouble("limits." + k + ".creation_fee")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+				} else {
+					return getConfig().getDouble("limits." + k + ".creation_fee");
+				}
 			}
 		}
-		return getConfig().getDouble("limits.default.creation_fee");
+		if (getConfig().isDouble("limits.default.creation_fee")) {
+			return new BigDecimal(price * getConfig().getDouble("limits.default.creation_fee")).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+		} else {
+			return getConfig().getDouble("limits.default.creation_fee");
+		}
 	}
 	
 	public boolean autoPayment() {

@@ -114,7 +114,7 @@ public class CreateCommand extends SubCommand {
 				infinite = true;
 			}
 			int amount = 0;
-			double fee = market.getCreationFee(player);
+			double fee = market.getCreationFee(player, price);
 			if ((args.length == 3 && extraArgs.isEmpty()) || (args.length == 4 && !extraArgs.isEmpty())) {
 				try {
 					amount = Integer.parseInt(args[2]);
