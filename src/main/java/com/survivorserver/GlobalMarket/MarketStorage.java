@@ -402,14 +402,16 @@ public class MarketStorage {
 	public Listing createListing(String seller, ItemStack item, double price, String world) {
 		int itemId = storeItem(item);
 		Long time = System.currentTimeMillis();
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?)")
+		int id = listingIndex++;
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
+		.setValue(id)
 		.setValue(seller)
 		.setValue(itemId)
 		.setValue(item.getAmount())
 		.setValue(price)
 		.setValue(world)
 		.setValue(time));
-		Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, world, time);
+		Listing listing = new Listing(id, seller, itemId, item.getAmount(), price, world, time);
 		listings.put(listing.getId(), listing);
 		addWorldItem(listing);
 		addToCondensed(listing);
@@ -425,14 +427,16 @@ public class MarketStorage {
 		for (ItemStack item : items) {
 			double price = pricePerItem * item.getAmount();
 			Long time = System.currentTimeMillis();
-			asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?)")
+			int id = listingIndex++;
+			asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
+			.setValue(id)
 			.setValue(seller)
 			.setValue(itemId)
 			.setValue(item.getAmount())
 			.setValue(price)
 			.setValue(world)
 			.setValue(time));
-			Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, world, time);
+			Listing listing = new Listing(id, seller, itemId, item.getAmount(), price, world, time);
 			listings.put(listing.getId(), listing);
 			addWorldItem(listing);
 			addToCondensed(listing);
@@ -688,14 +692,16 @@ public class MarketStorage {
 	}
 	
 	public Mail createMail(String owner, String from, int itemId, int amount, String world) {
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?)")
+		int id = mailIndex++;
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
+		.setValue(id)
 		.setValue(owner)
 		.setValue(itemId)
 		.setValue(amount)
 		.setValue(from)
 		.setValue(world)
 		.setValue(0));
-		Mail m = new Mail(owner, mailIndex++, itemId, amount, 0, from, world);
+		Mail m = new Mail(owner, id, itemId, amount, 0, from, world);
 		mail.put(m.getId(), m);
 		addWorldItem(m);
 		if (market.getInterfaceHandler() != null) {
@@ -707,14 +713,16 @@ public class MarketStorage {
 	
 	public Mail createMail(String owner, String from, ItemStack item, double pickup, String world) {
 		int itemId = storeItem(item);
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?)")
+		int id = mailIndex++;
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?)")
+		.setValue(id)
 		.setValue(owner)
 		.setValue(itemId)
 		.setValue(item.getAmount())
 		.setValue(from)
 		.setValue(world)
 		.setValue(pickup));
-		Mail m = new Mail(owner, mailIndex++, itemId, item.getAmount(), pickup, from, world);
+		Mail m = new Mail(owner, id, itemId, item.getAmount(), pickup, from, world);
 		mail.put(m.getId(), m);
 		addWorldItem(m);
 		if (market.getInterfaceHandler() != null) {
