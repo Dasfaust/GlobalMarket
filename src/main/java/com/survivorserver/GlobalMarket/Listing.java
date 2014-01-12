@@ -89,7 +89,7 @@ public class Listing implements MarketItem, Comparable<Listing> {
 	public int compareTo(Listing l) {
 		int s = seller.compareTo(l.getSeller());
 		if (s == 0) {
-			int it = Integer.compare(itemId, l.getItemId());
+			int it = new Integer(itemId).compareTo(l.getItemId());
 			if (it == 0) {
 				double ppa1 = l.getPrice() / l.getAmount();
 				double ppa2 = this.price / this.amount;
