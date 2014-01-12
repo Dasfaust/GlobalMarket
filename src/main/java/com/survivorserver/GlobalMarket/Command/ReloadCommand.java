@@ -64,14 +64,11 @@ public class ReloadCommand extends SubCommand {
 				|| !addr.equals(conf.getString("storage.mysql_address"))
 				|| port != conf.getInt("storage.mysql_port")) {
 			AsyncDatabase asyncDb = market.getStorage().getAsyncDb();
+			asyncDb.cancel();
 			if (asyncDb.isProcessing()) {
-				sender.sendMessage(ChatColor.YELLOW + "DB queue is currently running, haulting...");
-				while(asyncDb.isProcessing()) { 
-					market.setSyncHault(true);
-				}
-				market.setSyncHault(false);
+				sender.sendMessage(ChatColor.YELLOW + "DB queue is currently running, please wait...");
+				while(asyncDb.isProcessing()) {}
 			}
-			asyncDb.processQueue(true);
 			asyncDb.close();
 			market.initializeStorage();
 		}

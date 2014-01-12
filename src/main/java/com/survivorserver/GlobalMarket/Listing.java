@@ -16,13 +16,14 @@ public class Listing implements MarketItem, Comparable<Listing> {
 	public int amount;
 	public String seller;
 	public double price;
-	String world;
+	public String world;
 	public Long time;
-	private List<Listing> stacked;
+	public List<Listing> stacked;
 	// Legacy
 	ItemStack item;
 	
 	public Listing() {
+		this.stacked = new ArrayList<Listing>();
 	}
 	
 	public Listing(int id, String seller, int itemId, int amount, double price, String world, Long time) {
@@ -86,35 +87,39 @@ public class Listing implements MarketItem, Comparable<Listing> {
 
 	@Override
 	public int compareTo(Listing l) {
-		if (isStackable(l)) {
-			return (int) (time / 1000);
+		int s = seller.compareTo(l.getSeller());
+		if (s == 0) {
+			int it = Integer.compare(itemId, l.getItemId());
+			if (it == 0) {
+				double ppa1 = l.getPrice() / l.getAmount();
+				double ppa2 = this.price / this.amount;
+				return Double.compare(ppa1, ppa2);
+			}
+			return it;
 		}
-		return 0;
+		return s;
 	}
 	
 	public boolean isStackable(Listing l) {
-		if (l.getSeller().equalsIgnoreCase(this.seller) && l.getItemId() == this.itemId && (l.getPrice() / l.getAmount()) == (this.price / this.amount)) {
-			return true;
-		}
-		return false;
+		return compareTo(l) == 0 ? true : false;
 	}
 	
-	public void addSibling(Listing l) {
+	public void addStacked(Listing l) {
 		if (!stacked.contains(l)) {
 			stacked.add(l);
 		}
 	}
 	
-	public int countSiblings() {
+	public int countStacked() {
 		stacked.removeAll(Collections.singleton(null));
 		return stacked.size();
 	}
 	
-	public List<Listing> getSiblings() {
+	public List<Listing> getStacked() {
 		return stacked;
 	}
 	
-	public void setSiblings(List<Listing> siblings) {
+	public void setStacked(List<Listing> siblings) {
 		stacked.clear();
 		stacked.addAll(siblings);
 	}
@@ -139,14 +144,14 @@ public class Listing implements MarketItem, Comparable<Listing> {
 			@Override
 			public int compare(Listing o1, Listing o2) {
 				int o1c = o1.getAmount();
-				if (o1.countSiblings() > 0) {
-					for (Listing l : o1.getSiblings()) {
+				if (o1.countStacked() > 0) {
+					for (Listing l : o1.getStacked()) {
 						o1c += l.getAmount();
 					}
 				}
 				int o2c = o2.getAmount();
-				if (o2.countSiblings() > 0) {
-					for (Listing l : o2.getSiblings()) {
+				if (o2.countStacked() > 0) {
+					for (Listing l : o2.getStacked()) {
 						o2c += l.getAmount();
 					}
 				}

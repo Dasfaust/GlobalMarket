@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeSet;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -40,11 +41,11 @@ public class MarketStorage {
 	private AsyncDatabase asyncDb;
 	private Map<Integer, ItemStack> items;
 	private Map<Integer, Listing> listings;
-	private Map<String, List<Listing>> worldListings;
+	private Map<String, TreeSet<Listing>> worldListings;
 	private Map<Integer, Mail> mail;
 	private Map<String, List<Mail>> worldMail;
 	private Map<Integer, QueueItem> queue;
-	private List<Listing> condensedListings;
+	private TreeSet<Listing> condensedListings;
 	private int itemIndex;
 	private int listingIndex;
 	private int mailIndex;
@@ -53,13 +54,13 @@ public class MarketStorage {
 	public MarketStorage(Market market, AsyncDatabase asyncDb) {
 		this.market = market;
 		this.asyncDb = asyncDb;
-		items = Collections.synchronizedMap(new HashMap<Integer, ItemStack>());
+		items = new HashMap<Integer, ItemStack>();
 		listings = new LinkedHashMap<Integer, Listing>();
-		worldListings = Collections.synchronizedMap(new HashMap<String, List<Listing>>());
-		mail = Collections.synchronizedMap(new LinkedHashMap<Integer, Mail>());
-		worldMail = Collections.synchronizedMap(new HashMap<String, List<Mail>>());
-		queue = Collections.synchronizedMap(new LinkedHashMap<Integer, QueueItem>());
-		condensedListings = new ArrayList<Listing>();
+		worldListings = new HashMap<String, TreeSet<Listing>>();
+		mail = new LinkedHashMap<Integer, Mail>();
+		worldMail = new HashMap<String, List<Mail>>();
+		queue = new LinkedHashMap<Integer, QueueItem>();
+		condensedListings = new TreeSet<Listing>();
 	}
 	
 	public void loadSchema(Database db) {
@@ -67,12 +68,12 @@ public class MarketStorage {
 		try {
 			// Create items table
 			db.createStatement("CREATE TABLE IF NOT EXISTS items ("
-					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
 					+ (sqlite ? "item MEDIUMTEXT" : "item MEDIUMTEXT CHARACTER SET utf8 COLLATE utf8_general_ci")
 					+ ")").execute();
 			// Create listings table
 			db.createStatement("CREATE TABLE IF NOT EXISTS listings ("
-					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ") 
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ") 
 					+ "seller TINYTEXT, "
 					+ "item int, "
 					+ "amount int, "
@@ -81,7 +82,7 @@ public class MarketStorage {
 					+ "time BIGINT)").execute();
 			// Create mail table
 			db.createStatement("CREATE TABLE IF NOT EXISTS mail ("
-					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
 					+ "owner TINYTEXT, "
 					+ "item int, "
 					+ "amount int, "
@@ -90,7 +91,7 @@ public class MarketStorage {
 					+ "pickup DOUBLE)").execute();
 			// Create queue table
 			db.createStatement("CREATE TABLE IF NOT EXISTS queue ("
-					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
 					+ "data MEDIUMTEXT)").execute();
 			// Create users metadata table
 			db.createStatement("CREATE TABLE IF NOT EXISTS users ("
@@ -99,7 +100,7 @@ public class MarketStorage {
 					+ "spent DOUBLE)").execute();
 			// Create history table
 			db.createStatement("CREATE TABLE IF NOT EXISTS history ("
-					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
+					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
 					+ "player TINYTEXT, "
 					+ "action TINYTEXT, "
 					+ "who TINYTEXT, "
@@ -114,6 +115,7 @@ public class MarketStorage {
 	}
 	
 	public void load(Database db) {
+		boolean sqlite = market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE;
 		// Items we should cache in memory
 		List<Integer> itemIds = new ArrayList<Integer>();
 		try {
@@ -122,10 +124,11 @@ public class MarketStorage {
 			 */
 			listings.clear();
 			listingIndex = 1;
-			MarketResult res = db.createStatement("SELECT id FROM listings ORDER BY id DESC LIMIT 1").query();
+			MarketResult res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("listings").query() : db.createStatement("SELECT auto_increment FROM information_schema.TABLES WHERE TABLE_NAME = ?").setString("listings").query();
 			if (res.next()) {
-				listingIndex = res.getInt(1) + 1;
+				listingIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);;
 			}
+			market.log.info("Listing index: " + listingIndex);
 			res = db.createStatement("SELECT * FROM listings ORDER BY id ASC").query();
 			while(res.next()) {
 				Listing listing = res.constructListing(this);
@@ -134,9 +137,8 @@ public class MarketStorage {
 					itemIds.add(id);
 				}
 				listings.put(listing.getId(), listing);
-				addWorldItem(listing);
-				buildCondensed();
 			}
+			buildCondensed();
 			/*
 			 * Synchronize the mail index with the database
 			 */
@@ -152,10 +154,11 @@ public class MarketStorage {
 				addWorldItem(m);
 			}
 			mailIndex = 1;
-			res = db.createStatement("SELECT id FROM mail ORDER BY id DESC LIMIT 1").query();
+			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("mail").query() : db.createStatement("SELECT auto_increment FROM information_schema.TABLES WHERE TABLE_NAME = ?").setString("mail").query();
 			if (res.next()) {
-				mailIndex = res.getInt(1) + 1;
+				mailIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);
 			}
+			market.log.info("Mail index: " + mailIndex);
 			/*
 			 * Queue
 			 */
@@ -163,23 +166,30 @@ public class MarketStorage {
 			res = db.createStatement("SELECT * FROM queue ORDER BY id ASC").query();
 			Yaml yaml = new Yaml(new CustomClassLoaderConstructor(Market.class.getClassLoader()));
 			while(res.next()) {
-				QueueItem item = yaml.loadAs(res.getString(2), QueueItem.class);
-				queue.put(item.getId(), item);
-				int itemId;
-				if (item.getMail() != null) {
-					itemId = item.getMail().getItemId();
-				} else {
-					itemId = item.getListing().getItemId();
-				}
-				if (!itemIds.contains(itemId)) {
-					itemIds.add(itemId);
+				String q = res.getString("data");
+				try {
+					QueueItem item = yaml.loadAs(q, QueueItem.class);
+					queue.put(item.getId(), item);
+					int itemId;
+					if (item.getMail() != null) {
+						itemId = item.getMail().getItemId();
+					} else {
+						itemId = item.getListing().getItemId();
+					}
+					if (!itemIds.contains(itemId)) {
+						itemIds.add(itemId);
+					}
+				} catch(NullPointerException e) {
+					market.log.warning("Queue item is corrupt:");
+					market.log.warning(q);
 				}
 			}
 			queueIndex = 1;
-			res = db.createStatement("SELECT id FROM queue ORDER BY id DESC LIMIT 1").query();
+			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("queue").query() : db.createStatement("SELECT auto_increment FROM information_schema.TABLES WHERE TABLE_NAME = ?").setString("queue").query();
 			if (res.next()) {
-				queueIndex = res.getInt(1) + 1;
+				queueIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);
 			}
+			market.log.info("Queue index: " + queueIndex);
 			/*
 			 * Synchronize needed items
 			 */
@@ -202,10 +212,14 @@ public class MarketStorage {
 						items.put(res.getInt(1), itemStackFromString(res.getString(2)));
 					} catch(InvalidConfigurationException e) {
 						int itemId = res.getInt(1);
-						market.log.info("Item ID " + itemId + " has invalid characters");
+						market.log.warning("Item ID " + itemId + " has invalid characters");
 						String san = res.getString(2).replaceAll("[\\p{Cc}&&[^\r\n\t]]", "");
 						sanitizedItems.put(itemId, san);
 						items.put(res.getInt(1), itemStackFromString(san));
+					} catch(NullPointerException e) {
+						int itemId = res.getInt(1);
+						market.log.warning(String.format("Item with ID %s is corrupt. Loading itemstack as stone.", itemId));
+						items.put(res.getInt(1), new ItemStack(Material.STONE));
 					}
 				}
 				for (Entry<Integer, String> entry : sanitizedItems.entrySet()) {
@@ -213,10 +227,11 @@ public class MarketStorage {
 				}
 			}
 			itemIndex = 1;
-			res = db.createStatement("SELECT id FROM items ORDER BY id DESC LIMIT 1").query();
+			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("items").query() : db.createStatement("SELECT auto_increment FROM information_schema.TABLES WHERE TABLE_NAME = ?").setString("items").query();
 			if (res.next()) {
-				itemIndex = res.getInt(1) + 1;
+				itemIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);
 			}
+			market.log.info("Item index: " + itemIndex);
 		} catch(Exception e) {
 			market.log.severe("Error while loading:");
 			e.printStackTrace();
@@ -226,16 +241,16 @@ public class MarketStorage {
 	private void addWorldItem(Listing listing) {
 		String world = listing.getWorld();
 		if (!worldListings.containsKey(world)) {
-			worldListings.put(world, new ArrayList<Listing>());
+			worldListings.put(world, new TreeSet<Listing>());
 		}
-		List<Listing> listings = worldListings.get(world);
-		for (int i = 0; i < listings.size(); i++) {
-			Listing l = listings.get(i);
+		TreeSet<Listing> listings = worldListings.get(world);
+		for (Listing l : listings) {
 			if (l.isStackable(listing)) {
+				l.addStacked(listing);
 				return;
 			}
 		}
-		worldListings.get(world).add(0, listing);
+		listings.add(listing);
 	}
 	
 	private void addWorldItem(Mail mailItem) {
@@ -249,11 +264,11 @@ public class MarketStorage {
 	private List<Listing> getListingsForWorld(String world) {
 		List<Listing> toReturn = new ArrayList<Listing>();
 		if (worldListings.containsKey(world)) {
-			toReturn.addAll(worldListings.get(world));
+			toReturn.addAll(new ArrayList<Listing>(worldListings.get(world)));
 		}
 		for (String w : market.getLinkedWorlds(world)) {
 			if (worldListings.containsKey(w)) {
-				toReturn.addAll(worldListings.get(w));
+				toReturn.addAll(new ArrayList<Listing>(worldListings.get(w)));
 			}
 		}
 		return toReturn;
@@ -283,8 +298,21 @@ public class MarketStorage {
 		QueueItem item = new QueueItem(queueIndex++, time, listing);
 		queue.put(item.getId(), item);
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
-		.setValue(new Yaml().dump(item)));
+		.setValue((String) new Yaml().dump(item)));
 		return listing;
+	}
+	
+	public void queueListing(String seller, List<ItemStack> items, double pricePerItem, String world) {
+		int itemId = storeItem(items.get(0));
+		for (ItemStack itemStack : items) {
+			double price = pricePerItem * itemStack.getAmount();
+			long time = System.currentTimeMillis();
+			Listing listing = new Listing(listingIndex++, seller, itemId, itemStack.getAmount(), price, world, time);
+			QueueItem item = new QueueItem(queueIndex++, time, listing);
+			queue.put(item.getId(), item);
+			asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
+			.setValue((String) new Yaml().dump(item)));
+		}
 	}
 	
 	public Mail queueMail(String owner, String from, ItemStack itemStack, String world) {
@@ -293,7 +321,7 @@ public class MarketStorage {
 		QueueItem item = new QueueItem(queueIndex++, System.currentTimeMillis(), mail);
 		queue.put(item.getId(), item);
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
-		.setValue(new Yaml().dump(item)));
+		.setValue((String) new Yaml().dump(item)));
 		return mail;
 	}
 	
@@ -302,15 +330,15 @@ public class MarketStorage {
 		QueueItem item = new QueueItem(queueIndex++, System.currentTimeMillis(), mail);
 		queue.put(item.getId(), item);
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
-		.setValue(new Yaml().dump(item)));
+		.setValue((String) new Yaml().dump(item)));
 		return mail;
 	}
 	
-	public synchronized List<QueueItem> getQueue() {
+	public List<QueueItem> getQueue() {
 		return new ArrayList<QueueItem>(queue.values());
 	}
 	
-	public synchronized void removeItemFromQueue(int id) {
+	public void removeItemFromQueue(int id) {
 		QueueItem item = queue.get(new Integer(id));
 		if (item.getMail() != null) {
 			storeMail(item.getMail());
@@ -392,6 +420,29 @@ public class MarketStorage {
 		return listing;
 	}
 	
+	public void createListing(String seller, List<ItemStack> items, double pricePerItem, String world) {
+		int itemId = storeItem(items.get(0));
+		for (ItemStack item : items) {
+			double price = pricePerItem * item.getAmount();
+			Long time = System.currentTimeMillis();
+			asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?)")
+			.setValue(seller)
+			.setValue(itemId)
+			.setValue(item.getAmount())
+			.setValue(price)
+			.setValue(world)
+			.setValue(time));
+			Listing listing = new Listing(listingIndex++, seller, itemId, item.getAmount(), price, world, time);
+			listings.put(listing.getId(), listing);
+			addWorldItem(listing);
+			addToCondensed(listing);
+		}
+		if (market.getInterfaceHandler() != null) {
+			// This will be null if the importer is running
+			market.getInterfaceHandler().updateAllViewers();
+		}
+	}
+	
 	public void storeListing(Listing listing) {
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
 		.setValue(listing.getId())
@@ -462,35 +513,26 @@ public class MarketStorage {
 	}
 	
 	private void buildCondensed() {
-		List<Listing> list = Lists.reverse(new ArrayList<Listing>(listings.values()));
-		Collections.sort(list);
-		Iterator<Listing> it = list.iterator();
-		Listing stackStarter = null;
-		while(it.hasNext()) {
-			Listing current = it.next();
-			if (stackStarter == null) {
-				stackStarter = current;
+		for (Listing listing : Lists.reverse(new ArrayList<Listing>(listings.values()))) {
+			for (Listing l : condensedListings) {
+				if (l.isStackable(listing)) {
+					l.addStacked(listing);
+					break;
+				}
 			}
-			if (!stackStarter.equals(current) && stackStarter.isStackable(current)) {
-				stackStarter.addSibling(current);
-				it.remove();
-			} else if (!stackStarter.isStackable(current)) {
-				stackStarter = current;
-			}
+			condensedListings.add(listing);
+			addWorldItem(listing);
 		}
-		condensedListings.clear();
-		condensedListings.addAll(list);
 	}
 	
 	private void addToCondensed(Listing listing) {
-		for (int i = 0; i < condensedListings.size(); i++) {
-			Listing l = condensedListings.get(i);
+		for (Listing l : condensedListings) {
 			if (l.isStackable(listing)) {
-				l.addSibling(listing);
+				l.addStacked(listing);
 				return;
 			}
 		}
-		condensedListings.add(0, listing);
+		condensedListings.add(listing);
 		
 		// TODO: locale support
 		if (market.announceOnCreate()) {
@@ -527,23 +569,36 @@ public class MarketStorage {
 	}
 	
 	private void removeFromCondensed(Listing listing) {
-		List<Listing> world = worldListings.get(listing.getWorld());
-		int index = condensedListings.indexOf(listing);
-		if (index >= 0) {
-			List<Listing> siblings = condensedListings.get(index).getSiblings();
-			condensedListings.remove(index);
-			int worldIndex = world.indexOf(listing);
-			if (worldIndex >= 0) {
-				world.remove(worldIndex);
-			}
-			if (siblings.size() > 0) {
-				Listing next = siblings.get(0);
-				condensedListings.add(index, next);
-				siblings.remove(next);
-				next.setSiblings(siblings);
-				if (worldIndex >= 0) {
-					world.add(worldIndex, next);
+		Iterator<Listing> it = condensedListings.iterator();
+		Listing sibling = null;
+		while(it.hasNext()) {
+			Listing l = it.next();
+			if (l.getId() == listing.getId()) {
+				it.remove();
+				if (l.getStacked().size() > 0) {
+					Listing n = l.getStacked().get(0);
+					l.getStacked().remove(n);
+					n.setStacked(new ArrayList<Listing>(l.getStacked()));
+					sibling = n;
 				}
+				break;
+			}
+		}
+		if (sibling != null) {
+			condensedListings.add(sibling);
+		}
+		if (worldListings.containsKey(listing.getWorld())) {
+			TreeSet<Listing> world = worldListings.get(listing.getWorld());
+			it = world.iterator();
+			while(it.hasNext()) {
+				Listing l = it.next();
+				if (l.getId() == listing.getId()) {
+					it.remove();
+					break;
+				}
+			}
+			if (sibling != null) {
+				world.add(sibling);
 			}
 		}
 	}

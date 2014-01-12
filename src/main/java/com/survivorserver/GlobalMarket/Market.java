@@ -32,6 +32,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -42,6 +43,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import com.survivorserver.GlobalMarket.Command.MarketCommand;
 import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Legacy.Importer;
+import com.survivorserver.GlobalMarket.Lib.PacketManager;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
 import com.survivorserver.GlobalMarket.SQL.Database;
 import com.survivorserver.GlobalMarket.SQL.StorageMethod;
@@ -67,8 +69,8 @@ public class Market extends JavaPlugin implements Listener {
 	private AsyncDatabase asyncDb;
 	public String infiniteSeller;
 	private MarketStorage storage;
-	private boolean haultSync = false;
 	private Map<String, String[]> worldLinks;
+	private PacketManager packet;
 	String prefix;
 
 	public void onEnable() {
@@ -135,6 +137,12 @@ public class Market extends JavaPlugin implements Listener {
 		} catch(Exception e) {
 			log.warning("You have an old or corrupt version of Vault that's missing the Vault Items API. Defaulting to Bukkit item names. Please consider updating Vault!");
 		}
+		try {
+			Class.forName("com.comphenix.protocol.ProtocolManager");
+			packet = new PacketManager(this);
+		} catch(Exception e) {
+			log.warning("ProtocolLib not found! Some extra features will be disabled.");
+		}
 		config = new ConfigHandler(this);
 		locale = new LocaleHandler(config);
 		prefix = locale.get("cmd.prefix");
@@ -173,7 +181,7 @@ public class Market extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(listener, this);
 		tasks.add(new ExpireTask(this, config, core, storage).runTaskTimerAsynchronously(this, 0, 72000).getTaskId());
 		tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new CleanTask(this, interfaceHandler), 0, 20));
-		tasks.add(new Queue(this).runTaskTimerAsynchronously(this, 0, 1200).getTaskId());
+		tasks.add(new Queue(this).runTaskTimer(this, 0, 1200).getTaskId());
 		if (getConfig().getBoolean("enable_metrics")) {
 			try {
 			    MetricsLite metrics = new MetricsLite(this);
@@ -223,6 +231,14 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public InterfaceHandler getInterfaceHandler() {
 		return interfaceHandler;
+	}
+	
+	public boolean useProtocolLib() {
+		return packet != null;
+	}
+	
+	public PacketManager getPacket() {
+		return packet;
 	}
 	
 	public int getStallRadius() {
@@ -426,14 +442,6 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getInt("limits.default.expire_time");
 	}
 	
-	public synchronized boolean haultSync() {
-		return haultSync;
-	}
-	
-	public void setSyncHault(boolean b) {
-		haultSync = b;
-	}
-	
 	@SuppressWarnings("deprecation")
 	public boolean itemBlacklisted(ItemStack item) {
 		if (getConfig().isSet("blacklist.item_id." + item.getTypeId())) {
@@ -626,6 +634,12 @@ public class Market extends JavaPlugin implements Listener {
 		return new Location(world, Double.parseDouble(xyz[1]), Double.parseDouble(xyz[2]), Double.parseDouble(xyz[3]));
 	}
 	
+	public void onQuit(PlayerQuitEvent event) {
+		if (interfaceHandler != null) {
+			interfaceHandler.purgeViewer(event.getPlayer().getName());
+		}
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -744,14 +758,15 @@ public class Market extends JavaPlugin implements Listener {
 		for(int i = 0; i < tasks.size(); i++) {
 			getServer().getScheduler().cancelTask(tasks.get(i));
 		}
+		asyncDb.cancel();
 		if (asyncDb.isProcessing()) {
-			market.log.info("DB queue is currently running, haulting...");
-			while(asyncDb.isProcessing()) { 
-				haultSync = true;
-			}
-			haultSync = false;
+			log.info("Please wait while the database queue is processed.");
+			while(asyncDb.isProcessing()) {}
 		}
 		asyncDb.processQueue(true);
 		asyncDb.close();
+		if (packet != null) {
+			packet.unregister();
+		}
 	}
 }

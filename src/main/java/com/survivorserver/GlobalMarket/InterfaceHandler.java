@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
 import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
@@ -20,6 +22,7 @@ public class InterfaceHandler {
 	Market market;
 	MarketStorage storage;
 	List<InterfaceViewer> viewers;
+	List<InterfaceViewer> suspended;
 	List<MarketInterface> interfaces;
 	List<Handler> handlers;
 	
@@ -29,6 +32,7 @@ public class InterfaceHandler {
 		viewers = new ArrayList<InterfaceViewer>();
 		interfaces = new ArrayList<MarketInterface>();
 		handlers = new ArrayList<Handler>();
+		suspended = new ArrayList<InterfaceViewer>();
 	}
 	
 	public void registerInterface(MarketInterface gui) {
@@ -95,8 +99,52 @@ public class InterfaceHandler {
 		return null;
 	}
 	
+	public InterfaceViewer findSuspendedViewer(String player) {
+		for (InterfaceViewer viewer : suspended) {
+			if (viewer.getViewer().equalsIgnoreCase(player)) {
+				return viewer;
+			}
+		}
+		return null;
+	}
+	
+	public void purgeViewer(String name) {
+		InterfaceViewer viewer = findViewer(name);
+		if (viewer != null) {
+			viewers.remove(viewer);
+		}
+		viewer = findSuspendedViewer(name);
+		if (viewer != null) {
+			suspended.remove(viewer);
+		}
+	}
+	
 	public void removeViewer(InterfaceViewer viewer) {
 		viewers.remove(viewer);
+	}
+	
+	public void suspendViewer(InterfaceViewer viewer) {
+		if (!viewers.contains(viewer)) {
+			throw new IllegalArgumentException("Can't find viewer to suspend");
+		}
+		viewers.remove(viewer);
+		suspended.add(viewer);
+	}
+	
+	public void unsuspendViewer(Player player, InterfaceViewer viewer) {
+		if (!suspended.contains(viewer)) {
+			throw new IllegalArgumentException("Can't find viewer to unsuspend");
+		}
+		suspended.remove(viewer);
+		MarketInterface inter = viewer.getInterface();
+		InterfaceViewer newViewer = addViewer(player,
+				market.getServer().createInventory(player, inter.getSize(), market.enableMultiworld() ?  inter.getTitle() + " (" + player.getWorld().getName() + ")" :  inter.getTitle()),
+				inter);
+		newViewer.setPage(viewer.getPage());
+		newViewer.setSearch(viewer.getSearch());
+		newViewer.setSort(viewer.getSort());
+		openGui(newViewer);
+		refreshInterface(newViewer);
 	}
 	
 	public void openGui(InterfaceViewer viewer) {
@@ -137,6 +185,24 @@ public class InterfaceHandler {
 			}
 		}
 		inv.setItem(slot, mInterface.prepareItem(item, viewer, viewer.getPage(), slot, left, shift));
+	}
+	
+	public void refreshFunctionBar(InterfaceViewer viewer) {
+		MarketInterface mInterface = viewer.getInterface();
+		Inventory inv = viewer.getGui();
+		ItemStack[] contents = inv.getContents();
+		boolean nPage = false;
+		boolean pPage = false;
+		ItemStack p = contents[contents.length - 9];
+		if (p != null && p.getType() != Material.AIR) {
+			pPage = true;
+		}
+		ItemStack n = contents[contents.length - 1];
+		if (n != null && n.getType() != Material.AIR) {
+			nPage = true;
+		}
+		mInterface.buildFunctionBar(market, this, viewer, contents, pPage, nPage);
+		inv.setContents(contents);
 	}
 	
 	public void refreshInterface(InterfaceViewer viewer) {

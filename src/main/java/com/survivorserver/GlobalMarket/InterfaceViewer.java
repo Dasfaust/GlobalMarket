@@ -24,6 +24,8 @@ public class InterfaceViewer {
 	MarketInterface mInterface;
 	int searchSize = 0;
 	SortMethod sort;
+	int lastLowerSlot = -1;
+	String createMessage;
 	
 	public InterfaceViewer(String name, String player, Inventory gui, MarketInterface mInterface, String world) {
 		this.name = name;
@@ -107,6 +109,8 @@ public class InterfaceViewer {
 		setLastActionSlot(-1);
 		setLastItem(-1);
 		clicks = 0;
+		lastLowerSlot = -1;
+		createMessage = null;
 	}
 	
 	public int getClicks() {
@@ -135,5 +139,21 @@ public class InterfaceViewer {
 	
 	public void setSort(SortMethod sort) {
 		this.sort = sort;
+	}
+	
+	public String getCreateMessage() {
+		return createMessage;
+	}
+	
+	public void setCreateMessage(String createMessage) {
+		this.createMessage = createMessage;
+	}
+	
+	public void setLastLower(int lastLowerSlot) {
+		this.lastLowerSlot = lastLowerSlot;
+	}
+	
+	public int getLastLowerSlot() {
+		return lastLowerSlot;
 	}
 }

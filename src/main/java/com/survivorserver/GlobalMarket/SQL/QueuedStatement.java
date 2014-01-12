@@ -16,9 +16,17 @@ public class QueuedStatement {
 		values = new ArrayList<Object>();
 	}
 	
+	public String getUnbuiltQuery() {
+		return query;
+	}
+	
 	public QueuedStatement setValue(Object ob) {
 		values.add(ob);
 		return this;
+	}
+	
+	public ArrayList<Object> getValues() {
+		return values;
 	}
 	
 	public MarketStatement buildStatement(Database db) {

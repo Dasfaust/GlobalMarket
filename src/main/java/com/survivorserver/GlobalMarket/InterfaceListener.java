@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -38,7 +39,8 @@ public class InterfaceListener implements Listener {
 		// Verify we're in a Market interface
 		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
 			//int guiSize = handler.getInterface(viewer.getInterface()).getSize() - 1;
-			if (rawSlot <= 53 && rawSlot > -1) {
+			int lastTopSlot = (event.getInventory().getSize() < 54 ? 26 : 53);
+			if (rawSlot <= lastTopSlot && rawSlot > -1) {
 				// We've clicked a Market item
 				event.setCancelled(true);
 				event.setResult(Result.DENY);
@@ -92,6 +94,8 @@ public class InterfaceListener implements Listener {
 				// They're trying to put an item from their inventory into the Market inventory. Not bad for us, but they will lose their item. Cancel it because we're nice :)
 				event.setCancelled(true);
 				event.setResult(Result.DENY);
+			} else {
+				viewer.setLastLower(event.getSlot());
 			}
 		} else {
 			if (isMarketItem(event.getCurrentItem())) {
@@ -106,10 +110,10 @@ public class InterfaceListener implements Listener {
 	@EventHandler
 	public void handleDrag(InventoryDragEvent event) {
 		InterfaceViewer viewer = handler.findViewer(event.getWhoClicked().getName());
-		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
-			//int guiSize = handler.getInterface(viewer.getInterface()).getSize() - 1;
+		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {	
+			int lastTopSlot = (event.getInventory().getSize() < 54 ? 26 : 53);
 			for (int raw : event.getRawSlots()) {
-				if (raw <= 53) {
+				if (raw <= lastTopSlot) {
 					event.setCancelled(true);
 				}
 			}
@@ -132,6 +136,9 @@ public class InterfaceListener implements Listener {
 		if (viewer != null) {
 			viewer.getGui().clear();
 			handler.removeViewer(viewer);
+			if (market.useProtocolLib()) {
+				market.getPacket().getMessage().clearPlayer((Player) event.getPlayer());
+			}
 		}
 		// Ugly fix for item duping via shift+click and esc. Oh well, we'll have to wait until Bukkit fixes this
 		ItemStack[] items = event.getPlayer().getInventory().getContents();

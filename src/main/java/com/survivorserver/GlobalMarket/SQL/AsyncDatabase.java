@@ -1,10 +1,7 @@
 package com.survivorserver.GlobalMarket.SQL;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.Market;
@@ -12,16 +9,19 @@ import com.survivorserver.GlobalMarket.Market;
 public class AsyncDatabase {
 
 	private Market market;
-	private List<QueuedStatement> queue;
+	private ConcurrentLinkedQueue<QueuedStatement> queue;
 	private AtomicBoolean isProcessing;
+	private AtomicBoolean cancel;
 	private int taskId = -1;
 	private Database db;
 	
 	public AsyncDatabase(Market market) {
 		this.market = market;
-		queue = new CopyOnWriteArrayList<QueuedStatement>();
+		queue = new ConcurrentLinkedQueue<QueuedStatement>();
 		isProcessing = new AtomicBoolean();
 		isProcessing.set(false);
+		cancel = new AtomicBoolean();
+		cancel.set(false);
 	}
 	
 	public void startTask() {
@@ -33,12 +33,15 @@ public class AsyncDatabase {
 			
 			@Override
 			public void run() {
-				processQueue(false);
-				if (market.isEnabled()) {
+				if (!queue.isEmpty() && !isProcessing.get()) {
+					processQueue(false);
+				}
+				if (market.isEnabled() && !cancel.get()) {
 					startTask();
 				}
 			}
-		}.runTaskLaterAsynchronously(market, taskId == -1 ? 0 : 1200).getTaskId();
+			
+		}.runTaskLaterAsynchronously(market, taskId == -1 ? 0 : 20).getTaskId();
 	}
 	
 	public void processQueue(boolean debug) {
@@ -47,32 +50,24 @@ public class AsyncDatabase {
 		}
 		long started = System.currentTimeMillis();
 		if (!db.isConnected()) {
-			if (debug) {
-				market.log.info("DB has disconnected. Reconnecting...");
-			}
+			market.log.info("DB has disconnected. Reconnecting...");
 			db.connect();
 		}
 		try {
-			if (queue.size() > 0) {
-				isProcessing.set(true);
-				if (debug) {
-					market.log.info("Processing database queue (size: " + queue.size() + ")");
-				}
-				List<QueuedStatement> processed = new ArrayList<QueuedStatement>();
-				for (QueuedStatement statement : queue) {
-					if (market.haultSync()) {
-						break;
-					}
-					statement.buildStatement(db)
-					.execute();
-					processed.add(statement);
-				}
-				if (debug) {
-					market.log.info("Queue done. Processed " + processed.size() + " items");
-				}
-				queue.removeAll(processed);
-				isProcessing.set(false);
+			isProcessing.set(true);
+			if (debug) {
+				market.log.info("Processing database queue (size: " + queue.size() + ")");
 			}
+			int p = 0;
+			while(!queue.isEmpty()) {
+				QueuedStatement statement = queue.poll();
+				statement.buildStatement(db).execute();
+				p++;
+			}
+			if (debug) {
+				market.log.info("Queue done. Processed " + p + " items");
+			}
+			isProcessing.set(false);
 		} catch(Exception e) {
 			isProcessing.set(false);
 			market.log.severe("Error while processing DB queue:");
@@ -83,20 +78,25 @@ public class AsyncDatabase {
 		}
 	}
 	
-	public synchronized void addStatement(QueuedStatement statement) {
+	public void addStatement(QueuedStatement statement) {
 		queue.add(statement);
+		market.log.info(statement.getUnbuiltQuery());
 	}
 	
-	public synchronized boolean isProcessing() {
+	public boolean isProcessing() {
 		return isProcessing.get();
 	}
 	
-	public synchronized int getTaskId() {
+	public int getTaskId() {
 		return taskId;
 	}
 	
-	public synchronized Database getDb() {
+	public Database getDb() {
 		return db;
+	}
+	
+	public void cancel() {
+		cancel.set(true);
 	}
 	
 	public synchronized void close() {

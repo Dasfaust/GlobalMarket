@@ -1,18 +1,25 @@
 package com.survivorserver.GlobalMarket;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import com.survivorserver.GlobalMarket.HistoryHandler.MarketAction;
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
+import com.survivorserver.GlobalMarket.Lib.PacketManager;
 import com.survivorserver.GlobalMarket.Lib.SearchResult;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
 
@@ -104,11 +111,11 @@ public class ListingsInterface extends MarketInterface {
 			lore.add(ChatColor.LIGHT_PURPLE + market.getLocale().get("interface.infinite"));
 		}
 		
-		int siblings = listing.countSiblings();
+		int siblings = listing.countStacked();
 		if (siblings > 0) {
 			int count = 0;
 			if (siblings <= 15) {
-				for (Listing l : listing.getSiblings()) {
+				for (Listing l : listing.getStacked()) {
 					count += l.getAmount();
 				}
 			}
@@ -191,7 +198,7 @@ public class ListingsInterface extends MarketInterface {
 	}
 	
 	@Override
-	public void onUnboundClick(Market market, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event, int invSize) {
+	public void onUnboundClick(final Market market, final InterfaceHandler handler, final InterfaceViewer viewer, int slot, final InventoryClickEvent event, int invSize) {
 		super.onUnboundClick(market, handler, viewer, slot, event, invSize);
 		
 		// Sort toggle
@@ -208,6 +215,35 @@ public class ListingsInterface extends MarketInterface {
 					viewer.setSort(SortMethod.DEFAULT);
 				}
 				handler.refreshViewer(viewer, viewer.getInterface().getName());
+			}
+			return;
+		}
+		
+		if (market.useProtocolLib()) {
+			// Create
+			if (slot == invSize - 8) {
+				if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+					if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
+						// Put the item back into the inv for safe keeping
+						int last = viewer.getLastLowerSlot();
+						Inventory inv = event.getWhoClicked().getInventory();
+						ItemStack cursor = event.getCursor().clone();
+						event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
+						if (last >= 0) {
+							ItemStack lastSlot = inv.getItem(last);
+							if (lastSlot == null || lastSlot.getType() == Material.AIR) {
+								inv.setItem(last, cursor);
+							} else {
+								ItemStack lastItem = inv.getItem(last);
+								lastItem.setAmount(lastItem.getAmount() + cursor.getAmount());
+							}
+							create((Player) event.getWhoClicked(), inv.getItem(last), viewer);
+						}
+					} else {
+						viewer.resetActions();
+						handler.refreshFunctionBar(viewer);
+					}
+				}
 			}
 		}
 	}
@@ -228,5 +264,190 @@ public class ListingsInterface extends MarketInterface {
 		curMeta.setLore(curLore);
 		curPage.setItemMeta(curMeta);
 		contents[contents.length - 5] = curPage;
+		
+		if (market.useProtocolLib()) {
+			// Create button
+			ItemStack create = new ItemStack(Material.HOPPER);
+			ItemMeta createMeta = create.getItemMeta();
+			createMeta.setDisplayName(ChatColor.RESET + "Create...");
+			List<String> createLore = new ArrayList<String>();
+			if (viewer.getCreateMessage() != null) {
+				createLore.add(ChatColor.RED + "<" + viewer.getCreateMessage() + ">");
+				viewer.resetActions();
+			} else {
+				createLore.add(ChatColor.GREEN + "Swap an item into this slot to create a listing");
+			}
+			createMeta.setLore(createLore);
+			create.setItemMeta(createMeta);
+			contents[contents.length - 8] = create;
+		}
+	}
+	
+	private void create(final Player player, final ItemStack item, final InterfaceViewer viewer) {
+		// Not sure that this can happen, but better safe than sorry!
+		if (player == null) {
+			return;
+		}
+		if (item == null || item.getType() == Material.AIR) {
+			return;
+		}
+		final LocaleHandler locale = market.getLocale();
+		final PacketManager packet = market.getPacket();
+		if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {
+			viewer.setCreateMessage(locale.get("not_allowed_while_in_creative"));
+			market.getInterfaceHandler().refreshFunctionBar(viewer);
+			return;
+		}
+		if (market.itemBlacklisted(item)) {
+			viewer.setCreateMessage(locale.get("item_is_blacklisted"));
+			market.getInterfaceHandler().refreshFunctionBar(viewer);
+			return;
+		}
+		int max = market.maxListings(player);
+		if (max > 0 && storage.getNumListingsFor(player.getName(), player.getWorld().getName()) >= max) {
+			viewer.setCreateMessage(locale.get("selling_too_many_items"));
+			market.getInterfaceHandler().refreshFunctionBar(viewer);
+			return;
+		}
+		// Suspend the viewer so we can unsuspend later
+		market.getInterfaceHandler().suspendViewer(viewer);
+		// Will disconnect client if you close their inventory on the same tick as the event. I think.
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				player.closeInventory();
+				// Let's get their input
+				String down = "\u25bc";
+				String[] placeholder = new String[] {ChatColor.AQUA + down + " Amount " + down + ChatColor.RESET, Integer.toString(item.getAmount()), ChatColor.AQUA + down + " Price " + down + ChatColor.RESET, ""};
+				packet.getMessage().display(player, ChatColor.YELLOW + "Specify the amount and price!", 100);
+				packet.getSignInput().create(player, placeholder, packet.getSignInput().new InputResult() {
+					@Override
+					public void finished(final Player player, final String[] input, final boolean cancelled) {
+						// This is async and we need to synchronize again...
+						new BukkitRunnable() {
+							@Override
+							public void run() {
+								if (cancelled) {
+									// The player has disconnected
+									market.getInterfaceHandler().purgeViewer(player.getName());
+									return;
+								}
+								market.getInterfaceHandler().unsuspendViewer(player, viewer);
+								int ticks = 80;
+								int amount = 0;
+								try {
+									amount = Integer.parseInt(input[1]);
+								} catch(NumberFormatException e) {
+									packet.getMessage().display(player, ChatColor.RED + locale.get("not_a_valid_number", input[1]), ticks);
+									return;
+								}
+								if (amount <= 0) {
+									packet.getMessage().display(player, ChatColor.RED + locale.get("not_a_valid_amount", input[1]), ticks);
+									return;
+								}
+								double price = 0;
+								try {
+									price = Double.parseDouble(input[3]);
+								} catch(NumberFormatException e) {
+									packet.getMessage().display(player, ChatColor.RED + locale.get("not_a_valid_number", input[3]), ticks);
+									return;
+								}
+								if (price < 0.01) {
+									packet.getMessage().display(player, ChatColor.RED + locale.get("price_too_low"), ticks);
+									return;
+								}
+								double maxPrice = market.getMaxPrice(player, player.getItemInHand());
+								if (maxPrice > 0 && price > maxPrice) {
+									packet.getMessage().display(player, ChatColor.RED + locale.get("price_too_high"), ticks);
+									return;
+								}
+								if (item.getAmount() < amount) {
+									int carrying = 0;
+									for (ItemStack i: player.getInventory().getContents()) {
+										if (i != null && i.isSimilar(item)) {
+											carrying += i.getAmount();
+										}
+									}
+									if (amount > carrying) {
+										packet.getMessage().display(player, ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount), ticks);
+										return;
+									}
+								}
+								double fee = market.getCreationFee(player, price);
+								if (fee > 0) {
+									if (!market.getEcon().has(player.getName(), fee)) {
+										packet.getMessage().display(player, ChatColor.RED + locale.get("you_cant_pay_this_fee"), ticks);
+										return;
+									}
+									market.getEcon().withdrawPlayer(player.getName(), fee);
+								}
+								List<ItemStack> toList = new ArrayList<ItemStack>();
+								if (amount < item.getAmount()) {
+									item.setAmount(item.getAmount() - amount);
+									ItemStack toAdd = item.clone();
+									toAdd.setAmount(amount);
+									toList.add(toAdd);
+								} else if (amount == item.getAmount()) {
+									toList.add(item.clone());
+									player.getInventory().setItem(viewer.getLastLowerSlot(), new ItemStack(Material.AIR));
+								} else {
+									int am = amount;
+									ItemStack[] contents = player.getInventory().getContents();
+									for (int i = 0; i < contents.length; i++) {
+										if (am == 0) {
+											break;
+										}
+										ItemStack c = contents[i];
+										if (c != null && c.isSimilar(item)) {
+											if (am >= c.getAmount()) {
+												ItemStack a = c.clone();
+												contents[i] = null;
+												am -= a.getAmount();
+												toList.add(a);
+											} else {
+												ItemStack a = c.clone();
+												c.setAmount(c.getAmount() - am);
+												a.setAmount(am);
+												am = 0;
+												toList.add(a);
+												break;
+											}
+										}
+									}
+									player.getInventory().setContents(contents);
+								}
+								String world = player.getWorld().getName();
+								if (toList.size() > 1) {
+									double pricePer = new BigDecimal(price / amount).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+									int tradeTime = market.getTradeTime(player);
+									if (tradeTime > 0) {
+										storage.queueListing(player.getName(), toList, pricePer, world);
+										packet.getMessage().display(player, fee > 0 ? ChatColor.GREEN + locale.get("items_queued_with_fee", tradeTime, fee) : ChatColor.GREEN + locale.get("items_queued", tradeTime), ticks);
+									} else {
+										storage.createListing(player.getName(), toList, pricePer, world);
+										packet.getMessage().display(player, fee > 0 ? ChatColor.GREEN + locale.get("items_listed_with_fee", fee) : ChatColor.GREEN + locale.get("items_listed"), ticks);
+									}
+									if (market.enableHistory()) {
+										market.getHistory().storeHistory(player.getName(), "", MarketAction.LISTING_CREATED, toList, price);
+									}
+								} else {
+									int tradeTime = market.getTradeTime(player);
+									if (tradeTime > 0) {
+										storage.queueListing(player.getName(), toList.get(0), price, world);
+										packet.getMessage().display(player, fee > 0 ? ChatColor.GREEN + locale.get("item_queued_with_fee", tradeTime, fee) : ChatColor.GREEN + locale.get("item_queued", tradeTime), ticks);
+									} else {
+										storage.createListing(player.getName(), toList.get(0), price, world);
+										packet.getMessage().display(player, fee > 0 ? ChatColor.GREEN + locale.get("item_listed_with_fee", fee) : ChatColor.GREEN + locale.get("item_listed"), ticks);
+									}
+									if (market.enableHistory()) {
+										market.getHistory().storeHistory(player.getName(), "", MarketAction.LISTING_CREATED, toList.get(0), price);
+									}
+								}
+							}
+						}.runTaskLater(market, 1);
+					}
+				});
+			}
+		}.runTaskLater(market, 1);
 	}
 }

@@ -62,6 +62,20 @@ public class HistoryHandler {
 		.setValue(System.currentTimeMillis()));
 	}
 	
+	public void storeHistory(String player, String who, MarketAction action, List<ItemStack> items, double pricePerItem) {
+		int itemId = storage.storeItem(items.get(0));
+		for (ItemStack item : items) {
+			asyncDb.addStatement(new QueuedStatement("INSERT INTO `history`(`player`, `action`, `who`, `item`, `amount`, `price`, `time`) VALUES (?,?,?,?,?,?,?)")
+			.setValue(player)
+			.setValue(action.toString())
+			.setValue(who)
+			.setValue(itemId)
+			.setValue(item.getAmount())
+			.setValue(pricePerItem * item.getAmount())
+			.setValue(System.currentTimeMillis()));
+		}
+	}
+	
 	public void storeHistory(String player, String who, MarketAction action, int itemId, int amount, double price) {
 		asyncDb.addStatement(new QueuedStatement("INSERT INTO `history`(`player`, `action`, `who`, `item`, `amount`, `price`, `time`) VALUES (?,?,?,?,?,?,?)")
 		.setValue(player)
