@@ -714,7 +714,7 @@ public class MarketStorage {
 	public Mail createMail(String owner, String from, ItemStack item, double pickup, String world) {
 		int itemId = storeItem(item);
 		int id = mailIndex++;
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?)")
+		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
 		.setValue(id)
 		.setValue(owner)
 		.setValue(itemId)
