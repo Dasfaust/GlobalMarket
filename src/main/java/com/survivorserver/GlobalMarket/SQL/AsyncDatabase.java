@@ -80,7 +80,6 @@ public class AsyncDatabase {
 	
 	public void addStatement(QueuedStatement statement) {
 		queue.add(statement);
-		market.log.info(statement.getUnbuiltQuery());
 	}
 	
 	public boolean isProcessing() {
