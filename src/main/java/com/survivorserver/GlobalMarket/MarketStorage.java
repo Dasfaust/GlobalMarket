@@ -115,6 +115,7 @@ public class MarketStorage {
 	}
 	
 	public void load(Database db) {
+		List<Integer> corruptItems = new ArrayList<Integer>();
 		boolean sqlite = market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE;
 		// Items we should cache in memory
 		List<Integer> itemIds = new ArrayList<Integer>();
@@ -209,17 +210,22 @@ public class MarketStorage {
 				Map<Integer, String> sanitizedItems = new HashMap<Integer, String>();
 				while(res.next()) {
 					try {
-						items.put(res.getInt(1), itemStackFromString(res.getString(2)));
-					} catch(InvalidConfigurationException e) {
-						int itemId = res.getInt(1);
-						market.log.warning("Item ID " + itemId + " has invalid characters");
-						String san = res.getString(2).replaceAll("[\\p{Cc}&&[^\r\n\t]]", "");
-						sanitizedItems.put(itemId, san);
-						items.put(res.getInt(1), itemStackFromString(san));
-					} catch(NullPointerException e) {
-						int itemId = res.getInt(1);
-						market.log.warning(String.format("Item with ID %s is corrupt. Loading itemstack as stone.", itemId));
-						items.put(res.getInt(1), new ItemStack(Material.STONE));
+						YamlConfiguration conf = new YamlConfiguration();
+						conf.loadFromString(res.getString(2));
+						items.put(res.getInt(1), conf.getItemStack("item").clone());
+					} catch(Exception e) {
+						if (e instanceof InvalidConfigurationException) {
+							int itemId = res.getInt(1);
+							market.log.warning("Item ID " + itemId + " has invalid characters");
+							String san = res.getString(2).replaceAll("[\\p{Cc}&&[^\r\n\t]]", "");
+							sanitizedItems.put(itemId, san);
+							items.put(res.getInt(1), itemStackFromString(san));
+						} else {
+							int itemId = res.getInt(1);
+							market.log.warning(String.format("Item with ID %s is corrupt or missing from the game. This item will be removed from storage and all mail/listings using it will be deleted. You can safely ignore this exception!", itemId));
+							items.put(itemId, new ItemStack(Material.STONE));
+							corruptItems.add(itemId);
+						}
 					}
 				}
 				for (Entry<Integer, String> entry : sanitizedItems.entrySet()) {
@@ -232,6 +238,39 @@ public class MarketStorage {
 				itemIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);
 			}
 			market.log.info("Item index: " + itemIndex);
+			if (!corruptItems.isEmpty()) {
+				for (int itemId : corruptItems) {
+					for (Listing listing : getAllListings()) {
+						if (listing.getItemId() == itemId) {
+							removeListing(listing.getId());
+						}
+					}
+					Iterator<Entry<Integer, Mail>> it = mail.entrySet().iterator();
+					while(it.hasNext()) {
+						Entry<Integer, Mail> entry = it.next();
+						if (entry.getValue().getItemId() == itemId) {
+							removeMail(entry.getValue().getId());
+						}
+					}
+					for (QueueItem item : getQueue()) {
+						if (item.getMail() != null) {
+							if (item.getMail().getItemId() == itemId) {
+								removeItemFromQueue(item.getId());
+								removeMail(item.getMail().getId());
+							}
+						} else {
+							if (item.getListing().getItemId() == itemId) {
+								removeItemFromQueue(item.getId());
+								removeListing(item.getListing().getId());
+							}
+						}
+					}
+					items.remove(itemId);
+					db.createStatement("DELETE FROM history WHERE item = ?").setInt(itemId).execute();
+					db.createStatement("DELETE FROM items WHERE id = ?").setInt(itemId).execute();
+					market.log.info(String.format("Removed corrupted item %s", itemId));
+				}
+			}
 		} catch(Exception e) {
 			market.log.severe("Error while loading:");
 			e.printStackTrace();
@@ -538,37 +577,41 @@ public class MarketStorage {
 		}
 		condensedListings.add(listing);
 		
-		// TODO: locale support
-		if (market.announceOnCreate()) {
-			ItemStack created = getItem(listing.getItemId(), 1);
-			TellRawUtil.announce(market, 
-				new TellRawMessage().setText("[").setExtra(
-					new TellRawMessage[] {
-						new TellRawMessage().setText("Market").setBold(true)
-						.setColor("green"),
-						
-						new TellRawMessage().setText("]").setBold(false)
-						.setColor("white"),
-						
-						new TellRawMessage().setText(" A new listing of ").setExtra(
-							new TellRawMessage[] {
-								new TellRawMessage()
-								.setText("[" + market.getItemName(created) + "]")
-								.setColor("green")
-								.setHover(new TellRawHoverEvent()
-										.setAction(TellRawHoverEvent.ACTION_SHOW_ITEM)
-										.setValue(created))
-								.setClick(new TellRawClickEvent()
-										.setAction(TellRawClickEvent.ACTION_RUN_COMMAND)
-										.setValue("/market listings " + listing.getId())),
-		
-								new TellRawMessage()
-								.setText(" was created")
-								.setColor("white")
-						}
-					)
-				})
-			);
+		if (market.getInterfaceHandler() != null) {
+			// Don't run this if we're importing...
+			
+			// TODO: locale support
+			if (market.announceOnCreate()) {
+				ItemStack created = getItem(listing.getItemId(), 1);
+				TellRawUtil.announce(market, 
+					new TellRawMessage().setText("[").setExtra(
+						new TellRawMessage[] {
+							new TellRawMessage().setText("Market").setBold(true)
+							.setColor("green"),
+							
+							new TellRawMessage().setText("]").setBold(false)
+							.setColor("white"),
+							
+							new TellRawMessage().setText(" A new listing of ").setExtra(
+								new TellRawMessage[] {
+									new TellRawMessage()
+									.setText("[" + market.getItemName(created) + "]")
+									.setColor("green")
+									.setHover(new TellRawHoverEvent()
+											.setAction(TellRawHoverEvent.ACTION_SHOW_ITEM)
+											.setValue(created))
+									.setClick(new TellRawClickEvent()
+											.setAction(TellRawClickEvent.ACTION_RUN_COMMAND)
+											.setValue("/market listings " + listing.getId())),
+			
+									new TellRawMessage()
+									.setText(" was created")
+									.setColor("white")
+							}
+						)
+					})
+				);
+			}
 		}
 	}
 	
@@ -623,7 +666,7 @@ public class MarketStorage {
 		return toReturn;
 	}
 	
-	public synchronized List<Listing> getAllListings() {
+	public List<Listing> getAllListings() {
 		return new ArrayList<Listing>(listings.values());
 	}
 	
