@@ -1,5 +1,7 @@
 package com.survivorserver.GlobalMarket.Command;
 
+import java.util.List;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -43,14 +45,27 @@ public class CancelSearchCommand extends SubCommand {
 	@Override
 	public boolean onCommand(CommandSender sender, String[] args) {
 		if (args.length == 2) {
-			SearchResult res = market.getStorage().getListings(sender.getName(), SortMethod.DEFAULT, 1, 1000, args[1], "");
-			if (res.getTotalFound() > 0) {
-				for (Listing listing : res.getPage()) {
-					market.getCore().expireListing(listing);
+			String search = args[1];
+			if (search.equalsIgnoreCase("all")) {
+				List<Listing> listings = market.getStorage().getAllListings();
+				if (listings.size() > 0) {
+					for (Listing listing : listings) {
+						market.getCore().expireListing(listing);
+					}
+					sender.sendMessage(ChatColor.GREEN + "" + listings.size() + " listings cancelled");
+				} else {
+					sender.sendMessage(ChatColor.YELLOW + "There are no listings to cancel");
 				}
-				sender.sendMessage(ChatColor.GREEN + "" + res.getTotalFound() + " listings cancelled");
 			} else {
-				sender.sendMessage(ChatColor.YELLOW + "No results found for \"" + args[1] + "\"");
+				SearchResult res = market.getStorage().getListings(sender.getName(), SortMethod.DEFAULT, 1, 1000, args[1], "");
+				if (res.getTotalFound() > 0) {
+					for (Listing listing : res.getPage()) {
+						market.getCore().expireListing(listing);
+					}
+					sender.sendMessage(ChatColor.GREEN + "" + res.getTotalFound() + " listings cancelled");
+				} else {
+					sender.sendMessage(ChatColor.YELLOW + "No results found for \"" + args[1] + "\"");
+				}
 			}
 		} else {
 			return false;

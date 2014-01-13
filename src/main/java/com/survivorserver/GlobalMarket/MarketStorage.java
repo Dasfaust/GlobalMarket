@@ -665,7 +665,7 @@ public class MarketStorage {
 		return new SearchResult(found.size(), toReturn);
 	}
 	
-	public synchronized void removeListing(int id) {
+	public void removeListing(int id) {
 		Listing listing = listings.get(id);
 		removeFromCondensed(listing);
 		listings.remove(id);
