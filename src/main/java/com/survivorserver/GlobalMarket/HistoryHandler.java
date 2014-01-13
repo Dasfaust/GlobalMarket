@@ -16,11 +16,11 @@ import com.survivorserver.GlobalMarket.SQL.StorageMethod;
 
 public class HistoryHandler {
 
-	Market market;
-	LocaleHandler locale;
-	MarketStorage storage;
-	AsyncDatabase asyncDb;
-	ConfigHandler config;
+	private Market market;
+	private LocaleHandler locale;
+	private MarketStorage storage;
+	private AsyncDatabase asyncDb;
+	private ConfigHandler config;
 	
 	public HistoryHandler(Market market, AsyncDatabase asyncDb, ConfigHandler config) {
 		this.market = market;

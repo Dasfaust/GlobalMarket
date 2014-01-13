@@ -56,6 +56,10 @@ public class Database {
 		this.port = port;
 	}
 	
+	public boolean isSqlite() {
+		return path != null;
+	}
+	
 	public boolean isConnected() {
 		try {
 			Statement s = con.createStatement();

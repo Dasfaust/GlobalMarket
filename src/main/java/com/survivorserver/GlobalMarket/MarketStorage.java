@@ -69,7 +69,7 @@ public class MarketStorage {
 			// Create items table
 			db.createStatement("CREATE TABLE IF NOT EXISTS items ("
 					+ (sqlite ? "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " : "id int NOT NULL PRIMARY KEY AUTO_INCREMENT, ")
-					+ (sqlite ? "item MEDIUMTEXT" : "item MEDIUMTEXT CHARACTER SET utf8 COLLATE utf8_general_ci")
+					+ (sqlite ? "item MEDIUMTEXT UNIQUE" : "item MEDIUMTEXT UNIQUE CHARACTER SET utf8 COLLATE utf8_general_ci")
 					+ ")").execute();
 			// Create listings table
 			db.createStatement("CREATE TABLE IF NOT EXISTS listings ("
@@ -384,7 +384,7 @@ public class MarketStorage {
 				return ent.getKey();
 			}
 		}
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO items (item) VALUES (?)")
+		asyncDb.addStatement(new QueuedStatement((asyncDb.getDb().isSqlite() ? "INSERT OR IGNORE" : "INSERT IGNORE") + " INTO items (item) VALUES (?)")
 		.setValue(storable));
 		items.put(itemIndex, storable);
 		return itemIndex++;
