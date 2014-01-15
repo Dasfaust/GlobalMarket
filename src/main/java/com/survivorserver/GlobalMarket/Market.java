@@ -122,7 +122,7 @@ public class Market extends JavaPlugin implements Listener {
 		
 		File langFile = new File(getDataFolder().getAbsolutePath() + File.separator + "en_US.lang");
 		if (!langFile.exists()) {
-			saveResource("en_PT.lang", true);
+			saveResource("en_US.lang", true);
 		}
 		items = new ItemIndex(this);
 		
