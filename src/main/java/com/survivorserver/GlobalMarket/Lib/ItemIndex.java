@@ -373,11 +373,11 @@ public class ItemIndex {
 		materialLangMap.put(new MaterialData(m("STONE_SPADE")), "item.shovelStone.name");
 		materialLangMap.put(new MaterialData(m("WOOD_SPADE")), "item.shovelWood.name");
 		materialLangMap.put(new MaterialData(m("SIGN")), "item.sign.name");
-		materialLangMap.put(new MaterialData(m("SKULL"), 4), "item.skull.creeper.name");
-		materialLangMap.put(new MaterialData(m("SKULL"), 3), "item.skull.player.name");
-		materialLangMap.put(new MaterialData(m("SKULL")), "item.skull.skeleton.name");
-		materialLangMap.put(new MaterialData(m("SKULL"), 1), "item.skull.wither.name");
-		materialLangMap.put(new MaterialData(m("SKULL"), 2), "item.skull.zombie.name");
+		materialLangMap.put(new MaterialData(m("SKULL_ITEM"), 4), "item.skull.creeper.name");
+		materialLangMap.put(new MaterialData(m("SKULL_ITEM"), 3), "item.skull.player.name");
+		materialLangMap.put(new MaterialData(m("SKULL_ITEM")), "item.skull.skeleton.name");
+		materialLangMap.put(new MaterialData(m("SKULL_ITEM"), 1), "item.skull.wither.name");
+		materialLangMap.put(new MaterialData(m("SKULL_ITEM"), 2), "item.skull.zombie.name");
 		materialLangMap.put(new MaterialData(m("SLIME_BALL")), "item.slimeball.name");
 		materialLangMap.put(new MaterialData(m("SNOW_BALL")), "item.snowball.name");
 		materialLangMap.put(new MaterialData(m("SPECKLED_MELON")), "item.speckledMelon.name");
