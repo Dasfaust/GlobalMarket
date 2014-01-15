@@ -1,8 +1,14 @@
 package com.survivorserver.GlobalMarket.Legacy;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -39,6 +45,18 @@ public class LegacyConfigHandler {
 			listingsConfig = new YamlConfiguration();
 			listingsConfig.load(listingsFile);
 
+			ConfigurationSection listings = listingsConfig.getConfigurationSection("listings");
+			Iterator<String> it = listings.getKeys(false).iterator();
+			while(it.hasNext()) {
+				String id = it.next();
+				ConfigurationSection node = listings.getConfigurationSection(id);
+				
+				if (node.getItemStack("item") ==  null) {
+					listings.set(id, null);
+					market.log.info("Legacy loader: removed corrupt listing ID " + id);
+				}
+			}
+			
 			mailFile = new File(market.getDataFolder(), "mail.yml");
 			currentFile = mailFile;
 			if (!mailFile.exists()) {
@@ -64,11 +82,21 @@ public class LegacyConfigHandler {
 			queueConfig.load(queueFile);
 
 			save = true;
-		} catch(Exception e) {
+		} catch(InvalidConfigurationException e) {
 			market.log.severe("An error occurred while loading "
 					+ currentFile.getName() + ":");
 			e.printStackTrace();
-			market.log.severe("Can't save files until this issue is resolved");
+			market.log.severe("Can't import old save until this is resolved");
+		} catch (FileNotFoundException e) {
+			market.log.severe("An error occurred while loading "
+					+ currentFile.getName() + ":");
+			e.printStackTrace();
+			market.log.severe("Can't import old save until this is resolved");
+		} catch (IOException e) {
+			market.log.severe("An error occurred while loading "
+					+ currentFile.getName() + ":");
+			e.printStackTrace();
+			market.log.severe("Can't import old save until this is resolved");
 		}
 	}
 	
