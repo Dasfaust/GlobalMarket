@@ -1,5 +1,6 @@
 package com.survivorserver.GlobalMarket;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import com.survivorserver.GlobalMarket.Command.MarketCommand;
 import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Legacy.Importer;
+import com.survivorserver.GlobalMarket.Lib.ItemIndex;
 import com.survivorserver.GlobalMarket.Lib.PacketManager;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
 import com.survivorserver.GlobalMarket.SQL.Database;
@@ -71,6 +73,7 @@ public class Market extends JavaPlugin implements Listener {
 	private MarketStorage storage;
 	private Map<String, String[]> worldLinks;
 	private PacketManager packet;
+	private ItemIndex items;
 	String prefix;
 
 	public void onEnable() {
@@ -117,6 +120,12 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 		
+		File langFile = new File(getDataFolder().getAbsolutePath() + File.separator + "en_US.lang");
+		if (!langFile.exists()) {
+			saveResource("en_PT.lang", true);
+		}
+		items = new ItemIndex(this);
+		
 		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
 		if (economyProvider != null) {
 		    econ = economyProvider.getProvider();
@@ -130,12 +139,6 @@ public class Market extends JavaPlugin implements Listener {
 			perms = permsProvider.getProvider();
 		} else {
 			log.warning("You do not have a Vault-enabled permissions plugin. Defaulting to default player limits.");
-		}
-		try {
-			Class.forName("net.milkbowl.vault.item.Items");
-			Class.forName("net.milkbowl.vault.item.ItemInfo");
-		} catch(Exception e) {
-			log.warning("You have an old or corrupt version of Vault that's missing the Vault Items API. Defaulting to Bukkit item names. Please consider updating Vault!");
 		}
 		try {
 			Class.forName("com.comphenix.protocol.ProtocolManager");
@@ -509,24 +512,8 @@ public class Market extends JavaPlugin implements Listener {
 		return getConfig().getString("infinite.account");
 	}
 
-	@SuppressWarnings("deprecation")
 	public String getItemName(ItemStack item) {
-		int amount = item.getAmount();
-		String itemName = item.getType().toString();
-		try {
-			Class.forName("net.milkbowl.vault.item.Items");
-        	Class.forName("net.milkbowl.vault.item.ItemInfo");
-			net.milkbowl.vault.item.ItemInfo itemInfo = net.milkbowl.vault.item.Items.itemById(item.getTypeId());
-			if (itemInfo != null) {
-				itemName = itemInfo.getName();
-			}
-		} catch(Exception ignored) { }
-		if (amount > 1) {
-			itemName = locale.get("friendly_item_name_with_amount", amount, itemName);
-		} else {
-			itemName = locale.get("friendly_item_name", itemName);
-		}
-		return itemName;
+		return items.getItemName(item);
 	}
 	
 	public MarketCommand getCmd() {
