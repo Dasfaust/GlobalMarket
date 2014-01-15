@@ -58,6 +58,13 @@ public class InterfaceListener implements Listener {
 						viewer.resetActions();
 						handler.refreshSlot(viewer, slot, item);
 					} else {
+						// Reset their actions if clicking a different item than last time
+						int lastSlot = viewer.getLastActionSlot();
+						if (lastSlot > -1 && lastSlot != slot) {
+							viewer.resetActions();
+							handler.refreshSlot(viewer, lastSlot, item);
+						}
+						
 						viewer.setLastAction(event.getAction());
 						viewer.setLastActionSlot(slot);
 						

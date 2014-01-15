@@ -16,7 +16,7 @@ public class InterfaceViewer {
 	int currentPage = 1;
 	Inventory gui;
 	InventoryAction lastAction;
-	int lastActionSlot = 0;
+	int lastActionSlot = -1;
 	String search;
 	int lastClicked;
 	int clicks = 0;
