@@ -3,6 +3,7 @@ package com.survivorserver.GlobalMarket.Chat;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import com.survivorserver.GlobalMarket.Market;
 
@@ -15,10 +16,7 @@ public class ChatComponent {
 		this.market = market;
 		
 		try {
-			Class.forName("net.minecraft.server.v1_7_R1.IChatBaseComponent");
-			Class.forName("net.minecraft.util.com.google.gson");
-			Class.forName("org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer");
-			Class.forName("net.minecraft.server.v1_7_R1.PacketPlayOutChat");
+			Class.forName("net.minecraft.server.v1_7_R1.ChatSerializer");
 			tellraw = new TellRawComponent();
 		} catch(Exception ignored) {}
 	}
@@ -119,6 +117,13 @@ public class ChatComponent {
 		builder.append(msg.text);
 	}
 	
+	public String jsonStack(ItemStack item) {
+		if (tellraw != null) {
+			return tellraw.gson.toJson(new TellRawItemStack(item)).replaceAll("\"", "");
+		}
+		return "";
+	}
+	
 	public class TellRawComponent {
 		
 		org.bukkit.craftbukkit.libs.com.google.gson.Gson gson;
@@ -128,22 +133,6 @@ public class ChatComponent {
 		}
 		
 		public void send(Player player, TellRawMessage msg) {
-			if (msg.hoverEvent != null) {
-				if (msg.hoverEvent.item != null) {
-					msg.hoverEvent.value = gson.toJson(msg.hoverEvent.item);
-					msg.hoverEvent.item = null;
-				}
-			}
-			if (msg.extra != null) {
-				for (TellRawMessage ext : msg.extra) {
-					if (ext.hoverEvent != null) {
-						if (ext.hoverEvent.item != null) {
-							ext.hoverEvent.value = gson.toJson(ext.hoverEvent.item);
-							ext.hoverEvent.item = null;
-						}
-					}
-				}
-			}
 			String json = gson.toJson(msg);
 			net.minecraft.server.v1_7_R1.IChatBaseComponent comp = net.minecraft.server.v1_7_R1.ChatSerializer.a(json);
 			((org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer) player).getHandle().playerConnection.sendPacket(new net.minecraft.server.v1_7_R1.PacketPlayOutChat(comp, true));

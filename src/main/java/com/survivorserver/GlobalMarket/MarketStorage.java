@@ -614,7 +614,7 @@ public class MarketStorage {
 									.setColor("green")
 									.setHover(new TellRawHoverEvent()
 											.setAction(TellRawHoverEvent.ACTION_SHOW_ITEM)
-											.setValue(created))
+											.setValue(market.getChat().jsonStack(created)))
 									.setClick(new TellRawClickEvent()
 											.setAction(TellRawClickEvent.ACTION_RUN_COMMAND)
 											.setValue("/market listings " + listing.getId())),
