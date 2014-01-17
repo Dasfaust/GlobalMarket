@@ -259,9 +259,9 @@ public class ListingsInterface extends MarketInterface {
 		if (curMeta == null) {
 			curMeta = market.getServer().getItemFactory().getItemMeta(curPage.getType());
 		}
-		curMeta.setDisplayName(ChatColor.WHITE + "Sort By...");
+		curMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.sort_by"));
 		List<String> curLore = new ArrayList<String>();
-		curLore.add(ChatColor.YELLOW + "Sorting by: " + viewer.getSort().toString());
+		curLore.add(ChatColor.YELLOW + market.getLocale().get("interface.sorting_by", market.getLocale().get("interface.sort_methods." + viewer.getSort().toString())));
 		curMeta.setLore(curLore);
 		curPage.setItemMeta(curMeta);
 		contents[contents.length - 5] = curPage;
@@ -270,13 +270,13 @@ public class ListingsInterface extends MarketInterface {
 			// Create button
 			ItemStack create = new ItemStack(Material.HOPPER);
 			ItemMeta createMeta = create.getItemMeta();
-			createMeta.setDisplayName(ChatColor.RESET + "Create...");
+			createMeta.setDisplayName(ChatColor.RESET + market.getLocale().get("interface.create"));
 			List<String> createLore = new ArrayList<String>();
 			if (viewer.getCreateMessage() != null) {
 				createLore.add(ChatColor.RED + "<" + viewer.getCreateMessage() + ">");
 				viewer.resetActions();
 			} else {
-				createLore.add(ChatColor.GREEN + "Swap an item into this slot to create a listing");
+				createLore.add(ChatColor.GREEN + market.getLocale().get("interface.swap_to_create"));
 			}
 			createMeta.setLore(createLore);
 			create.setItemMeta(createMeta);
@@ -320,7 +320,7 @@ public class ListingsInterface extends MarketInterface {
 				// Let's get their input
 				String down = "\u25bc";
 				String[] placeholder = new String[] {ChatColor.AQUA + down + " Amount " + down + ChatColor.RESET, Integer.toString(item.getAmount()), ChatColor.AQUA + down + " Price " + down + ChatColor.RESET, ""};
-				packet.getMessage().display(player, ChatColor.YELLOW + "Specify the amount and price!", 100);
+				packet.getMessage().display(player, ChatColor.YELLOW + market.getLocale().get("specify_amount_and_price"), 100);
 				packet.getSignInput().create(player, placeholder, packet.getSignInput().new InputResult() {
 					@Override
 					public void finished(final Player player, final String[] input, final boolean cancelled) {

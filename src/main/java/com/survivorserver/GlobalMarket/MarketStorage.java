@@ -593,25 +593,28 @@ public class MarketStorage {
 		}
 		condensedListings.add(listing);
 		
-		if (market.getInterfaceHandler() != null) {
+		if (market.getChat() != null) {
 			// Don't run this if we're importing...
 			
-			// TODO: locale support
 			if (market.announceOnCreate()) {
 				ItemStack created = getItem(listing.getItemId(), 1);
-				market.getChat().announce(new TellRawMessage().setText("[").setExtra(
+				market.getChat().announce(new TellRawMessage().setText(market.getLocale().get("listing_created.prefix1"))
+						.setColor(market.getLocale().get("listing_created.prefix1_color"))
+						.setExtra(
 						new TellRawMessage[] {
-							new TellRawMessage().setText("Market").setBold(true)
-							.setColor("green"),
+							new TellRawMessage().setText(market.getLocale().get("listing_created.prefix2")).setBold(true)
+							.setColor(market.getLocale().get("listing_created.prefix2_color")),
 							
-							new TellRawMessage().setText("]").setBold(false)
-							.setColor("white"),
+							new TellRawMessage().setText(market.getLocale().get("listing_created.prefix3")).setBold(false)
+							.setColor(market.getLocale().get("listing_created.prefix3_color")),
 							
-							new TellRawMessage().setText(" A new listing of ").setExtra(
+							new TellRawMessage().setText(market.getLocale().get("listing_created.main"))
+							.setColor(market.getLocale().get("listing_created.main_color"))
+							.setExtra(
 								new TellRawMessage[] {
 									new TellRawMessage()
-									.setText("[" + market.getItemName(created) + "]")
-									.setColor("green")
+									.setText(market.getLocale().get("listing_created.item", market.getItemName(created)))
+									.setColor(market.getLocale().get("listing_created.item_color"))
 									.setHover(new TellRawHoverEvent()
 											.setAction(TellRawHoverEvent.ACTION_SHOW_ITEM)
 											.setValue(market.getChat().jsonStack(created)))
@@ -620,8 +623,8 @@ public class MarketStorage {
 											.setValue("/market listings " + listing.getId())),
 			
 									new TellRawMessage()
-									.setText(" was created")
-									.setColor("white")
+									.setText(market.getLocale().get("listing_created.suffix"))
+									.setColor(market.getLocale().get("listing_created.suffix_color"))
 							}
 						)
 					})

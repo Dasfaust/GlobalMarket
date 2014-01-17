@@ -524,7 +524,12 @@ public class Market extends JavaPlugin implements Listener {
 	}
 
 	public String getItemName(ItemStack item) {
-		return items.getItemName(item);
+		String itemName = items.getItemName(item);
+		if (item.getAmount() > 1) {
+			return locale.get("friendly_item_name_with_amount", item.getAmount(), itemName);
+		} else {
+			return locale.get("friendly_item_name", itemName);
+		}
 	}
 	
 	public MarketCommand getCmd() {

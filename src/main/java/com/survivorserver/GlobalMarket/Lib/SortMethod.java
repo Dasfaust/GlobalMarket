@@ -2,10 +2,10 @@ package com.survivorserver.GlobalMarket.Lib;
 
 public enum SortMethod {
 
-	DEFAULT("newest"),
-	PRICE_LOWEST("lowest price"),
-	PRICE_HIGHEST("highest price"),
-	AMOUNT_HIGHEST("highest amount");
+	DEFAULT("latest"),
+	PRICE_LOWEST("lowest_price"),
+	PRICE_HIGHEST("highest_price"),
+	AMOUNT_HIGHEST("highest_amount");
 	
 	private String method;
 	

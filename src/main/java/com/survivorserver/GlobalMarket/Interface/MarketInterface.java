@@ -61,6 +61,7 @@ public abstract class MarketInterface {
 					viewer.setSearch(null);
 					viewer.resetActions();
 					handler.refreshViewer(viewer, viewer.getInterface().getName());
+					return;
 				}
 			}
 		}
@@ -71,6 +72,7 @@ public abstract class MarketInterface {
 				viewer.setPage(viewer.getPage() + 1);
 				viewer.resetActions();
 				handler.refreshViewer(viewer, viewer.getInterface().getName());
+				return;
 			}
 		}
 		
@@ -80,6 +82,7 @@ public abstract class MarketInterface {
 				viewer.setPage(viewer.getPage() - 1);
 				viewer.resetActions();
 				handler.refreshViewer(viewer, viewer.getInterface().getName());
+				return;
 			}
 		}
 	}
