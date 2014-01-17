@@ -199,51 +199,52 @@ public class ListingsInterface extends MarketInterface {
 	}
 	
 	@Override
-	public void onUnboundClick(final Market market, final InterfaceHandler handler, final InterfaceViewer viewer, int slot, final InventoryClickEvent event, int invSize) {
-		super.onUnboundClick(market, handler, viewer, slot, event, invSize);
+	public void onUnboundClick(final Market market, final InterfaceHandler handler, final InterfaceViewer viewer, int slot, final InventoryClickEvent event) {
+		super.onUnboundClick(market, handler, viewer, slot, event);
+		int invSize = event.getInventory().getSize();
+		
+		if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
+			return;
+		}
 		
 		// Sort toggle
 		if (slot == invSize - 5) {
-			if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-				SortMethod sort = viewer.getSort();
-				if (sort == SortMethod.DEFAULT) {
-					viewer.setSort(SortMethod.PRICE_HIGHEST);
-				} else if (sort == SortMethod.PRICE_HIGHEST) {
-					viewer.setSort(SortMethod.PRICE_LOWEST);
-				} else if(sort == SortMethod.PRICE_LOWEST) {
-					viewer.setSort(SortMethod.AMOUNT_HIGHEST);
-				} else {
-					viewer.setSort(SortMethod.DEFAULT);
-				}
-				handler.refreshViewer(viewer, viewer.getInterface().getName());
+			SortMethod sort = viewer.getSort();
+			if (sort == SortMethod.DEFAULT) {
+				viewer.setSort(SortMethod.PRICE_HIGHEST);
+			} else if (sort == SortMethod.PRICE_HIGHEST) {
+				viewer.setSort(SortMethod.PRICE_LOWEST);
+			} else if(sort == SortMethod.PRICE_LOWEST) {
+				viewer.setSort(SortMethod.AMOUNT_HIGHEST);
+			} else {
+				viewer.setSort(SortMethod.DEFAULT);
 			}
+			handler.refreshViewer(viewer, viewer.getInterface().getName());
 			return;
 		}
 		
 		if (market.useProtocolLib()) {
 			// Create
 			if (slot == invSize - 8) {
-				if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-					if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
-						// Put the item back into the inv for safe keeping
-						int last = viewer.getLastLowerSlot();
-						Inventory inv = event.getWhoClicked().getInventory();
-						ItemStack cursor = event.getCursor().clone();
-						event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
-						if (last >= 0) {
-							ItemStack lastSlot = inv.getItem(last);
-							if (lastSlot == null || lastSlot.getType() == Material.AIR) {
-								inv.setItem(last, cursor);
-							} else {
-								ItemStack lastItem = inv.getItem(last);
-								lastItem.setAmount(lastItem.getAmount() + cursor.getAmount());
-							}
-							create((Player) event.getWhoClicked(), inv.getItem(last), viewer);
+				if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
+					// Put the item back into the inv for safe keeping
+					int last = viewer.getLastLowerSlot();
+					Inventory inv = event.getWhoClicked().getInventory();
+					ItemStack cursor = event.getCursor().clone();
+					event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
+					if (last >= 0) {
+						ItemStack lastSlot = inv.getItem(last);
+						if (lastSlot == null || lastSlot.getType() == Material.AIR) {
+							inv.setItem(last, cursor);
+						} else {
+							ItemStack lastItem = inv.getItem(last);
+							lastItem.setAmount(lastItem.getAmount() + cursor.getAmount());
 						}
-					} else {
-						viewer.resetActions();
-						handler.refreshFunctionBar(viewer);
+						create((Player) event.getWhoClicked(), inv.getItem(last), viewer);
 					}
+				} else {
+					viewer.resetActions();
+					handler.refreshFunctionBar(viewer);
 				}
 			}
 		}

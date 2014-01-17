@@ -45,45 +45,44 @@ public abstract class MarketInterface {
 	
 	public abstract void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv);
 	
-	public void onUnboundClick(Market market, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event, int invSize) {
+	public void onUnboundClick(Market market, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event) {
 		Player player = (Player) event.getWhoClicked();
+		int invSize = event.getInventory().getSize();
+		
+		if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
+			return;
+		}
 		
 		// Searching
 		if (slot == invSize - 7) {
-			if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-				if (viewer.getSearch() == null) {
-					player.closeInventory();
-					market.startSearch(player, viewer.getInterface().getName());
-					handler.removeViewer(viewer);
-					return;
-				} else {
-					// Cancel search
-					viewer.setSearch(null);
-					viewer.resetActions();
-					handler.refreshViewer(viewer, viewer.getInterface().getName());
-					return;
-				}
+			if (viewer.getSearch() == null) {
+				player.closeInventory();
+				market.startSearch(player, viewer.getInterface().getName());
+				handler.removeViewer(viewer);
+				return;
+			} else {
+				// Cancel search
+				viewer.setSearch(null);
+				viewer.resetActions();
+				handler.refreshViewer(viewer, viewer.getInterface().getName());
+				return;
 			}
 		}
 		
 		// Next page
 		if (slot == invSize - 1) {
-			if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-				viewer.setPage(viewer.getPage() + 1);
-				viewer.resetActions();
-				handler.refreshViewer(viewer, viewer.getInterface().getName());
-				return;
-			}
+			viewer.setPage(viewer.getPage() + 1);
+			viewer.resetActions();
+			handler.refreshViewer(viewer, viewer.getInterface().getName());
+			return;
 		}
 		
 		// Previous page
 		if (slot == invSize - 9) {
-			if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-				viewer.setPage(viewer.getPage() - 1);
-				viewer.resetActions();
-				handler.refreshViewer(viewer, viewer.getInterface().getName());
-				return;
-			}
+			viewer.setPage(viewer.getPage() - 1);
+			viewer.resetActions();
+			handler.refreshViewer(viewer, viewer.getInterface().getName());
+			return;
 		}
 	}
 	

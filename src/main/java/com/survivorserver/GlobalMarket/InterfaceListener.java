@@ -45,7 +45,6 @@ public class InterfaceListener implements Listener {
 				event.setCancelled(true);
 				event.setResult(Result.DENY);
 				
-				int invSize = viewer.getGui().getContents().length;
 				// We've left clicked or shift clicked
 				// Let's update the viewer object with what's happened, so the handler can do stuff with it
 				
@@ -90,7 +89,10 @@ public class InterfaceListener implements Listener {
 						}
 					}
 				} else {
-					inter.onUnboundClick(market, handler, viewer, slot, event, invSize);
+					if (event.isRightClick()) {
+						return;
+					}
+					inter.onUnboundClick(market, handler, viewer, rawSlot, event);
 				}
 			} else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
 					|| (event.getAction() == InventoryAction.PLACE_ALL
