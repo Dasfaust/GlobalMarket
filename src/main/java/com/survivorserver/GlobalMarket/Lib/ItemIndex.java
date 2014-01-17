@@ -3,8 +3,11 @@ package com.survivorserver.GlobalMarket.Lib;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -70,6 +73,11 @@ public class ItemIndex {
 		}
 	}
 	
+	public void reloadLang() {
+		lang.clear();
+		loadLang();
+	}
+	
 	public String getItemName(ItemStack item) {
 		Material mat = item.getType();
 		int damage = item.getDurability();
@@ -102,6 +110,42 @@ public class ItemIndex {
 			}
 		}
 		return name;
+	}
+	
+	public List<MaterialData> find(String search) {
+		List<MaterialData> found = new ArrayList<MaterialData>();
+		List<String> matched = new ArrayList<String>();
+		String[] s = search.split(" ");
+		for (Entry<String, String> entry : lang.entrySet()) {
+			String v = entry.getValue().toLowerCase();
+			if (s.length > 1) {
+				boolean m = true;
+				for (String f : s) {
+					if (!v.contains(f.toLowerCase())) {
+						m = false;
+					}
+				}
+				if (m) {
+					matched.add(entry.getKey());
+				}
+			} else {
+				if (v.contains(search.toLowerCase())) {
+					matched.add(entry.getKey());
+				}
+			}
+		}
+		if (!matched.isEmpty()) {
+			for (Entry<MaterialData, String> entry : materialLangMap.entrySet()) {
+				inner:
+				for (String match : matched) {
+					if (entry.getValue().equalsIgnoreCase(match)) {
+						found.add(entry.getKey());
+						break inner;
+					}
+				}
+			}
+		}
+		return found;
 	}
 	
 	public String getLocalized(String path) {

@@ -204,6 +204,10 @@ public class Market extends JavaPlugin implements Listener {
 		}
 	}
 	
+	public ItemIndex getItemIndex() {
+		return items;
+	}
+	
 	public Economy getEcon() {
 		return econ;
 	}

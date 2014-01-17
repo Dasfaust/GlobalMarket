@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
+import net.minecraft.util.com.google.gson.Gson;
+
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -196,7 +198,7 @@ public class MarketStorage {
 			 */
 			items.clear();
 			if (itemIds.size() > 0) {
-				StringBuilder query = new StringBuilder();
+				/*StringBuilder query = new StringBuilder();
 				query.append("SELECT * FROM items WHERE id IN (");
 				for (int i = 0; i < itemIds.size(); i++) {
 					query.append(itemIds.get(i));
@@ -206,13 +208,18 @@ public class MarketStorage {
 						query.append(", ");
 					}
 				}
-				res = db.createStatement(query.toString()).query();
+				res = db.createStatement(query.toString()).query();*/
+				
+				// Probably need a better fix for mismatched item IDs than this
+				res = db.createStatement("SELECT * FROM items").query();
 				Map<Integer, String> sanitizedItems = new HashMap<Integer, String>();
 				while(res.next()) {
 					try {
 						YamlConfiguration conf = new YamlConfiguration();
 						conf.loadFromString(res.getString(2));
-						items.put(res.getInt(1), conf.getItemStack("item").clone());
+						int itemId = res.getInt(1);
+						items.put(itemId, conf.getItemStack("item").clone());
+						itemIds.remove(new Integer(itemId));
 					} catch(Exception e) {
 						if (e instanceof InvalidConfigurationException) {
 							int itemId = res.getInt(1);
@@ -227,6 +234,10 @@ public class MarketStorage {
 							corruptItems.add(itemId);
 						}
 					}
+				}
+				for (int itemId : itemIds) {
+					market.log.warning(String.format("Item ID %s was requested but not found, perhaps a database desync?", itemId));
+					corruptItems.add(itemId);
 				}
 				for (Entry<Integer, String> entry : sanitizedItems.entrySet()) {
 					db.createStatement("UPDATE items SET item=? WHERE id=?").setString(entry.getValue()).setInt(entry.getKey()).execute();
@@ -423,8 +434,16 @@ public class MarketStorage {
 				return ent.getKey();
 			}
 		}
-		asyncDb.addStatement(new QueuedStatement((asyncDb.getDb().isSqlite() ? "INSERT OR IGNORE" : "INSERT IGNORE") + " INTO items (item) VALUES (?)")
-		.setValue(storable));
+		if (asyncDb.getDb().isSqlite()) {
+			asyncDb.addStatement(new QueuedStatement("INSERT OR IGNORE INTO items (item) VALUES (?)")
+			.setValue(storable));
+		} else {
+			String store = itemStackToString(storable);
+			asyncDb.addStatement(new QueuedStatement("INSERT INTO items (item) SELECT * FROM (SELECT ?) AS tmp WHERE NOT EXISTS (SELECT item FROM items WHERE item = ?) LIMIT 1;")
+			.setValue(store)
+			.setValue(store));
+		}
+		
 		items.put(itemIndex, storable);
 		return itemIndex++;
 	}
@@ -599,7 +618,7 @@ public class MarketStorage {
 									.setColor("green")
 									.setHover(new TellRawHoverEvent()
 											.setAction(TellRawHoverEvent.ACTION_SHOW_ITEM)
-											.setValue(created))
+											.setValue(created, new Gson()))
 									.setClick(new TellRawClickEvent()
 											.setAction(TellRawClickEvent.ACTION_RUN_COMMAND)
 											.setValue("/market listings " + listing.getId())),
