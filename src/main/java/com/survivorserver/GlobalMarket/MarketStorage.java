@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
-import net.minecraft.util.com.google.gson.Gson;
-
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -28,7 +26,6 @@ import com.google.common.collect.Lists;
 import com.survivorserver.GlobalMarket.Chat.TellRawClickEvent;
 import com.survivorserver.GlobalMarket.Chat.TellRawHoverEvent;
 import com.survivorserver.GlobalMarket.Chat.TellRawMessage;
-import com.survivorserver.GlobalMarket.Chat.TellRawUtil;
 import com.survivorserver.GlobalMarket.Lib.SearchResult;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
 import com.survivorserver.GlobalMarket.SQL.Database;
@@ -602,8 +599,7 @@ public class MarketStorage {
 			// TODO: locale support
 			if (market.announceOnCreate()) {
 				ItemStack created = getItem(listing.getItemId(), 1);
-				TellRawUtil.announce(market, 
-					new TellRawMessage().setText("[").setExtra(
+				market.getChat().announce(new TellRawMessage().setText("[").setExtra(
 						new TellRawMessage[] {
 							new TellRawMessage().setText("Market").setBold(true)
 							.setColor("green"),
@@ -618,7 +614,7 @@ public class MarketStorage {
 									.setColor("green")
 									.setHover(new TellRawHoverEvent()
 											.setAction(TellRawHoverEvent.ACTION_SHOW_ITEM)
-											.setValue(created, new Gson()))
+											.setValue(created))
 									.setClick(new TellRawClickEvent()
 											.setAction(TellRawClickEvent.ACTION_RUN_COMMAND)
 											.setValue("/market listings " + listing.getId())),

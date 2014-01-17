@@ -41,6 +41,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.survivorserver.GlobalMarket.Chat.ChatComponent;
 import com.survivorserver.GlobalMarket.Command.MarketCommand;
 import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Legacy.Importer;
@@ -74,6 +75,7 @@ public class Market extends JavaPlugin implements Listener {
 	private Map<String, String[]> worldLinks;
 	private PacketManager packet;
 	private ItemIndex items;
+	private ChatComponent chat;
 	String prefix;
 
 	public void onEnable() {
@@ -202,10 +204,15 @@ public class Market extends JavaPlugin implements Listener {
 		if (enableMultiworld()) {
 			buildWorldLinks();
 		}
+		chat = new ChatComponent(this);
 	}
 	
 	public ItemIndex getItemIndex() {
 		return items;
+	}
+	
+	public ChatComponent getChat() {
+		return chat;
 	}
 	
 	public Economy getEcon() {

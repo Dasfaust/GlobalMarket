@@ -1,7 +1,5 @@
 package com.survivorserver.GlobalMarket.Chat;
 
-import net.minecraft.util.com.google.gson.Gson;
-
 import org.bukkit.inventory.ItemStack;
 
 public class TellRawHoverEvent {
@@ -13,6 +11,8 @@ public class TellRawHoverEvent {
 	public String action;
 	public String value;
 	
+	public TellRawItemStack item;
+	
 	public TellRawHoverEvent setAction(String action) {
 		this.action = action;
 		return this;
@@ -23,9 +23,8 @@ public class TellRawHoverEvent {
 		return this;
 	}
 
-	public TellRawHoverEvent setValue(ItemStack item, Gson gson) {
-		TellRawItemStack stack = new TellRawItemStack(item);
-		this.value = gson.toJson(stack).replaceAll("\"", "");
+	public TellRawHoverEvent setValue(ItemStack item) {
+		this.item = new TellRawItemStack(item);
 		return this;
 	}
 }
