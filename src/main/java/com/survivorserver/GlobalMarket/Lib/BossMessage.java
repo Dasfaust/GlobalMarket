@@ -11,6 +11,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.comphenix.packetwrapper.WrapperPlayServerSpawnEntityLiving;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -30,7 +31,6 @@ public class BossMessage {
 		manager = ProtocolLibrary.getProtocolManager();
 	}
 	
-	@SuppressWarnings("deprecation")
 	public boolean display(Player player, String message, int ticks) {		
 		try {
 			if (active.containsKey(player.getName())) {
@@ -43,23 +43,21 @@ public class BossMessage {
 			
 			Location loc = player.getLocation();
 			
-			PacketContainer packet = manager.createPacket(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
-			packet.getIntegers()
-			.write(0, MOB_ID)
-			.write(1, (int) EntityType.WITHER.getTypeId())
-			.write(2, (int) Math.floor(loc.getBlockX() * 32.0D))
-			.write(3, (int) Math.floor((loc.getBlockY() - 4) * 32.0D))
-			.write(4, (int) Math.floor(loc.getBlockZ() * 32.0D));
-			
 			WrappedDataWatcher watcher = new WrappedDataWatcher();
-			watcher.setObject(0, (Byte) (byte) 0x20);
-			watcher.setObject(6, (Float) (float) 1);
-			watcher.setObject(10, (String) message);
-			watcher.setObject(11, (Byte) (byte) 1);
+			watcher.setObject(0, (byte) 0x20);
+			watcher.setObject(6, (float) 1);
+			watcher.setObject(10, message);
+			watcher.setObject(11, (byte) 1);
 			
-			packet.getDataWatcherModifier().write(0, watcher);
+			WrapperPlayServerSpawnEntityLiving spawnEntity = new WrapperPlayServerSpawnEntityLiving();
+			spawnEntity.setEntityID(MOB_ID);
+			spawnEntity.setType(EntityType.ENDER_DRAGON);
+			spawnEntity.setX(loc.getX());
+			spawnEntity.setY(loc.getY() - 200);
+			spawnEntity.setZ(loc.getZ());
+			spawnEntity.setMetadata(watcher);
 			
-			manager.sendServerPacket(player, packet);
+			manager.sendServerPacket(player, spawnEntity.getHandle());
 			
 			final String name = player.getName();
 			active.put(player.getName(), new BukkitRunnable() {

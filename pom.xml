@@ -46,7 +46,12 @@
 		<dependency>
 			<groupId>com.comphenix.protocol</groupId>
 			<artifactId>ProtocolLib</artifactId>
-			<version>3.0.1</version>
+			<version>3.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.comphenix.packetwrapper</groupId>
+			<artifactId>PacketWrapper</artifactId>
+			<version>1.7.2-R0.3</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -60,6 +65,48 @@
 		            <target>1.6</target>
 				</configuration>
 			</plugin>
+						<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<minimizeJar>true</minimizeJar>
+					<artifactSet>
+						<excludes>
+							<exclude>org.bukkit:bukkit</exclude>
+							<exclude>org.bukkit:craftbukkit</exclude>
+							<exclude>net.milkbowl.vault:Vault</exclude>
+							<exclude>com.comphenix.protocol:ProtocolLib</exclude>
+							<exclude>com.comphenix.executors:BukkitExecutors</exclude>
+							<exclude>cglib:cglib-nodep</exclude>
+						</excludes>
+					</artifactSet>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
+					</filters>
+					<relocations>
+		                <relocation>
+		                  <pattern>com.comphenix.packetwrapper</pattern>
+		                  <shadedPattern>com.survivorserver.GlobalMarket.Lib.PacketWrapper</shadedPattern>
+		                </relocation>
+		              </relocations>
+				</configuration>
+			</plugin>
 		</plugins>
 		<resources>
 			<resource>
@@ -67,6 +114,7 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
+		
 	</build>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
