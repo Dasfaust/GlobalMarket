@@ -47,6 +47,8 @@ import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Legacy.Importer;
 import com.survivorserver.GlobalMarket.Lib.ItemIndex;
 import com.survivorserver.GlobalMarket.Lib.PacketManager;
+import com.survivorserver.GlobalMarket.Lib.Updater;
+import com.survivorserver.GlobalMarket.Lib.Updater.UpdateResult;
 import com.survivorserver.GlobalMarket.SQL.AsyncDatabase;
 import com.survivorserver.GlobalMarket.SQL.Database;
 import com.survivorserver.GlobalMarket.SQL.StorageMethod;
@@ -76,6 +78,7 @@ public class Market extends JavaPlugin implements Listener {
 	private PacketManager packet;
 	private ItemIndex items;
 	private ChatComponent chat;
+	private Updater updater;
 	String prefix;
 
 	public void onEnable() {
@@ -205,6 +208,7 @@ public class Market extends JavaPlugin implements Listener {
 			buildWorldLinks();
 		}
 		chat = new ChatComponent(this);
+		updater = new Updater(this, 56267, this.getFile(), Updater.UpdateType.DEFAULT, false);
 	}
 	
 	public ItemIndex getItemIndex() {
@@ -748,10 +752,17 @@ public class Market extends JavaPlugin implements Listener {
 				}
 			}
 		}.runTaskLater(this, 10);
-		Player player = event.getPlayer();
+		final Player player = event.getPlayer();
 		if (player.hasPermission("globalmarket.admin")) {
 			if (getConfig().getBoolean("notify_on_update")) {
-				new UpdateCheck(this, player.getName());
+				new BukkitRunnable() {
+					@Override
+					public void run() {
+						if (updater.getResult() == UpdateResult.UPDATE_AVAILABLE) {
+							player.sendMessage(prefix + "A new version is available: " + updater.getLatestName());
+						}
+					}
+				}.runTaskAsynchronously(this);
 			}
 		}
 	}
