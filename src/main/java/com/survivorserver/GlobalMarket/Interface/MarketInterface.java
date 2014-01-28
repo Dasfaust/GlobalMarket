@@ -6,6 +6,7 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -54,7 +55,7 @@ public abstract class MarketInterface {
 		}
 		
 		// Searching
-		if (slot == invSize - 7) {
+		if (slot == invSize - 7 && event.getAction() != InventoryAction.SWAP_WITH_CURSOR) {
 			if (viewer.getSearch() == null) {
 				player.closeInventory();
 				market.startSearch(player, viewer.getInterface().getName());
