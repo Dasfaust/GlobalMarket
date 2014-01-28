@@ -126,6 +126,13 @@ public class Listing implements MarketItem, Comparable<Listing> {
 	
 	public static class Comparators {
 		
+		public static Comparator<Listing> RECENT = new Comparator<Listing>() {
+			@Override
+			public int compare(Listing o1, Listing o2) {
+				return new Long(o1.getTime()).compareTo(o2.getTime());
+			}
+		};
+		
 		public static Comparator<Listing> PRICE_LOWEST = new Comparator<Listing>() {
 			@Override
 			public int compare(Listing o1, Listing o2) {

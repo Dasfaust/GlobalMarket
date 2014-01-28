@@ -552,6 +552,7 @@ public class MarketStorage {
 		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(condensedListings);
 		switch(sort) {
 			default:
+				Collections.sort(list, Listing.Comparators.RECENT);
 				break;
 			case PRICE_HIGHEST:
 				Collections.sort(list, Listing.Comparators.PRICE_HIGHEST);
