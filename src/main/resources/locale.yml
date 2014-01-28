@@ -113,6 +113,8 @@ english:
         swap_to_create: "Swap an item into this slot to create a listing"
         create: "Create..."
         specify_amount_and_price: "Specify the amount and price"
+        amount_sign: "\u25bc Amount \u25bc"
+        price_sign: "\u25bc Price \u25bc"
     interface_closed_due_to_reload: "Interface force-closed due to a reload"
     config_reloaded: "Config reloaded"
     no_permission_for_this_command: "You do not have permission for this command"

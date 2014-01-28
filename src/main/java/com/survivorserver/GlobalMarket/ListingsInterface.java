@@ -319,8 +319,7 @@ public class ListingsInterface extends MarketInterface {
 			public void run() {
 				player.closeInventory();
 				// Let's get their input
-				String down = "\u25bc";
-				String[] placeholder = new String[] {ChatColor.AQUA + down + " Amount " + down + ChatColor.RESET, Integer.toString(item.getAmount()), ChatColor.AQUA + down + " Price " + down + ChatColor.RESET, ""};
+				String[] placeholder = new String[] {ChatColor.AQUA + locale.get("interface.amount_sign") + ChatColor.RESET, Integer.toString(item.getAmount()), ChatColor.AQUA + locale.get("interface.price_sign") + ChatColor.RESET, ""};
 				packet.getMessage().display(player, ChatColor.YELLOW + market.getLocale().get("interface.specify_amount_and_price"), 100);
 				packet.getSignInput().create(player, placeholder, packet.getSignInput().new InputResult() {
 					@Override
