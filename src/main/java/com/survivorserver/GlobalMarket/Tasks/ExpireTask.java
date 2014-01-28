@@ -29,6 +29,9 @@ public class ExpireTask extends BukkitRunnable {
 	public void run() {
 		Collection<Listing> expired = Collections2.filter(market.getStorage().getAllListings(), new Predicate<Listing>() {
 			public boolean apply(Listing listing) {
+				if (listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+					return false;
+				}
 				long diff = System.currentTimeMillis() - listing.getTime();
 				int expireTime = market.getExpireTime(listing.getSeller(), listing.getWorld());
 				return expireTime > 0 ? (diff / (60 * 60 * 1000)) >= expireTime : false;
