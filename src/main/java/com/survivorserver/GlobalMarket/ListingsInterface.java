@@ -208,7 +208,7 @@ public class ListingsInterface extends MarketInterface {
 		}
 		
 		// Sort toggle
-		if (slot == invSize - 5) {
+		if (slot == invSize - 5 && event.getAction() != InventoryAction.SWAP_WITH_CURSOR) {
 			SortMethod sort = viewer.getSort();
 			if (sort == SortMethod.DEFAULT) {
 				viewer.setSort(SortMethod.PRICE_HIGHEST);

@@ -54,8 +54,13 @@ public abstract class MarketInterface {
 			return;
 		}
 		
+		// Bukkit wants to eat items...
+		if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
+			return;
+		}
+		
 		// Searching
-		if (slot == invSize - 7 && event.getAction() != InventoryAction.SWAP_WITH_CURSOR) {
+		if (slot == invSize - 7) {
 			if (viewer.getSearch() == null) {
 				player.closeInventory();
 				market.startSearch(player, viewer.getInterface().getName());
