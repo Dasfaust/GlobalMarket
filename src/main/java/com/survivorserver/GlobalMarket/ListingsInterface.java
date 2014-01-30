@@ -88,7 +88,10 @@ public class ListingsInterface extends MarketInterface {
 			if (leftClick) {
 				if (market.getEcon().has(viewer.getViewer(), listing.getPrice())) {
 					if (viewer.getClicks() >= 2) {
-						buyMsg = ChatColor.RED + market.getLocale().get("interface.transaction_error");
+						if (!listing.getSeller().equalsIgnoreCase(market.getInfiniteSeller())) {
+							buyMsg = ChatColor.RED + market.getLocale().get("interface.transaction_error");
+							viewer.resetActions();
+						}
 					} else {
 						buyMsg = ChatColor.GREEN + market.getLocale().get("click_again_to_confirm");
 					}
