@@ -554,6 +554,9 @@ public class MarketStorage {
 			default:
 				Collections.sort(list, Listing.Comparators.RECENT);
 				break;
+			case DEFAULT:
+				Collections.sort(list, Listing.Comparators.RECENT);
+				break;
 			case PRICE_HIGHEST:
 				Collections.sort(list, Listing.Comparators.PRICE_HIGHEST);
 				break;
