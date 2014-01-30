@@ -73,7 +73,11 @@ public class LegacyMarketStorage {
 		if (config.getListingsYML().isSet("listings")) {
 			for (String l : config.getListingsYML().getConfigurationSection("listings").getKeys(false)) {
 				String path = "listings." + l;
-				Listing listing = new Listing(Integer.parseInt(l), config.getListingsYML().getItemStack(path + ".item").clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
+				ItemStack item = config.getListingsYML().getItemStack(path + ".item");
+				if (item == null || item.getType() == Material.AIR) {
+					continue;
+				}
+				Listing listing = new Listing(Integer.parseInt(l), item.clone(), config.getListingsYML().getString(path + ".seller"), config.getListingsYML().getDouble(path + ".price"), config.getListingsYML().getLong(path + ".time"));
 				listings.add(listing);
 			}
 			Collections.reverse(listings);
