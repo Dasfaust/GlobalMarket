@@ -33,6 +33,20 @@ public class ChatComponent {
 		}
 	}
 	
+	public void announce(TellRawMessage message, String perm) {
+		for (World world : market.getServer().getWorlds()) {
+			for (Player player : world.getPlayers()) {
+				if (player.hasPermission(perm)) {
+					if (tellraw != null) {
+						tellraw.send(player, message);
+					} else {
+						player.sendMessage(buildMessage(message));
+					}
+				}
+			}
+		}
+	}
+	
 	public void send(Player player, TellRawMessage message) {
 		if (tellraw != null) {
 			tellraw.send(player, message);

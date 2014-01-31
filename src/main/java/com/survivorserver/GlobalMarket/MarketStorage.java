@@ -632,7 +632,7 @@ public class MarketStorage {
 							}
 						)
 					})
-				);
+				, "globalmarket.seeannounce");
 			}
 		}
 	}
