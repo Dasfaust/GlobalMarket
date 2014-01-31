@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket.Lib;
 
 import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.survivorserver.GlobalMarket.Market;
 
 public class PacketManager {
@@ -24,6 +25,9 @@ public class PacketManager {
 	}
 	
 	public void unregister() {
-		ProtocolLibrary.getProtocolManager().removePacketListeners(market);
+		ProtocolManager man = ProtocolLibrary.getProtocolManager();
+		if (man != null) {
+			man.removePacketListeners(market);
+		}
 	}
 }
