@@ -1,5 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
+import java.util.Arrays;
+
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
@@ -8,6 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.survivorserver.GlobalMarket.HistoryHandler.MarketAction;
 
@@ -231,9 +234,14 @@ public class MarketCore {
 		market.notifyPlayer(listing.getSeller(), market.getLocale().get("you_have_new_mail"));
 	}
 	
-	public void retrieveMail(Mail mail, InterfaceViewer viewer, Player player) {
+	public void retrieveMail(Mail mail, InterfaceViewer viewer, Player player, boolean transactionLog) {
 		Inventory playerInv = player.getInventory();
 		ItemStack item = storage.getItem(mail.getItemId(), mail.getAmount());
+		if (transactionLog) {
+			ItemMeta meta = item.getItemMeta();
+			meta.setLore(Arrays.asList(new String[] {market.getLocale().get("not_tradable")}));
+			item.setItemMeta(meta);
+		}
 		playerInv.addItem(item);
 		storage.removeMail(mail.getId());
 	}

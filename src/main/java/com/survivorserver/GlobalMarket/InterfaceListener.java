@@ -11,6 +11,8 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
 
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
@@ -112,6 +114,21 @@ public class InterfaceListener implements Listener {
 				event.setResult(Result.DENY);
 				event.getCurrentItem().setType(Material.AIR);
 				event.getCursor().setType(Material.AIR);
+			}
+			if (event.getInventory().getType() == InventoryType.MERCHANT) {
+				ItemStack trading = event.getCursor();
+				if (trading != null && trading.getType() == Material.WRITTEN_BOOK) {
+					if (trading.hasItemMeta()) {
+						if (trading.getItemMeta().hasLore()) {
+							if (trading.getItemMeta().getLore().contains(market.getLocale().get("not_tradable"))) {
+								if (event.getSlotType() == SlotType.CRAFTING) {
+									event.setCancelled(true);
+									event.setResult(Result.DENY);
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}

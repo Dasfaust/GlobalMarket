@@ -114,7 +114,7 @@ public class MailInterface extends MarketInterface {
 		}
 		Inventory inv = player.getInventory();
 		if (inv.firstEmpty() >= 0) {
-			market.getCore().retrieveMail((Mail) item, viewer, player);
+			market.getCore().retrieveMail((Mail) item, viewer, player, (amount > 0));
 			viewer.resetActions();
 		} else {
 			viewer.resetActions();

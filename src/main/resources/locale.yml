@@ -88,7 +88,7 @@ english:
     shift_click_to_remove: "<shift+click to remove>"
     shift_click_again_to_confirm: "<shift+click again to confirm, right click to cancel>"
     not_enough_money: "<don't have enough %s!>"
-    not_tradable: "Not tradable"
+    not_tradable: "&8Not tradable"
     interface:
         listings_title: "Market Listings"
         mail_title: "Market Mail"
