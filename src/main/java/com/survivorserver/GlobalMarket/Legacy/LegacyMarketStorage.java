@@ -3,6 +3,7 @@ package com.survivorserver.GlobalMarket.Legacy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -206,7 +207,7 @@ public class LegacyMarketStorage {
 	}
 	
 	public Set<String> getAllMailUsers() {
-		return config.getMailYML().getConfigurationSection("index").getKeys(false);
+		return config.getMailYML().isSet("index") ? config.getMailYML().getConfigurationSection("index").getKeys(false) : new HashSet<String>();
 	}
 	
 	public List<Mail> getAllMailFor(String player) {
