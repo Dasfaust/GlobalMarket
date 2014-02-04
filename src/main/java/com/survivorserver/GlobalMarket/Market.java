@@ -143,13 +143,19 @@ public class Market extends JavaPlugin implements Listener {
 		if (permsProvider != null) {
 			perms = permsProvider.getProvider();
 		} else {
-			log.warning("You do not have a Vault-enabled permissions plugin. Defaulting to default player limits.");
+			log.warning("You do not have a Vault-enabled permissions plugin. Defaulting to default player limits under limits.default in config.yml.");
 		}
+		boolean plib = false;
 		try {
 			Class.forName("com.comphenix.protocol.ProtocolManager");
-			packet = new PacketManager(this);
-		} catch(Exception e) {
-			log.warning("ProtocolLib not found! Some extra features will be disabled.");
+			plib = true;
+		} catch(Exception ignored) {}
+		if (plib) {
+			if (Material.getMaterial("LOG_2") != null) {
+				packet = new PacketManager(this);
+			} else {
+				log.info("ProtocolLib was found but GM only supports ProtocolLib for 1.7 and above.");
+			}
 		}
 		config = new ConfigHandler(this);
 		locale = new LocaleHandler(config);
