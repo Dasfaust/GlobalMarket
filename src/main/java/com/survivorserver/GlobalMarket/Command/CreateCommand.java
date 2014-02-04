@@ -89,7 +89,17 @@ public class CreateCommand extends SubCommand {
 				player.sendMessage(ChatColor.RED + locale.get("not_a_valid_number", args[1]));
 				return true;
 			}
-			if (price < 0.01) {
+			List<String> extraArgs = new ArrayList<String>();
+			for (int i = 0; i < args.length; i++) {
+				if (args[i].startsWith("-")) {
+					extraArgs.add(args[i]);
+				}
+			}
+			boolean infinite = false;
+			if (extraArgs.contains("-inf") && sender.hasPermission("globalmarket.infinite")) {
+				infinite = true;
+			}
+			if (price < 0.01 && !infinite) {
 				sender.sendMessage(prefix + locale.get("price_too_low"));
 				return true;
 			}
@@ -102,16 +112,6 @@ public class CreateCommand extends SubCommand {
 			if (max > 0 && storage.getNumListingsFor(sender.getName(), player.getWorld().getName()) >= max) {
 				sender.sendMessage(ChatColor.RED + locale.get("selling_too_many_items"));
 				return true;
-			}
-			List<String> extraArgs = new ArrayList<String>();
-			for (int i = 0; i < args.length; i++) {
-				if (args[i].startsWith("-")) {
-					extraArgs.add(args[i]);
-				}
-			}
-			boolean infinite = false;
-			if (extraArgs.contains("-inf") && sender.hasPermission("globalmarket.infinite")) {
-				infinite = true;
 			}
 			int amount = 0;
 			double fee = market.getCreationFee(player, price);

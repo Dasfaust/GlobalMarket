@@ -79,6 +79,7 @@ english:
     picked_up_your_earnings: "Picked up your earnings. Your new balance is %s"
     amount: "Amount: "
     price: "Price: "
+    free: "Free"
     seller: "Seller: "
     click_to_buy: "<click to buy>"
     click_again_to_confirm: "<click again to confirm, right click to cancel>"
@@ -87,6 +88,7 @@ english:
     shift_click_to_remove: "<shift+click to remove>"
     shift_click_again_to_confirm: "<shift+click again to confirm, right click to cancel>"
     not_enough_money: "<don't have enough %s!>"
+    not_tradable: "Not tradable"
     interface:
         listings_title: "Market Listings"
         mail_title: "Market Mail"

@@ -66,7 +66,7 @@ public class ListingsInterface extends MarketInterface {
 		if (!meta.hasLore()) {
 			lore = new ArrayList<String>();
 		}
-		String price = ChatColor.WHITE + market.getLocale().get("price") + market.getEcon().format(listing.getPrice());
+		String price = ChatColor.WHITE + market.getLocale().get("price") + (listing.getPrice() > 0 ? market.getEcon().format(listing.getPrice()) : market.getLocale().get("free"));
 		String seller = ChatColor.WHITE + market.getLocale().get("seller") + ChatColor.GRAY + ChatColor.ITALIC + listing.getSeller();
 		lore.add(price);
 		lore.add(seller);
