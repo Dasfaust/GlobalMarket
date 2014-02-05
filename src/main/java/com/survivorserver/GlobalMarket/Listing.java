@@ -136,14 +136,14 @@ public class Listing implements MarketItem, Comparable<Listing> {
 		public static Comparator<Listing> PRICE_LOWEST = new Comparator<Listing>() {
 			@Override
 			public int compare(Listing o1, Listing o2) {
-				return (int) (o1.price - o2.price);
+				return new Double(o1.price).compareTo(o2.price);
 			}
 		};
 		
 		public static Comparator<Listing> PRICE_HIGHEST = new Comparator<Listing>() {
 			@Override
 			public int compare(Listing o1, Listing o2) {
-				return (int) (o2.price - o1.price);
+				return new Double(o2.price).compareTo(o1.price);
 			}
 		};
 		
