@@ -705,7 +705,7 @@ public class MarketStorage {
 					|| isInEnchants(search.toLowerCase(), item)
 					|| isInLore(search.toLowerCase(), item)
 					|| search.equalsIgnoreCase(Integer.toString(listing.getId()))
-					|| listing.seller.contains(search)) {
+					|| listing.seller.toLowerCase().contains(search.toLowerCase())) {
 				found.add(listing);
 			}
 		}
