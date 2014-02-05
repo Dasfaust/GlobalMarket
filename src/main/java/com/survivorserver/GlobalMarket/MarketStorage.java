@@ -113,7 +113,7 @@ public class MarketStorage {
 		}
 	}
 	
-	public void load(Database db) {
+	public void load(Database db) {		
 		List<Integer> corruptItems = new ArrayList<Integer>();
 		boolean sqlite = market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE;
 		// Items we should cache in memory
@@ -704,7 +704,8 @@ public class MarketStorage {
 					|| isInDisplayName(search.toLowerCase(), item)
 					|| isInEnchants(search.toLowerCase(), item)
 					|| isInLore(search.toLowerCase(), item)
-					|| search.equalsIgnoreCase(Integer.toString(listing.getId()))) {
+					|| search.equalsIgnoreCase(Integer.toString(listing.getId()))
+					|| listing.seller.contains(search)) {
 				found.add(listing);
 			}
 		}
