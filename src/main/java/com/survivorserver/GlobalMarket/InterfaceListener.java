@@ -40,20 +40,21 @@ public class InterfaceListener implements Listener {
 		int slot = event.getSlot();
 		// Verify we're in a Market interface
 		if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
-			//int guiSize = handler.getInterface(viewer.getInterface()).getSize() - 1;
+			
 			int lastTopSlot = (event.getInventory().getSize() < 54 ? 26 : 53);
 			if (rawSlot <= lastTopSlot && rawSlot > -1) {
-				// We've clicked a Market item
+				// Determine if a click was within the top portion of the inventory
 				event.setCancelled(true);
 				event.setResult(Result.DENY);
-				
-				// We've left clicked or shift clicked
-				// Let's update the viewer object with what's happened, so the handler can do stuff with it
 				
 				MarketInterface inter = viewer.getInterface();
 				if (viewer.getBoundSlots().containsKey(rawSlot)) {
 					// This item has an ID attached to it
 					MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
+					if (item == null) {
+						market.log.warning(String.format("Null MarketItem in %s with position %s (raw: %s) in interface %s, should have an ID of %s.", event.getEventName(), slot, rawSlot, inter.getName(), viewer.getBoundSlots().get(rawSlot)));
+						return;
+					}
 					if (event.isRightClick()) {
 						// Drop everything and start over
 						viewer.resetActions();
