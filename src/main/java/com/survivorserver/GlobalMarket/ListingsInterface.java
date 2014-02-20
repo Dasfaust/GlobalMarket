@@ -71,6 +71,11 @@ public class ListingsInterface extends MarketInterface {
 		lore.add(price);
 		lore.add(seller);
 		
+		// Prevent things like hotbar swapping from triggering an action
+		if (!shiftClick && !leftClick) {
+			viewer.resetActions();
+		}
+		
 		// Don't want people buying their own listings
 		if (isSeller && leftClick) {
 			viewer.resetActions();
