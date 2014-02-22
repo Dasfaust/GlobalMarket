@@ -113,7 +113,8 @@ public class MarketStorage {
 		}
 	}
 	
-	public void load(Database db) {		
+	public void load(Database db) {
+		String dbName = market.getConfig().getString("storage.mysql_database");
 		List<Integer> corruptItems = new ArrayList<Integer>();
 		boolean sqlite = market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE;
 		// Items we should cache in memory
@@ -124,9 +125,10 @@ public class MarketStorage {
 			 */
 			listings.clear();
 			listingIndex = 1;
-			MarketResult res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("listings").query() : db.createStatement("SELECT auto_increment FROM information_schema.TABLES WHERE TABLE_NAME = ?").setString("listings").query();
+			MarketResult res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("listings").query() :
+										db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("listings").query();
 			if (res.next()) {
-				listingIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);;
+				listingIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
 			}
 			market.log.info("Listing index: " + listingIndex);
 			res = db.createStatement("SELECT * FROM listings ORDER BY id ASC").query();
@@ -154,9 +156,10 @@ public class MarketStorage {
 				addWorldItem(m);
 			}
 			mailIndex = 1;
-			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("mail").query() : db.createStatement("SELECT auto_increment FROM information_schema.TABLES WHERE TABLE_NAME = ?").setString("mail").query();
+			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("mail").query() :
+						   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("mail").query();
 			if (res.next()) {
-				mailIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);
+				mailIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
 			}
 			market.log.info("Mail index: " + mailIndex);
 			/*
@@ -185,9 +188,10 @@ public class MarketStorage {
 				}
 			}
 			queueIndex = 1;
-			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("queue").query() : db.createStatement("SELECT auto_increment FROM information_schema.TABLES WHERE TABLE_NAME = ?").setString("queue").query();
+			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("queue").query() :
+						   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("queue").query();
 			if (res.next()) {
-				queueIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);
+				queueIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
 			}
 			market.log.info("Queue index: " + queueIndex);
 			/*
@@ -241,9 +245,10 @@ public class MarketStorage {
 				}
 			}
 			itemIndex = 1;
-			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("items").query() : db.createStatement("SELECT auto_increment FROM information_schema.TABLES WHERE TABLE_NAME = ?").setString("items").query();
+			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("items").query() :
+						   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("items").query();
 			if (res.next()) {
-				itemIndex = sqlite ? res.getInt(1) + 1 : res.getInt(1);
+				itemIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
 			}
 			market.log.info("Item index: " + itemIndex);
 			if (!corruptItems.isEmpty()) {
