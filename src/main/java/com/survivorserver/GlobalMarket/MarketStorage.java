@@ -1,5 +1,6 @@
 package com.survivorserver.GlobalMarket;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -115,179 +116,152 @@ public class MarketStorage {
 	
 	public void load(Database db) {
 		String dbName = market.getConfig().getString("storage.mysql_database");
-		List<Integer> corruptItems = new ArrayList<Integer>();
 		boolean sqlite = market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE;
-		// Items we should cache in memory
-		List<Integer> itemIds = new ArrayList<Integer>();
 		try {
-			/*
-			 * Synchronize the listing index with the database
-			 */
-			listings.clear();
-			listingIndex = 1;
-			MarketResult res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("listings").query() :
-										db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("listings").query();
-			if (res.next()) {
-				listingIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
-			}
-			market.log.info("Listing index: " + listingIndex);
-			res = db.createStatement("SELECT * FROM listings ORDER BY id ASC").query();
-			while(res.next()) {
-				Listing listing = res.constructListing(this);
-				int id = listing.getItemId();
-				if (!itemIds.contains(id)) {
-					itemIds.add(id);
-				}
-				listings.put(listing.getId(), listing);
-			}
-			buildCondensed();
-			/*
-			 * Synchronize the mail index with the database
-			 */
-			mail.clear();
-			res = db.createStatement("SELECT * FROM mail ORDER BY id ASC").query();
-			while(res.next()) {
-				Mail m = res.constructMail(this);
-				int id = m.getItemId();
-				if (!itemIds.contains(id)) {
-					itemIds.add(id);
-				}
-				mail.put(m.getId(), m);
-				addWorldItem(m);
-			}
-			mailIndex = 1;
-			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("mail").query() :
-						   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("mail").query();
-			if (res.next()) {
-				mailIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
-			}
-			market.log.info("Mail index: " + mailIndex);
-			/*
-			 * Queue
-			 */
-			queue.clear();
-			res = db.createStatement("SELECT * FROM queue ORDER BY id ASC").query();
-			Yaml yaml = new Yaml(new CustomClassLoaderConstructor(Market.class.getClassLoader()));
-			while(res.next()) {
-				String q = res.getString("data");
-				try {
-					QueueItem item = yaml.loadAs(q, QueueItem.class);
-					queue.put(item.getId(), item);
-					int itemId;
-					if (item.getMail() != null) {
-						itemId = item.getMail().getItemId();
-					} else {
-						itemId = item.getListing().getItemId();
-					}
-					if (!itemIds.contains(itemId)) {
-						itemIds.add(itemId);
-					}
-				} catch(NullPointerException e) {
-					market.log.warning("Queue item is corrupt:");
-					market.log.warning(q);
-				}
-			}
-			queueIndex = 1;
-			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("queue").query() :
-						   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("queue").query();
-			if (res.next()) {
-				queueIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
-			}
-			market.log.info("Queue index: " + queueIndex);
-			/*
-			 * Synchronize needed items
-			 */
-			items.clear();
-			if (itemIds.size() > 0) {
-				/*StringBuilder query = new StringBuilder();
-				query.append("SELECT * FROM items WHERE id IN (");
-				for (int i = 0; i < itemIds.size(); i++) {
-					query.append(itemIds.get(i));
-					if (i + 1 == itemIds.size()) {
-						query.append(")");
-					} else {
-						query.append(", ");
-					}
-				}
-				res = db.createStatement(query.toString()).query();*/
-				
-				// Probably need a better fix for mismatched item IDs than this
-				res = db.createStatement("SELECT * FROM items").query();
-				Map<Integer, String> sanitizedItems = new HashMap<Integer, String>();
-				while(res.next()) {
-					try {
-						YamlConfiguration conf = new YamlConfiguration();
-						conf.loadFromString(res.getString(2));
-						int itemId = res.getInt(1);
-						items.put(itemId, conf.getItemStack("item").clone());
-						itemIds.remove(new Integer(itemId));
-					} catch(Exception e) {
-						if (e instanceof InvalidConfigurationException) {
-							int itemId = res.getInt(1);
-							market.log.warning("Item ID " + itemId + " has invalid characters");
-							String san = res.getString(2).replaceAll("[\\p{Cc}&&[^\r\n\t]]", "");
-							sanitizedItems.put(itemId, san);
-							items.put(res.getInt(1), itemStackFromString(san));
-						} else {
-							int itemId = res.getInt(1);
-							market.log.warning(String.format("Item with ID %s is corrupt or missing from the game. This item will be removed from storage and all mail/listings using it will be deleted. You can safely ignore this exception!", itemId));
-							items.put(itemId, new ItemStack(Material.STONE));
-							corruptItems.add(itemId);
-						}
-					}
-				}
-				for (int itemId : itemIds) {
-					market.log.warning(String.format("Item ID %s was requested but not found, perhaps a database desync?", itemId));
-					corruptItems.add(itemId);
-				}
-				for (Entry<Integer, String> entry : sanitizedItems.entrySet()) {
-					db.createStatement("UPDATE items SET item=? WHERE id=?").setString(entry.getValue()).setInt(entry.getKey()).execute();
-				}
-			}
-			itemIndex = 1;
-			res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("items").query() :
-						   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("items").query();
-			if (res.next()) {
-				itemIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
-			}
-			market.log.info("Item index: " + itemIndex);
-			if (!corruptItems.isEmpty()) {
-				for (int itemId : corruptItems) {
-					for (Listing listing : getAllListings()) {
-						if (listing.getItemId() == itemId) {
-							removeListing(listing.getId());
-						}
-					}
-					Iterator<Entry<Integer, Mail>> it = mail.entrySet().iterator();
-					while(it.hasNext()) {
-						Entry<Integer, Mail> entry = it.next();
-						if (entry.getValue().getItemId() == itemId) {
-							removeMail(entry.getValue().getId());
-						}
-					}
-					for (QueueItem item : getQueue()) {
-						if (item.getMail() != null) {
-							if (item.getMail().getItemId() == itemId) {
-								removeItemFromQueue(item.getId());
-								removeMail(item.getMail().getId());
-							}
-						} else {
-							if (item.getListing().getItemId() == itemId) {
-								removeItemFromQueue(item.getId());
-								removeListing(item.getListing().getId());
-							}
-						}
-					}
-					items.remove(itemId);
-					db.createStatement("DELETE FROM history WHERE item = ?").setInt(itemId).execute();
-					db.createStatement("DELETE FROM items WHERE id = ?").setInt(itemId).execute();
-					market.log.info(String.format("Removed corrupted item %s", itemId));
-				}
-			}
+			loadItems(db, dbName, sqlite);
+			loadListings(db, dbName, sqlite);
+			loadMail(db, dbName, sqlite);
+			loadQueue(db, dbName, sqlite);
 		} catch(Exception e) {
 			market.log.severe("Error while loading:");
 			e.printStackTrace();
 		}
+	}
+	
+	private void loadItems(Database db, String dbName, boolean sqlite) throws SQLException, InvalidConfigurationException {
+		items.clear();
+		MarketResult res = db.createStatement("SELECT * FROM items").query();
+		Map<Integer, String> sanitizedItems = new HashMap<Integer, String>();
+		while(res.next()) {
+			try {
+				YamlConfiguration conf = new YamlConfiguration();
+				conf.loadFromString(res.getString(2));
+				int itemId = res.getInt(1);
+				items.put(itemId, conf.getItemStack("item").clone());
+			} catch(Exception e) {
+				if (e instanceof InvalidConfigurationException) {
+					// Can sometimes happen if there are crazy characters in an item's lore
+					int itemId = res.getInt(1);
+					market.log.warning("Item ID " + itemId + " has invalid characters");
+					String san = res.getString(2).replaceAll("[\\p{Cc}&&[^\r\n\t]]", "");
+					sanitizedItems.put(itemId, san);
+					items.put(res.getInt(1), itemStackFromString(san));
+				} else {
+					// Happens when a mod is uninstalled but items from the mod are still present in the database,
+					// or you downgrade from 1.7 to 1.6, for example
+					int itemId = res.getInt(1);
+					market.log.warning(String.format("Item with ID %s is corrupt or missing from the game. This item will be removed from storage and all mail/listings using it will be deleted.", itemId));
+					items.put(itemId, new ItemStack(Material.STONE));
+				}
+			}
+		}
+		res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("items").query() :
+					   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("items").query();
+		if (res.next()) {
+			itemIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
+		}
+		market.log.info("Item index: " + itemIndex);
+	}
+	
+	private void loadListings(Database db, String dbName, boolean sqlite) throws SQLException {
+		listings.clear();
+		List<Listing> unloadable = new ArrayList<Listing>();
+		MarketResult res = db.createStatement("SELECT * FROM listings ORDER BY id ASC").query();
+		while(res.next()) {
+			Listing listing = res.constructListing(this);
+			int id = listing.getItemId();
+			if (!items.containsKey(id)) {
+				market.log.warning(String.format("Item with ID %s has been requested but is could not be found, perhaps a database desync?", id));
+				unloadable.add(listing);
+				continue;
+			}
+			listings.put(listing.getId(), listing);
+		}
+		if (!unloadable.isEmpty()) {
+			for (Listing listing : unloadable) {
+				db.createStatement("DELETE FROM listings WHERE id = ?").setInt(listing.getId()).execute();
+			}
+			market.log.warning(String.format("Removed %s listings due to missing items.", unloadable.size()));
+			unloadable.clear();
+		}
+		res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("listings").query() :
+			db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("listings").query();
+			if (res.next()) {
+				listingIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
+			}
+			market.log.info("Listing index: " + listingIndex);
+		buildCondensed();
+	}
+	
+	private void loadMail(Database db, String dbName, boolean sqlite) throws SQLException {
+		mail.clear();
+		List<Mail> unloadable = new ArrayList<Mail>();
+		MarketResult res = db.createStatement("SELECT * FROM mail ORDER BY id ASC").query();
+		while(res.next()) {
+			Mail m = res.constructMail(this);
+			int id = m.getItemId();
+			if (!items.containsKey(id)) {
+				market.log.warning(String.format("Item with ID %s has been requested but is could not be found, perhaps a database desync?", id));
+				unloadable.add(m);
+				continue;
+			}
+			mail.put(m.getId(), m);
+			addWorldItem(m);
+		}
+		if (!unloadable.isEmpty()) {
+			for (Mail mail : unloadable) {
+				db.createStatement("DELETE FROM mail WHERE id = ?").setInt(mail.getId()).execute();
+			}
+			market.log.warning(String.format("Removed %s mail due to missing items.", unloadable.size()));
+			unloadable.clear();
+		}
+		res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("mail").query() :
+					   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("mail").query();
+		if (res.next()) {
+			mailIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
+		}
+		market.log.info("Mail index: " + mailIndex);
+	}
+	
+	private void loadQueue(Database db, String dbName, boolean sqlite) throws SQLException {
+		queue.clear();
+		List<QueueItem> unloadable = new ArrayList<QueueItem>();
+		MarketResult res = db.createStatement("SELECT * FROM queue ORDER BY id ASC").query();
+		Yaml yaml = new Yaml(new CustomClassLoaderConstructor(Market.class.getClassLoader()));
+		while(res.next()) {
+			String q = res.getString("data");
+			try {
+				QueueItem item = yaml.loadAs(q, QueueItem.class);
+				int itemId;
+				if (item.getMail() != null) {
+					itemId = item.getMail().getItemId();
+				} else {
+					itemId = item.getListing().getItemId();
+				}
+				if (!items.containsKey(itemId)) {
+					market.log.warning(String.format("Item with ID %s has been requested but is could not be found, perhaps a database desync?", itemId));
+					unloadable.add(item);
+					continue;
+				}
+				queue.put(item.getId(), item);
+			} catch(NullPointerException e) {
+				market.log.warning("Queue item is corrupt:");
+				market.log.warning(q);
+			}
+		}
+		if (!unloadable.isEmpty()) {
+			for (QueueItem item : unloadable) {
+				db.createStatement("DELETE FROM queue WHERE id = ?").setInt(item.getId()).execute();
+			}
+			market.log.warning(String.format("Removed %s items from queue due to missing items.", unloadable.size()));
+			unloadable.clear();
+		}
+		res = sqlite ? db.createStatement("SELECT seq FROM sqlite_sequence WHERE name = ? ").setString("queue").query() :
+					   db.createStatement("SHOW TABLE STATUS FROM " + dbName + " LIKE ?").setString("queue").query();
+		if (res.next()) {
+			queueIndex = sqlite ? res.getInt(1) + 1 : res.getInt("Auto_increment");
+		}
+		market.log.info("Queue index: " + queueIndex);
 	}
 	
 	private void addWorldItem(Listing listing) {
