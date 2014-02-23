@@ -50,8 +50,11 @@ public class AsyncDatabase {
 		}
 		long started = System.currentTimeMillis();
 		if (!db.isConnected()) {
-			market.log.info("DB has disconnected. Reconnecting...");
-			db.connect();
+			market.log.severe("DB has disconnected. Reconnecting...");
+			if (!db.connect()) {
+				market.log.severe("Could not re-establish connection, queue stopped.");
+				return;
+			}
 		}
 		try {
 			isProcessing.set(true);
