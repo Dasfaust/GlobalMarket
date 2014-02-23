@@ -160,7 +160,7 @@ public class CreateCommand extends SubCommand {
 			}
 			String world = player.getWorld().getName();
 			int tradeTime = market.getTradeTime(player);
-			if (tradeTime > 0) {
+			if (tradeTime > 0 && !player.hasPermission("globalmarket.noqueue")) {
 				storage.queueListing(infinite ? market.getInfiniteSeller() : player.getName(), toList, price, world);
 				sender.sendMessage(ChatColor.GREEN + locale.get("item_queued", tradeTime));
 			} else {
