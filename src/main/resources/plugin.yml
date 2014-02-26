@@ -1,6 +1,6 @@
 name: GlobalMarket
 main: com.survivorserver.GlobalMarket.Market
-version: ${version}
+version: "${version}-b${build.number}"
 commands:
     market:
         description: Market commands
