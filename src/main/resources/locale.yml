@@ -9,6 +9,8 @@ english:
         help_legend: "Legend: () optional, [] description"
         listings_syntax: "/market listings (<search>)"
         listings_descr: "[Shows listings]"
+        cs_syntax: "/market cancelSearch <search>"
+        cs_descr: "[Cancels all listings with the given criteria]"
         create_syntax: "/market create <price> (<amount>)"
         create_descr: "[Creates a listing]"
         mailbox_syntax: "/market mailbox (remove)"

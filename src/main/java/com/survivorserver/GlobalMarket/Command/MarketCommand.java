@@ -24,6 +24,7 @@ public class MarketCommand implements CommandExecutor {
 		locale = market.getLocale();
 		executors = new ArrayList<SubCommand>();
 		registerSubCommand(new ListingsCommand(market, locale));
+		registerSubCommand(new CancelSearchCommand(market, locale));
 		registerSubCommand(new MailCommand(market, locale));
 		registerSubCommand(new CreateCommand(market, locale));
 		registerSubCommand(new SendCommand(market, locale));
@@ -31,7 +32,6 @@ public class MarketCommand implements CommandExecutor {
 		registerSubCommand(new MailboxCommand(market, locale));
 		registerSubCommand(new StallCommand(market, locale));
 		registerSubCommand(new HistoryCommand(market, locale));
-		registerSubCommand(new CancelSearchCommand(market, locale));
 		registerSubCommand(new ReloadCommand(market, locale));
 	}
 	
