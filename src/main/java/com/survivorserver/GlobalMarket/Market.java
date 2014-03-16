@@ -110,6 +110,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("queue.queue_on_cancel", true);
 		getConfig().addDefault("infinite.seller", "Server");
 		getConfig().addDefault("infinite.account", "");
+        getConfig().addDefault("blacklist.as_whitelist", false);
 		getConfig().addDefault("blacklist.custom_names", false);
 		getConfig().addDefault("blacklist.item_name", Arrays.asList(new String[]{"Transaction Log", "Market History"}));
 		getConfig().addDefault("blacklist.item_id.0", 0);
@@ -488,10 +489,11 @@ public class Market extends JavaPlugin implements Listener {
 	
 	@SuppressWarnings("deprecation")
 	public boolean itemBlacklisted(ItemStack item) {
+        boolean isWhitelist = getConfig().getBoolean("blacklist.as_whitelist");
 		if (getConfig().isSet("blacklist.item_id." + item.getTypeId())) {
 			String path = "blacklist.item_id." + item.getTypeId();
 			if (getConfig().getInt(path) == -1 || getConfig().getInt(path) == item.getData().getData()) {
-				return true;
+				return isWhitelist ? false : true;
 			}
 		}
 		if (item.hasItemMeta()) {
@@ -499,11 +501,11 @@ public class Market extends JavaPlugin implements Listener {
 			List<String> bl = getConfig().getStringList("blacklist.item_name");
 			if (meta.hasDisplayName()) {
 				if (getConfig().getBoolean("blacklist.custom_names")) {
-					return true;
+                    return isWhitelist ? false : true;
 				}
 				for (String str : bl) {
 					if (meta.getDisplayName().equalsIgnoreCase(str)) {
-						return true;
+                        return isWhitelist ? false : true;
 					}
 				}
 			}
@@ -511,7 +513,7 @@ public class Market extends JavaPlugin implements Listener {
 				if (((BookMeta) meta).hasTitle()) {
 					for (String str : bl) {
 						if (((BookMeta) meta).getTitle().equalsIgnoreCase(str)) {
-							return true;
+                            return isWhitelist ? false : true;
 						}
 					}
 				}
@@ -520,7 +522,7 @@ public class Market extends JavaPlugin implements Listener {
 				List<Integer> ebl = getConfig().getIntegerList("blacklist.enchant_id");
 				for (Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
 					if (ebl.contains(entry.getKey().getId())) {
-						return true;
+                        return isWhitelist ? false : true;
 					}
 				}
 			}
@@ -529,12 +531,12 @@ public class Market extends JavaPlugin implements Listener {
 				List<String> lore = meta.getLore();
 				for (String str : lbl) {
 					if (lore.contains(str)) {
-						return true;
+                        return isWhitelist ? false : true;
 					}
 				}
 			}
 		}
-		return false;
+		return isWhitelist ? true : false;
 	}
 	
 	public boolean blacklistMail() {
