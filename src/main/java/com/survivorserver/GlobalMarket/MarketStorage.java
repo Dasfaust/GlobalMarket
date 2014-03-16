@@ -46,10 +46,10 @@ public class MarketStorage {
 	private Map<String, List<Mail>> worldMail;
 	private Map<Integer, QueueItem> queue;
 	private TreeSet<Listing> condensedListings;
-	private int itemIndex;
-	private int listingIndex;
-	private int mailIndex;
-	private int queueIndex;
+	private int itemIndex = 1;
+	private int listingIndex = 1;
+	private int mailIndex = 1;
+	private int queueIndex = 1;
 	
 	public MarketStorage(Market market, AsyncDatabase asyncDb) {
 		this.market = market;
@@ -108,6 +108,9 @@ public class MarketStorage {
 					+ "amount int, "
 					+ "price DOUBLE, "
 					+ "time BIGINT)").execute();
+			if (sqlite) {
+				db.createStatement("pragma journal_mode=wal").query();
+			}
 		} catch(Exception e) {
 			market.log.severe("Error while preparing database:");
 			e.printStackTrace();
@@ -116,7 +119,7 @@ public class MarketStorage {
 	
 	public void load(Database db) {
 		String dbName = market.getConfig().getString("storage.mysql_database");
-		boolean sqlite = market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE;
+		boolean sqlite = (market.getConfigHandler().getStorageMethod() == StorageMethod.SQLITE);
 		try {
 			loadItems(db, dbName, sqlite);
 			loadListings(db, dbName, sqlite);
@@ -171,7 +174,7 @@ public class MarketStorage {
 			Listing listing = res.constructListing(this);
 			int id = listing.getItemId();
 			if (!items.containsKey(id)) {
-				market.log.warning(String.format("Item with ID %s has been requested but is could not be found, perhaps a database desync?", id));
+				market.log.warning(String.format("Item with ID %s has been requested but could not be found, perhaps a database desync?", id));
 				unloadable.add(listing);
 				continue;
 			}
@@ -201,7 +204,7 @@ public class MarketStorage {
 			Mail m = res.constructMail(this);
 			int id = m.getItemId();
 			if (!items.containsKey(id)) {
-				market.log.warning(String.format("Item with ID %s has been requested but is could not be found, perhaps a database desync?", id));
+				market.log.warning(String.format("Item with ID %s has been requested but could not be found, perhaps a database desync?", id));
 				unloadable.add(m);
 				continue;
 			}
@@ -239,7 +242,7 @@ public class MarketStorage {
 					itemId = item.getListing().getItemId();
 				}
 				if (!items.containsKey(itemId)) {
-					market.log.warning(String.format("Item with ID %s has been requested but is could not be found, perhaps a database desync?", itemId));
+					market.log.warning(String.format("Item with ID %s has been requested but could not be found, perhaps a database desync?", itemId));
 					unloadable.add(item);
 					continue;
 				}
@@ -320,11 +323,16 @@ public class MarketStorage {
 	public Listing queueListing(String seller, ItemStack itemStack, double price, String world) {
 		int itemId = storeItem(itemStack);
 		long time = System.currentTimeMillis();
-		Listing listing = new Listing(listingIndex++, seller, itemId, itemStack.getAmount(), price, world, time);
-		QueueItem item = new QueueItem(queueIndex++, time, listing);
+		Listing listing = new Listing(listingIndex, seller, itemId, itemStack.getAmount(), price, world, time);
+        listingIndex++;
+		QueueItem item = new QueueItem(queueIndex, time, listing);
+        queueIndex++;
 		queue.put(item.getId(), item);
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
-		.setValue((String) new Yaml().dump(item)));
+		asyncDb.addStatement(
+            new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
+            .setValue(new Yaml().dump(item))
+            .setFailureNotice(String.format("Failed to insert queued listing (id: %s, itemId: %s), queue id: %s", listing.getId(), listing.getItemId(), item.getId()))
+        );
 		return listing;
 	}
 	
@@ -333,11 +341,16 @@ public class MarketStorage {
 		for (ItemStack itemStack : items) {
 			double price = pricePerItem * itemStack.getAmount();
 			long time = System.currentTimeMillis();
-			Listing listing = new Listing(listingIndex++, seller, itemId, itemStack.getAmount(), price, world, time);
+			Listing listing = new Listing(listingIndex, seller, itemId, itemStack.getAmount(), price, world, time);
+            listingIndex++;
 			QueueItem item = new QueueItem(queueIndex++, time, listing);
+            queueIndex++;
 			queue.put(item.getId(), item);
-			asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
-			.setValue((String) new Yaml().dump(item)));
+			asyncDb.addStatement(
+                new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
+                .setValue(new Yaml().dump(item))
+                .setFailureNotice(String.format("Failed to insert queued listing (id: %s, itemId: %s), queue id: %s", listing.getId(), listing.getItemId(), item.getId()))
+            );
 		}
 	}
 	
@@ -346,8 +359,11 @@ public class MarketStorage {
 		Mail mail = new Mail(owner, mailIndex++, itemId, itemStack.getAmount(), 0, from, world);
 		QueueItem item = new QueueItem(queueIndex++, System.currentTimeMillis(), mail);
 		queue.put(item.getId(), item);
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
-		.setValue((String) new Yaml().dump(item)));
+		asyncDb.addStatement(
+            new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
+            .setValue(new Yaml().dump(item))
+            .setFailureNotice(String.format("Failed to insert queued mail (id: %s, itemId: %s), queue id: %s", mail.getId(), mail.getItemId(), item.getId()))
+        );
 		return mail;
 	}
 	
@@ -355,8 +371,11 @@ public class MarketStorage {
 		Mail mail = new Mail(owner, mailIndex++, itemId, amount, 0, from, world);
 		QueueItem item = new QueueItem(queueIndex++, System.currentTimeMillis(), mail);
 		queue.put(item.getId(), item);
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
-		.setValue((String) new Yaml().dump(item)));
+		asyncDb.addStatement(
+            new QueuedStatement("INSERT INTO queue (data) VALUES (?)")
+            .setValue(new Yaml().dump(item))
+            .setFailureNotice(String.format("Failed to insert queued mail (id: %s, itemId: %s), queue id: %s", mail.getId(), mail.getItemId(), item.getId()))
+        );
 		return mail;
 	}
 	
@@ -371,7 +390,11 @@ public class MarketStorage {
 		} else {
 			storeListing(item.getListing());
 		}
-		asyncDb.addStatement(new QueuedStatement("DELETE FROM queue WHERE id=?").setValue(id));
+		asyncDb.addStatement(
+            new QueuedStatement("DELETE FROM queue WHERE id=?")
+            .setValue(id)
+            .setFailureNotice(String.format("Problem removing id %s from queue:", id))
+        );
 		queue.remove(id);
 	}
 	
@@ -411,13 +434,19 @@ public class MarketStorage {
 			}
 		}
 		if (asyncDb.getDb().isSqlite()) {
-			asyncDb.addStatement(new QueuedStatement("INSERT OR IGNORE INTO items (item) VALUES (?)")
-			.setValue(storable));
+			asyncDb.addStatement(
+                new QueuedStatement("INSERT OR IGNORE INTO items (item) VALUES (?)")
+                .setValue(storable)
+                .setFailureNotice(String.format("Problem storing ItemStack, should have ID of %s", itemIndex))
+            );
 		} else {
 			String store = itemStackToString(storable);
-			asyncDb.addStatement(new QueuedStatement("INSERT INTO items (item) SELECT * FROM (SELECT ?) AS tmp WHERE NOT EXISTS (SELECT item FROM items WHERE item = ?) LIMIT 1;")
-			.setValue(store)
-			.setValue(store));
+			asyncDb.addStatement(
+                new QueuedStatement("INSERT INTO items (item) SELECT * FROM (SELECT ?) AS tmp WHERE NOT EXISTS (SELECT item FROM items WHERE item = ?) LIMIT 1;")
+                .setValue(store)
+                .setValue(store)
+                .setFailureNotice(String.format("Problem storing ItemStack, should have ID of %s", itemIndex))
+            );
 		}
 		
 		items.put(itemIndex, storable);
@@ -427,6 +456,7 @@ public class MarketStorage {
 	public ItemStack getItem(int id, int amount) {
 		if (!items.containsKey(new Integer(id))) {
 			market.log.severe("Couldn't find an item with ID " + id);
+            return new ItemStack(Material.AIR);
 		}
 		ItemStack item = items.get(new Integer(id)).clone();
 		item.setAmount(amount);
@@ -437,14 +467,17 @@ public class MarketStorage {
 		int itemId = storeItem(item);
 		Long time = System.currentTimeMillis();
 		int id = listingIndex++;
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
-		.setValue(id)
-		.setValue(seller)
-		.setValue(itemId)
-		.setValue(item.getAmount())
-		.setValue(price)
-		.setValue(world)
-		.setValue(time));
+		asyncDb.addStatement(
+            new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
+            .setValue(id)
+            .setValue(seller)
+            .setValue(itemId)
+            .setValue(item.getAmount())
+            .setValue(price)
+            .setValue(world)
+            .setValue(time)
+            .setFailureNotice(String.format("Error on inserting new listing (id: %s, itemId: %s)", id, itemId))
+        );
 		Listing listing = new Listing(id, seller, itemId, item.getAmount(), price, world, time);
 		listings.put(listing.getId(), listing);
 		addWorldItem(listing);
@@ -462,14 +495,17 @@ public class MarketStorage {
 			double price = pricePerItem * item.getAmount();
 			Long time = System.currentTimeMillis();
 			int id = listingIndex++;
-			asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
-			.setValue(id)
-			.setValue(seller)
-			.setValue(itemId)
-			.setValue(item.getAmount())
-			.setValue(price)
-			.setValue(world)
-			.setValue(time));
+			asyncDb.addStatement(
+                new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
+                .setValue(id)
+                .setValue(seller)
+                .setValue(itemId)
+                .setValue(item.getAmount())
+                .setValue(price)
+                .setValue(world)
+                .setValue(time)
+                .setFailureNotice(String.format("Error on inserting new listing (id: %s, itemId: %s)", id, itemId))
+            );
 			Listing listing = new Listing(id, seller, itemId, item.getAmount(), price, world, time);
 			listings.put(listing.getId(), listing);
 			addWorldItem(listing);
@@ -482,14 +518,17 @@ public class MarketStorage {
 	}
 	
 	public void storeListing(Listing listing) {
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
-		.setValue(listing.getId())
-		.setValue(listing.getSeller())
-		.setValue(listing.getItemId())
-		.setValue(listing.getAmount())
-		.setValue(listing.getPrice())
-		.setValue(listing.getWorld())
-		.setValue(listing.getTime()));
+		asyncDb.addStatement(
+            new QueuedStatement("INSERT INTO listings (id, seller, item, amount, price, world, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
+            .setValue(listing.getId())
+            .setValue(listing.getSeller())
+            .setValue(listing.getItemId())
+            .setValue(listing.getAmount())
+            .setValue(listing.getPrice())
+            .setValue(listing.getWorld())
+            .setValue(listing.getTime())
+            .setFailureNotice(String.format("Error on inserting listing from Queue (id: %s, itemId: %s)", listing.getId(), listing.getItemId()))
+        );
 		listings.put(listing.getId(), listing);
 		addWorldItem(listing);
 		addToCondensed(listing);
@@ -501,14 +540,17 @@ public class MarketStorage {
 	}
 	
 	public void storeMail(Mail m) {
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
-		.setValue(m.getId())
-		.setValue(m.getOwner())
-		.setValue(m.getItemId())
-		.setValue(m.getAmount())
-		.setValue(m.getSender())
-		.setValue(m.getWorld())
-		.setValue(m.getPickup()));
+		asyncDb.addStatement(
+            new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
+            .setValue(m.getId())
+            .setValue(m.getOwner())
+            .setValue(m.getItemId())
+            .setValue(m.getAmount())
+            .setValue(m.getSender())
+            .setValue(m.getWorld())
+            .setValue(m.getPickup())
+            .setFailureNotice(String.format("Error on inserting mail from Queue (id: %s, itemId: %s)", m.getId(), m.getItemId()))
+        );
 		mail.put(m.getId(), m);
 		addWorldItem(m);
 		market.notifyPlayer(m.getOwner(), market.getLocale().get("you_have_new_mail"));
@@ -525,9 +567,7 @@ public class MarketStorage {
 		return null;
 	}
 	
-	public List<Listing> getListings(String viewer, SortMethod sort, int page, int pageSize, String world) {
-		List<Listing> toReturn = new ArrayList<Listing>();
-		int index = (pageSize * page) - pageSize;
+	public List<Listing> getListings(String viewer, SortMethod sort, String world) {
 		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(condensedListings);
 		switch(sort) {
 			default:
@@ -546,12 +586,7 @@ public class MarketStorage {
 				Collections.sort(list, Listing.Comparators.AMOUNT_HIGHEST);
 				break;
 		}
-		while (list.size() > index && toReturn.size() < pageSize) {
-			Listing l = list.get(index);
-			toReturn.add(l);
-			index++;
-		}
-		return toReturn;
+		return list;
 	}
 	
 	private void buildCondensed() {
@@ -578,7 +613,6 @@ public class MarketStorage {
 		
 		if (market.getChat() != null) {
 			// Don't run this if we're importing...
-			
 			if (market.announceOnCreate()) {
 				ItemStack created = getItem(listing.getItemId(), 1);
 				market.getChat().announce(new TellRawMessage().setText(market.getLocale().get("listing_created.prefix1"))
@@ -651,20 +685,14 @@ public class MarketStorage {
 		}
 	}
 	
-	public List<Listing> getOwnedListings(int page, int pageSize, String world, String name) {
+	public List<Listing> getOwnedListings(String world, String name) {
 		List<Listing> list = new ArrayList<Listing>();
 		for (Listing listing : market.enableMultiworld() ? getListingsForWorld(world) : listings.values()) {
 			if (listing.getSeller().equalsIgnoreCase(name)) {
 				list.add(listing);
 			}
 		}
-		int index = (pageSize * page) - pageSize;
-		List<Listing> toReturn = new ArrayList<Listing>();
-		while (list.size() > index && toReturn.size() < pageSize) {
-			toReturn.add(list.get(index));
-			index++;
-		}
-		return toReturn;
+		return list;
 	}
 	
 	public List<Listing> getAllListings() {
@@ -672,7 +700,7 @@ public class MarketStorage {
 	}
 	
 	@SuppressWarnings("deprecation")
-	public SearchResult getListings(String viewer, SortMethod sort, int page, int pageSize, String search, String world) {
+	public SearchResult getListings(String viewer, SortMethod sort, String search, String world) {
 		List<Listing> found = new ArrayList<Listing>();
 		List<Listing> list = market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(condensedListings);
 		for (Listing listing : list) {
@@ -701,21 +729,18 @@ public class MarketStorage {
 				Collections.sort(found, Listing.Comparators.AMOUNT_HIGHEST);
 				break;
 		}
-		int index = (pageSize * page) - pageSize;
-		List<Listing> toReturn = new ArrayList<Listing>();
-		while (found.size() > index && toReturn.size() < pageSize) {
-			toReturn.add(found.get(index));
-			index++;
-		}
-		return new SearchResult(found.size(), toReturn);
+		return new SearchResult(found.size(), found);
 	}
 	
 	public void removeListing(int id) {
 		Listing listing = listings.get(id);
 		removeFromCondensed(listing);
 		listings.remove(id);
-		asyncDb.addStatement(new QueuedStatement("DELETE FROM listings WHERE id=?")
-		.setValue(id));
+		asyncDb.addStatement(
+            new QueuedStatement("DELETE FROM listings WHERE id=?")
+		    .setValue(id)
+            .setFailureNotice(String.format("Error removing listing id %s", id))
+        );
 	}
 	
 	public int getNumListings(String world) {
@@ -738,14 +763,17 @@ public class MarketStorage {
 	
 	public Mail createMail(String owner, String from, int itemId, int amount, String world) {
 		int id = mailIndex++;
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
-		.setValue(id)
-		.setValue(owner)
-		.setValue(itemId)
-		.setValue(amount)
-		.setValue(from)
-		.setValue(world)
-		.setValue(0));
+		asyncDb.addStatement(
+            new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
+            .setValue(id)
+            .setValue(owner)
+            .setValue(itemId)
+            .setValue(amount)
+            .setValue(from)
+            .setValue(world)
+            .setValue(0)
+            .setFailureNotice(String.format("Error on inserting new mail (id: %s, itemId: %s)", id, itemId))
+        );
 		Mail m = new Mail(owner, id, itemId, amount, 0, from, world);
 		mail.put(m.getId(), m);
 		addWorldItem(m);
@@ -759,14 +787,17 @@ public class MarketStorage {
 	public Mail createMail(String owner, String from, ItemStack item, double pickup, String world) {
 		int itemId = storeItem(item);
 		int id = mailIndex++;
-		asyncDb.addStatement(new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
-		.setValue(id)
-		.setValue(owner)
-		.setValue(itemId)
-		.setValue(item.getAmount())
-		.setValue(from)
-		.setValue(world)
-		.setValue(pickup));
+		asyncDb.addStatement(
+            new QueuedStatement("INSERT INTO mail (id, owner, item, amount, sender, world, pickup) VALUES (?, ?, ?, ?, ?, ?, ?)")
+            .setValue(id)
+            .setValue(owner)
+            .setValue(itemId)
+            .setValue(item.getAmount())
+            .setValue(from)
+            .setValue(world)
+            .setValue(pickup)
+            .setFailureNotice(String.format("Error on inserting new mail (id: %s, itemId: %s)", id, itemId))
+        );
 		Mail m = new Mail(owner, id, itemId, item.getAmount(), pickup, from, world);
 		mail.put(m.getId(), m);
 		addWorldItem(m);
@@ -803,26 +834,30 @@ public class MarketStorage {
 		return null;
 	}
 	
-	public List<Mail> getMail(final String owner, int page, int pageSize, final String world) {
+	public List<Mail> getMail(final String owner, final String world) {
+		List<Mail> activeListings = new ArrayList<Mail>();
+		if (market.getMaxMail(owner, world) > 0) {
+			for (Listing listing : getOwnedListings(world, owner)) {
+				activeListings.add(new Mail(owner, -listing.getId(), listing.getItemId(), listing.getAmount(), 0, null, world));
+			}
+		}
 		Collection<Mail> ownedMail = Collections2.filter(market.enableMultiworld() ? getMailForWorld(world) : mail.values(), new Predicate<Mail>() {
 			public boolean apply(Mail mail) {
 				return mail.getOwner().equals(owner);
 			}
 		});
-		List<Mail> toReturn = new ArrayList<Mail>();
-		int index = (pageSize * page) - pageSize;
 		List<Mail> list = Lists.reverse(new ArrayList<Mail>(ownedMail));
-		while (ownedMail.size() > index && toReturn.size() < pageSize) {
-			toReturn.add(list.get(index));
-			index++;
-		}
-		return toReturn;
+		list.addAll(0, activeListings);
+		return list;
 	}
 	
 	public void nullifyMailPayment(int id) {
-		asyncDb.addStatement(new QueuedStatement("UPDATE mail SET pickup=? WHERE id=?")
-		.setValue(0)
-		.setValue(id));
+		asyncDb.addStatement(
+            new QueuedStatement("UPDATE mail SET pickup=? WHERE id=?")
+            .setValue(0)
+            .setValue(id)
+            .setFailureNotice(String.format("Error nullifying mail payment with id %s", id))
+        );
 		if (mail.containsKey(id)) {
 			Mail m = mail.get(id);
 			m.setPickup(0);
@@ -837,8 +872,11 @@ public class MarketStorage {
 		Mail m = mail.get(id);
 		mail.remove(id);
 		worldMail.get(m.getWorld()).remove(m);
-		asyncDb.addStatement(new QueuedStatement("DELETE FROM mail WHERE id=?")
-		.setValue(id));
+		asyncDb.addStatement(
+            new QueuedStatement("DELETE FROM mail WHERE id=?")
+            .setValue(id)
+            .setFailureNotice(String.format("Error removing mail id %s", id))
+        );
 		if (market.getInterfaceHandler() != null) {
 			// This will be null if the importer is running
 			market.getInterfaceHandler().refreshViewer(m.getOwner(), "Mail");
@@ -847,11 +885,11 @@ public class MarketStorage {
 	
 	public int getNumMail(final String player, final String world) {
 		Collection<Mail> ownedMail = Collections2.filter(market.enableMultiworld() ? getMailForWorld(world) : mail.values(), new Predicate<Mail>() {
-				public boolean apply(Mail mail) {
-					return mail.getOwner().equals(player);
-				}
-			});
-		return ownedMail.size();
+            public boolean apply(Mail mail) {
+                return mail.getOwner().equals(player);
+             }
+        });
+		return ownedMail.size() + getNumListingsFor(player, world);
 	}
 	
 	/*
@@ -901,6 +939,4 @@ public class MarketStorage {
 		}
 		return false;
 	}
-	
-	
 }

@@ -95,9 +95,16 @@ public class SendCommand extends SubCommand {
 				return true;
 			}
 			args[1] = off.getName();
+            int maxMail = market.getMaxMail(args[1], player.getWorld().getName());
+            if (maxMail > 0) {
+                if (market.getStorage().getNumMail(args[1], player.getWorld().getName()) >= maxMail) {
+                    player.sendMessage(ChatColor.RED + locale.get("full_mailbox_other", args[1]));
+                    return true;
+                }
+            }
 			int mailTime = market.getMailTime(player);
 			if (args.length == 3) {
-				int amount = 0;
+				int amount;
 				try {
 					amount = Integer.parseInt(args[2]);
 				} catch(Exception e) {

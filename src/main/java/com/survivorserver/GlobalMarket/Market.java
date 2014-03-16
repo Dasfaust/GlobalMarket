@@ -86,6 +86,7 @@ public class Market extends JavaPlugin implements Listener {
 		tasks = new ArrayList<Integer>();
 		market = this;
 		reloadConfig();
+		getConfig().options().header("GlobalMarket config: " + getDescription().getVersion());
 		getConfig().addDefault("storage.type", StorageMethod.SQLITE.toString());
 		getConfig().addDefault("storage.mysql_user", "root");
 		getConfig().addDefault("storage.mysql_pass", "password");
@@ -104,6 +105,7 @@ public class Market extends JavaPlugin implements Listener {
 		getConfig().addDefault("limits.default.queue_trade_time", 0);
 		getConfig().addDefault("limits.default.queue_mail_time", 0);
 		getConfig().addDefault("limits.default.allow_creative", true);
+		getConfig().addDefault("limits.default.max_mail", 0);
 		getConfig().addDefault("queue.queue_mail_on_buy", true);
 		getConfig().addDefault("queue.queue_on_cancel", true);
 		getConfig().addDefault("infinite.seller", "Server");
@@ -275,6 +277,24 @@ public class Market extends JavaPlugin implements Listener {
 	
 	public boolean announceOnCreate() {
 		return getConfig().getBoolean("announce_new_listings");
+	}
+	
+	public int getMaxMail(String player, String world) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (perms.has(world, player, "globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".max_mail");
+			}
+		}
+		return getConfig().getInt("limits.default.max_mail");
+	}
+	
+	public int getMaxMail(Player player) {
+		for (String  k : getConfig().getConfigurationSection("limits").getKeys(false)) {
+			if (player.hasPermission("globalmarket.limits." + k)) {
+				return getConfig().getInt("limits." + k + ".max_mail");
+			}
+		}
+		return getConfig().getInt("limits.default.max_mail");
 	}
 	
 	public double getCut(double amount, String player, String world) {
@@ -540,6 +560,10 @@ public class Market extends JavaPlugin implements Listener {
 		} else {
 			return locale.get("friendly_item_name", itemName);
 		}
+	}
+	
+	public String getItemNameSingle(ItemStack item) {
+		return items.getItemName(item);
 	}
 	
 	public MarketCommand getCmd() {

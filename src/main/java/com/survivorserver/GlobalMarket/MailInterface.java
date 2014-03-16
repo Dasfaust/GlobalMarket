@@ -76,12 +76,17 @@ public class MailInterface extends MarketInterface {
 				}
 			}
 		}
-		String instructions = ChatColor.YELLOW + market.getLocale().get("click_to_retrieve");
-		if (leftClick || shiftClick) {
-			instructions = ChatColor.RED + market.getLocale().get("full_inventory");
-			viewer.resetActions();
-		}
-		lore.add(instructions);
+        boolean isListing = mailItem.getId() < 0;
+        String instructions = isListing ? ChatColor.DARK_GRAY +  market.getLocale().get("shift_click_to_remove") : ChatColor.YELLOW + market.getLocale().get("click_to_retrieve");
+        if (leftClick || shiftClick) {
+            instructions = ChatColor.RED + market.getLocale().get("full_inventory");
+            viewer.resetActions();
+        }
+        if (isListing) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', market.getLocale().get("interface.mail_listing_title", meta.hasDisplayName() ? meta.getDisplayName() : market.getItemNameSingle(item))));
+            lore.add(ChatColor.GREEN + market.getLocale().get("interface.selling_for", market.getEcon().format(market.getStorage().getListing(-mailItem.getId()).getPrice())));
+        }
+        lore.add(instructions);
 		meta.setLore(lore);
 		item.setItemMeta(meta);
 		return item;
@@ -89,6 +94,9 @@ public class MailInterface extends MarketInterface {
 
 	@Override
 	public void handleLeftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
+		if (item.getId() < 0) {
+			return;
+		}
 		Economy econ = market.getEcon();
 		Player player = (Player) event.getWhoClicked();
 		double amount = ((Mail) item).getPickup();
@@ -98,7 +106,7 @@ public class MailInterface extends MarketInterface {
 				if (response.type == ResponseType.NOT_IMPLEMENTED) {
 					market.log.severe(econ.getName() + " may not be compatible with GlobalMarket. It does not support the depositPlayer() function.");
 				} else {
-					market.log.severe("Recieved failed economy response from " + econ.getName() + ": " + response.errorMessage);
+					market.log.severe("Received failed economy response from " + econ.getName() + ": " + response.errorMessage);
 				}
 				return;
 			}
@@ -117,19 +125,31 @@ public class MailInterface extends MarketInterface {
 			market.getCore().retrieveMail((Mail) item, viewer, player, (amount > 0));
 			viewer.resetActions();
 		} else {
-			viewer.resetActions();
-		}
+            market.getInterfaceHandler().refreshSlot(viewer, viewer.getLastActionSlot(), item);
+        }
 	}
 
 	@Override
 	public void handleShiftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
+        if (item.getId() < 0) {
+            // Shift clicked a listing
+            Inventory inv = event.getWhoClicked().getInventory();
+            if (inv.firstEmpty() >= 0) {
+                inv.addItem(market.getStorage().getItem(item.getItemId(), item.getAmount()));
+                market.getStorage().removeListing(-item.getId());
+                market.getInterfaceHandler().updateAllViewers();
+            } else {
+                market.getInterfaceHandler().refreshSlot(viewer, viewer.getLastActionSlot(), item);
+            }
+            return;
+        }
 		handleLeftClickAction(viewer, item, event);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getPage(), getSize() - 9, viewer.getWorld());
+		return (List<MarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getWorld());
 	}
 
 	@Override
@@ -139,6 +159,10 @@ public class MailInterface extends MarketInterface {
 
 	@Override
 	public MarketItem getItem(InterfaceViewer viewer, int id) {
+		if (id < 0) {
+			Listing listing = market.getStorage().getListing(Math.abs(id));
+			return new Mail(viewer.getName(), -listing.getId(), listing.getItemId(), listing.getAmount(), 0, null, viewer.getWorld());
+		}
 		return market.getStorage().getMail(id);
 	}
 
@@ -156,11 +180,6 @@ public class MailInterface extends MarketInterface {
 
 	@Override
 	public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
-	}
-	
-	@Override
-	public int getTotalNumberOfItems(InterfaceViewer viewer) {
-		return market.getStorage().getNumMail(viewer.getName(), viewer.getWorld());
 	}
 	
 	@Override

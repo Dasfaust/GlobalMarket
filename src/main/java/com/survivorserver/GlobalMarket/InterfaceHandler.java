@@ -169,7 +169,7 @@ public class InterfaceHandler {
 		if (viewer.getLastAction() != null) {
 			if (viewer.getLastAction() == InventoryAction.PICKUP_ALL) {
 				if (viewer.getLastActionSlot() == slot) {
-					if (viewer.getLastItem() >= 0 && viewer.getLastItem() == item.getId()) {
+					if (viewer.getLastItem() == item.getId()) {
 						left = true;
 					}
 				}
@@ -178,7 +178,7 @@ public class InterfaceHandler {
 		if (viewer.getLastAction() != null) {
 			if (viewer.getLastAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
 				if (viewer.getLastActionSlot() == slot) {
-					if (viewer.getLastItem() >= 0 && viewer.getLastItem() == item.getId()) {
+					if (viewer.getLastItem() == item.getId()) {
 						shift = true;
 					}
 				}
@@ -216,52 +216,42 @@ public class InterfaceHandler {
 		if (search != null) {
 			contents = mInterface.doSearch(viewer, viewer.getSearch());
 		}
-		int slot = 0;
-		int p = 0;
-		int n = viewer.getPage() * (invContents.length - 9);
+        int pageSize = inv.getContents().length - 9;
+		int index = (pageSize * viewer.getPage()) - pageSize;
+        int slot = 0;
 		boolean clicked = false;
-		Iterator<MarketItem> iterator = contents.iterator();
-		while (iterator.hasNext()) {
-			MarketItem marketItem = iterator.next();
-			p++;
-			if (slot < (invContents.length - 9)) {
-				boolean left = false;
-				boolean shift = false;
-				if (viewer.getLastAction() != null) {
-					if (viewer.getLastAction() == InventoryAction.PICKUP_ALL) {
-						if (viewer.getLastActionSlot() == slot) {
-							if (viewer.getLastItem() >= 0 && viewer.getLastItem() == marketItem.getId()) {
-								clicked = true;
-								left = true;
-							}
-						}
-					}
-				}
-				if (viewer.getLastAction() != null) {
-					if (viewer.getLastAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-						if (viewer.getLastActionSlot() == slot) {
-							if (viewer.getLastItem() >= 0 && viewer.getLastItem() == marketItem.getId()) {
-								clicked = true;
-								shift = true;
-							}
-						}
-					}
-				}
-				ItemStack item = mInterface.prepareItem(marketItem, viewer, p, slot, left, shift);
-				boundSlots.put(slot, marketItem.getId());
-				invContents[slot] = item;
-			}
-			slot++;
-		}
-		boolean nextPage = false;
-		boolean prevPage = false;
-		int t = mInterface.getTotalNumberOfItems(viewer);
-		if (n < t) {
-			nextPage = true;
-		}
-		if (n > (invContents.length - 9)) {
-			prevPage = true;
-		}
+        while(contents.size() > index && slot < pageSize) {
+            MarketItem marketItem = contents.get(index);
+            boolean left = false;
+            boolean shift = false;
+            if (viewer.getLastAction() != null) {
+                if (viewer.getLastAction() == InventoryAction.PICKUP_ALL) {
+                    if (viewer.getLastActionSlot() == slot) {
+                        if (viewer.getLastItem() >= 0 && viewer.getLastItem() == marketItem.getId()) {
+                            clicked = true;
+                            left = true;
+                        }
+                    }
+                }
+            }
+            if (viewer.getLastAction() != null) {
+                if (viewer.getLastAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    if (viewer.getLastActionSlot() == slot) {
+                        if (viewer.getLastItem() >= 0 && viewer.getLastItem() == marketItem.getId()) {
+                            clicked = true;
+                            shift = true;
+                        }
+                    }
+                }
+            }
+            ItemStack item = mInterface.prepareItem(marketItem, viewer, index, slot, left, shift);
+            boundSlots.put(slot, marketItem.getId());
+            invContents[slot] = item;
+            slot++;
+            index++;
+        }
+		boolean nextPage = index < contents.size();
+		boolean prevPage = viewer.getPage() > 1;
 		mInterface.buildFunctionBar(market, this, viewer, invContents, prevPage, nextPage);
 		inv.setContents(invContents);
 		viewer.setBoundSlots(boundSlots);

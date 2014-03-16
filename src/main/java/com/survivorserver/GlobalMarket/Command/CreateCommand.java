@@ -73,6 +73,13 @@ public class CreateCommand extends SubCommand {
 				return true;
 			}
 		}
+        int maxMail = market.getMaxMail(player);
+        if (maxMail > 0) {
+            if (market.getStorage().getNumMail(sender.getName(), player.getWorld().getName()) >= maxMail) {
+                player.sendMessage(ChatColor.RED + locale.get("full_mailbox"));
+                return true;
+            }
+        }
 		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR && args.length >= 2) {
 			if (player.getGameMode() == GameMode.CREATIVE && !market.allowCreative(player)) {
 				player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));

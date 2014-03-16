@@ -40,8 +40,6 @@ public abstract class MarketInterface {
 	
 	public abstract ItemStack getItemStack(InterfaceViewer viewer, MarketItem item);
 	
-	public abstract int getTotalNumberOfItems(InterfaceViewer viewer);
-	
 	public abstract boolean identifyItem(ItemMeta meta);
 	
 	public abstract void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv);

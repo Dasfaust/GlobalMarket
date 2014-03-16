@@ -151,13 +151,13 @@ public class ListingsInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getViewer(), viewer.getSort(), viewer.getPage(), getSize() - 9, viewer.getWorld());
+		return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getViewer(), viewer.getSort(), viewer.getWorld());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
-		SearchResult result = market.getStorage().getListings(viewer.getViewer(), viewer.getSort(), viewer.getPage(), getSize() - 9, search, viewer.getWorld());
+		SearchResult result = market.getStorage().getListings(viewer.getViewer(), viewer.getSort(), search, viewer.getWorld());
 		viewer.setSearchSize(result.getTotalFound());
 		return (List<MarketItem>)(List<?>) result.getPage();
 	}
@@ -193,11 +193,6 @@ public class ListingsInterface extends MarketInterface {
 	
 	@Override
 	public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
-	}
-	
-	@Override
-	public int getTotalNumberOfItems(InterfaceViewer viewer) {
-		return viewer.getSearch() == null ? market.getStorage().getNumListings(viewer.getWorld()) : viewer.getSearchSize();
 	}
 
 	@Override
@@ -318,6 +313,14 @@ public class ListingsInterface extends MarketInterface {
 			market.getInterfaceHandler().refreshFunctionBar(viewer);
 			return;
 		}
+        int maxMail = market.getMaxMail(player);
+        if (maxMail > 0) {
+            if (market.getStorage().getNumMail(player.getName(), player.getWorld().getName()) >= maxMail) {
+                viewer.setCreateMessage(locale.get("full_mailbox"));
+                market.getInterfaceHandler().refreshFunctionBar(viewer);
+                return;
+            }
+        }
 		// Suspend the viewer so we can unsuspend later
 		market.getInterfaceHandler().suspendViewer(viewer);
 		// Will disconnect client if you close their inventory on the same tick as the event. I think.

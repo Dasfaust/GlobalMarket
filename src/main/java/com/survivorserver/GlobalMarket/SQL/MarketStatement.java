@@ -13,6 +13,7 @@ public class MarketStatement {
 	private Logger log;
 	private PreparedStatement statement;
 	private int counter = 1;
+    private String failureDebug;
 	
 	public MarketStatement(Logger log, PreparedStatement statement) {
 		this.statement = statement;
@@ -96,7 +97,7 @@ public class MarketStatement {
 			statement.executeUpdate();
 			statement.close();
 		} catch (SQLException e) {
-			log.info("An exception occurred while executing an SQL statement:");
+			log.info(failureDebug == null ? "An exception occurred while executing an SQL statement:" : failureDebug);
 			e.printStackTrace();
 		}
 	}
@@ -120,9 +121,14 @@ public class MarketStatement {
 			//statement.close();
 			return result;
 		} catch (SQLException e) {
-			log.info("An exception occurred while executing an SQL statement:");
+            log.info(failureDebug == null ? "An exception occurred while executing an SQL statement:" : failureDebug);
 			e.printStackTrace();
 			return null;
 		}
 	}
+
+    public MarketStatement setFailureNotice(String string) {
+        failureDebug = string;
+        return this;
+    }
 }

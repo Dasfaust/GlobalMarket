@@ -10,6 +10,7 @@ public class QueuedStatement {
 
 	private String query;
 	private ArrayList<Object> values;
+    private String failure;
 	
 	public QueuedStatement(String query) {
 		this.query = query;
@@ -39,6 +40,9 @@ public class QueuedStatement {
 					statement.setObject(ob);
 				}
 			}
+            if (failure != null) {
+                statement.setFailureNotice(failure);
+            }
 			return statement;
 		} catch(Exception e) {
 			Market.getMarket().log.info("Error while building queued statement:");
@@ -46,4 +50,9 @@ public class QueuedStatement {
 			return null;
 		}
 	}
+
+    public QueuedStatement setFailureNotice(String string) {
+        failure = string;
+        return this;
+    }
 }

@@ -117,6 +117,8 @@ english:
         specify_amount_and_price: "Specify the amount and price"
         amount_sign: "Amount"
         price_sign: "Price"
+        selling_for: "Currently selling for %s"
+        mail_listing_title: "&a<Listing>&f %s"
     interface_closed_due_to_reload: "Interface force-closed due to a reload"
     config_reloaded: "Config reloaded"
     no_permission_for_this_command: "You do not have permission for this command"
@@ -131,6 +133,8 @@ english:
     item_is_blacklisted_from_mail: "You can't send this item"
     friendly_item_name: "%s"
     friendly_item_name_with_amount: "%1$s %2$s"
+    full_mailbox: "Your mailbox is full"
+    full_mailbox_other: "%s's mailbox is full"
     prices:
         no_data: "No data available for %s. Price data will not be available until the item has been sold at least once"
         header: "%s Pricing:"

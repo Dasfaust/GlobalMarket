@@ -49,13 +49,12 @@ public class HistoryCommand extends SubCommand {
 		final Player player = (Player) sender;
 		new BukkitRunnable() {
 			public void run() {
-				Database db = market.getStorage().getAsyncDb().getDb();
-				synchronized(db) {
-					player.sendMessage(market.getHistory().buildHistory(player.getName(), 15, db));
-				}
+				Database db = market.getConfigHandler().createConnection();
+				db.connect();
+				player.sendMessage(market.getHistory().buildHistory(player.getName(), 15, db));
+				db.close();
 			}
 		}.runTaskAsynchronously(market);
 		return true;
 	}
-
 }

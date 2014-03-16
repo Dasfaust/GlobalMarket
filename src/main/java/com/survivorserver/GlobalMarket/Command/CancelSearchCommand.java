@@ -57,7 +57,7 @@ public class CancelSearchCommand extends SubCommand {
 					sender.sendMessage(ChatColor.YELLOW + "There are no listings to cancel");
 				}
 			} else {
-				SearchResult res = market.getStorage().getListings(sender.getName(), SortMethod.DEFAULT, 1, 1000, args[1], "");
+				SearchResult res = market.getStorage().getListings(sender.getName(), SortMethod.DEFAULT, args[1], "");
 				if (res.getTotalFound() > 0) {
 					for (Listing listing : res.getPage()) {
 						market.getCore().expireListing(listing);
