@@ -34,7 +34,7 @@ public class CancelSearchCommand extends SubCommand {
 
 	@Override
 	public String getHelp() {
-		return locale.get("cmd.prefix") + "/market cancelSearch <search>" + " " + "[Cancells all listings with the given criteria]";
+		return locale.get("cmd.prefix") + locale.get("cmd.cs_syntax") + " " + locale.get("cmd.cs_descr");
 	}
 
 	@Override
