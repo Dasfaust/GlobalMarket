@@ -43,7 +43,11 @@ public abstract class MarketInterface {
 	public abstract boolean identifyItem(ItemMeta meta);
 	
 	public abstract void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv);
-	
+
+    public abstract void onInterfaceClose(InterfaceViewer viewer);
+
+    public abstract void onInterfaceOpen(InterfaceViewer viewer);
+
 	public void onUnboundClick(Market market, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event) {
 		Player player = (Player) event.getWhoClicked();
 		int invSize = event.getInventory().getSize();

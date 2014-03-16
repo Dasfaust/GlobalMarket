@@ -2,6 +2,7 @@ package com.survivorserver.GlobalMarket;
 
 import java.util.Map;
 
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 

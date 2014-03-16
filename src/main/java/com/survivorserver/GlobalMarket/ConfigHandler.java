@@ -2,22 +2,28 @@ package com.survivorserver.GlobalMarket;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.survivorserver.GlobalMarket.SQL.Database;
 import com.survivorserver.GlobalMarket.SQL.StorageMethod;
+import org.bukkit.entity.Player;
 
 public class ConfigHandler {
 
 	private Market market;
 	private FileConfiguration localeConfig;
 	private File localeFile;
+    private Map<String, YamlConfiguration> playerConfigs;
 	
 	public ConfigHandler(Market market) {
 		this.market = market;
+        playerConfigs = new HashMap<String, YamlConfiguration>();
 	}
 	
 	public Database createConnection() {
@@ -78,4 +84,31 @@ public class ConfigHandler {
 			market.getLogger().log(Level.SEVERE, "Could not save locale: ", e);
 		}
 	}
+
+    public YamlConfiguration getPlayerConfig(String player) {
+        if (playerConfigs.containsKey(player)) {
+            return playerConfigs.get(player);
+        }
+        File playerFolder = new File(market.getDataFolder().getAbsolutePath() + File.separator + "players");
+        if (!playerFolder.exists()) {
+            try {
+                playerFolder.mkdirs();
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+        File playerFile = new File(market.getDataFolder().getAbsolutePath() + File.separator + "players" + File.separator + player + ".yml");
+        YamlConfiguration conf = YamlConfiguration.loadConfiguration(playerFile);
+        playerConfigs.put(player, conf);
+        return conf;
+    }
+
+    public void savePlayerConfig(String player) {
+        File playerFile = new File(market.getDataFolder().getAbsolutePath() + File.separator + "players" + File.separator + player + ".yml");
+        try {
+            getPlayerConfig(player).save(playerFile);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

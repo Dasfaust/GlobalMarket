@@ -2,7 +2,6 @@ package com.survivorserver.GlobalMarket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +76,7 @@ public class InterfaceHandler {
 			}
 		}
 		InterfaceViewer viewer = new InterfaceViewer(name, name, gui, mInterface, player.getWorld().getName());
+        mInterface.onInterfaceOpen(viewer);
 		viewers.add(viewer);
 		return viewer;
 	}
@@ -120,6 +120,7 @@ public class InterfaceHandler {
 	}
 	
 	public void removeViewer(InterfaceViewer viewer) {
+        viewer.getInterface().onInterfaceClose(viewer);
 		viewers.remove(viewer);
 	}
 	

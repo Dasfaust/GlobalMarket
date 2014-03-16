@@ -8,6 +8,7 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -194,6 +195,26 @@ public class ListingsInterface extends MarketInterface {
 	@Override
 	public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
 	}
+
+    @Override
+    public void onInterfaceClose(InterfaceViewer viewer) {
+        YamlConfiguration playerConf = market.getConfigHandler().getPlayerConfig(viewer.getViewer());
+        if (!playerConf.getString("listings.sort_method").equalsIgnoreCase(viewer.getSort().toString())) {
+            playerConf.set("listings.sort_method", viewer.getSort().toString());
+            market.getConfigHandler().savePlayerConfig(viewer.getViewer());
+        }
+    }
+
+    @Override
+    public void onInterfaceOpen(InterfaceViewer viewer) {
+        YamlConfiguration playerConf = market.getConfigHandler().getPlayerConfig(viewer.getViewer());
+        if (!playerConf.isSet("listings.sort_method")) {
+            playerConf.set("listings.sort_method", SortMethod.DEFAULT.toString());
+            market.getConfigHandler().savePlayerConfig(viewer.getViewer());
+        } else {
+            viewer.setSort(SortMethod.valueOf(playerConf.getString("listings.sort_method").toUpperCase()));
+        }
+    }
 
 	@Override
 	public ItemStack getItemStack(InterfaceViewer viewer, MarketItem item) {

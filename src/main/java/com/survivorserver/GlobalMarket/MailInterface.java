@@ -3,12 +3,16 @@ package com.survivorserver.GlobalMarket;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.survivorserver.GlobalMarket.Lib.SortMethod;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -149,7 +153,7 @@ public class MailInterface extends MarketInterface {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MarketItem> getContents(InterfaceViewer viewer) {
-		return (List<MarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getWorld());
+		return (List<MarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getWorld(), viewer.getSort());
 	}
 
 	@Override
@@ -181,7 +185,27 @@ public class MailInterface extends MarketInterface {
 	@Override
 	public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
 	}
-	
+
+    @Override
+    public void onInterfaceClose(InterfaceViewer viewer) {
+        YamlConfiguration playerConf = market.getConfigHandler().getPlayerConfig(viewer.getViewer());
+        if (!playerConf.getString("mail.sort_method").equalsIgnoreCase(viewer.getSort().toString())) {
+            playerConf.set("mail.sort_method", viewer.getSort().toString());
+            market.getConfigHandler().savePlayerConfig(viewer.getViewer());
+        }
+    }
+
+    @Override
+    public void onInterfaceOpen(InterfaceViewer viewer) {
+        YamlConfiguration playerConf = market.getConfigHandler().getPlayerConfig(viewer.getViewer());
+        if (!playerConf.isSet("mail.sort_method")) {
+            playerConf.set("mail.sort_method", SortMethod.DEFAULT.toString());
+            market.getConfigHandler().savePlayerConfig(viewer.getViewer());
+        } else {
+            viewer.setSort(SortMethod.valueOf(playerConf.getString("mail.sort_method").toUpperCase()));
+        }
+    }
+
 	@Override
 	public ItemStack getItemStack(InterfaceViewer viewer, MarketItem item) {
 		return market.getStorage().getItem(item.getItemId(), item.getAmount());
@@ -193,5 +217,42 @@ public class MailInterface extends MarketInterface {
 		
 		// Unset search
 		contents[contents.length - 7] = null;
+
+        // Sort toggle
+        ItemStack curPage = new ItemStack(Material.DIODE);
+        ItemMeta curMeta = curPage.getItemMeta();
+        if (curMeta == null) {
+            curMeta = market.getServer().getItemFactory().getItemMeta(curPage.getType());
+        }
+        curMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.sort_by"));
+        List<String> curLore = new ArrayList<String>();
+        curLore.add(ChatColor.YELLOW + market.getLocale().get("interface.sorting_by", market.getLocale().get("interface.sort_methods." + (viewer.getSort() == SortMethod.DEFAULT ? viewer.getSort().toString() + "_mail" : viewer.getSort().toString()))));
+        curMeta.setLore(curLore);
+        curPage.setItemMeta(curMeta);
+        contents[contents.length - 5] = curPage;
 	}
+
+    @Override
+    public void onUnboundClick(final Market market, final InterfaceHandler handler, final InterfaceViewer viewer, int slot, final InventoryClickEvent event) {
+        super.onUnboundClick(market, handler, viewer, slot, event);
+        int invSize = event.getInventory().getSize();
+
+        if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
+            return;
+        }
+
+        // Sort toggle
+        if (slot == invSize - 5 && event.getAction() != InventoryAction.SWAP_WITH_CURSOR) {
+            SortMethod sort = viewer.getSort();
+            if (sort == SortMethod.DEFAULT) {
+                viewer.setSort(SortMethod.MAIL_ONLY);
+            } else if (sort == SortMethod.MAIL_ONLY) {
+                viewer.setSort(SortMethod.LISTINGS_ONLY);
+            } else {
+                viewer.setSort(SortMethod.DEFAULT);
+            }
+            handler.refreshViewer(viewer, viewer.getInterface().getName());
+            return;
+        }
+    }
 }

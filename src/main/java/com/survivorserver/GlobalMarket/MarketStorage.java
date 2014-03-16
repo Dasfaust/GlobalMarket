@@ -834,20 +834,25 @@ public class MarketStorage {
 		return null;
 	}
 	
-	public List<Mail> getMail(final String owner, final String world) {
+	public List<Mail> getMail(final String owner, final String world, SortMethod sort) {
 		List<Mail> activeListings = new ArrayList<Mail>();
-		if (market.getMaxMail(owner, world) > 0) {
-			for (Listing listing : getOwnedListings(world, owner)) {
-				activeListings.add(new Mail(owner, -listing.getId(), listing.getItemId(), listing.getAmount(), 0, null, world));
-			}
-		}
+        for (Listing listing : getOwnedListings(world, owner)) {
+            activeListings.add(new Mail(owner, -listing.getId(), listing.getItemId(), listing.getAmount(), 0, null, world));
+        }
 		Collection<Mail> ownedMail = Collections2.filter(market.enableMultiworld() ? getMailForWorld(world) : mail.values(), new Predicate<Mail>() {
 			public boolean apply(Mail mail) {
 				return mail.getOwner().equals(owner);
 			}
 		});
-		List<Mail> list = Lists.reverse(new ArrayList<Mail>(ownedMail));
-		list.addAll(0, activeListings);
+        List<Mail> list;
+        if (sort == SortMethod.LISTINGS_ONLY) {
+            list = activeListings;
+        } else if (sort == SortMethod.MAIL_ONLY) {
+            list = Lists.reverse(new ArrayList<Mail>(ownedMail));
+        } else {
+            list = Lists.reverse(new ArrayList<Mail>(ownedMail));
+            list.addAll(activeListings);
+        }
 		return list;
 	}
 	
