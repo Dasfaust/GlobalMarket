@@ -83,7 +83,7 @@ public class Market extends JavaPlugin implements Listener {
 
 	public void onEnable() {
 		log = getLogger();
-		tasks = new ArrayList<Integer>();
+	    tasks = new ArrayList<Integer>();
 		market = this;
 		reloadConfig();
 		getConfig().options().header("GlobalMarket config: " + getDescription().getVersion());
@@ -129,20 +129,20 @@ public class Market extends JavaPlugin implements Listener {
 		saveConfig();
 		
 		File langFile = new File(getDataFolder().getAbsolutePath() + File.separator + "en_US.lang");
-		if (!langFile.exists()) {
-			saveResource("en_US.lang", true);
-		}
+        if (!langFile.exists()) {
+            saveResource("en_US.lang", true);
+        }
 		items = new ItemIndex(this);
 		
-		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-		if (economyProvider != null) {
-		    econ = economyProvider.getProvider();
-		} else {
-			log.severe("Vault has no hooked economy plugin, disabling");
-			this.setEnabled(false);
-			return;
-		}
-		RegisteredServiceProvider<net.milkbowl.vault.permission.Permission> permsProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (economyProvider != null) {
+            econ = economyProvider.getProvider();
+        } else {
+            log.severe("Vault has no hooked economy plugin, disabling");
+            this.setEnabled(false);
+            return;
+        }
+        RegisteredServiceProvider<net.milkbowl.vault.permission.Permission> permsProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
 		if (permsProvider != null) {
 			perms = permsProvider.getProvider();
 		} else {
@@ -168,7 +168,7 @@ public class Market extends JavaPlugin implements Listener {
 		asyncDb = new AsyncDatabase(this);
 		storage = new MarketStorage(this, asyncDb);
 		worldLinks = new HashMap<String, String[]>();
-		initializeStorage();
+        initializeStorage();
 	}
 	
 	public void initializeStorage() {

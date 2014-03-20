@@ -191,7 +191,19 @@ public class MarketResult {
 			return null;
 		}
 	}
-	
+
+    public byte[] getBytes(String label) {
+        try {
+            if (set.isBeforeFirst()) {
+                set.next();
+            }
+            return set.getBytes(label);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 	public void close() {
 		try {
 			set.close();
