@@ -11,25 +11,25 @@ import com.survivorserver.GlobalMarket.Market;
 
 public class CleanTask implements Runnable {
 	
-	Market market;
-	InterfaceHandler handler;
-	
-	public CleanTask(Market market, InterfaceHandler handler) {
-		this.market = market;
-		this.handler = handler;
-	}
+    Market market;
+    InterfaceHandler handler;
 
-	@Override
-	public void run() {
-		List<InterfaceViewer> toRemove = new ArrayList<InterfaceViewer>();
-		for (InterfaceViewer viewer : handler.getAllViewers()) {
-			Player player = market.getServer().getPlayer(viewer.getViewer());
-			if (player != null && player.getOpenInventory() == null) {
-				toRemove.add(viewer);
-			}
-		}
-		for (InterfaceViewer viewer : toRemove) {
-			handler.removeViewer(viewer);
-		}
-	}
+    public CleanTask(Market market, InterfaceHandler handler) {
+        this.market = market;
+        this.handler = handler;
+    }
+
+    @Override
+    public void run() {
+        List<InterfaceViewer> toRemove = new ArrayList<InterfaceViewer>();
+        for (InterfaceViewer viewer : handler.getAllViewers()) {
+            Player player = market.getServer().getPlayer(viewer.getViewer());
+            if (player != null && player.getOpenInventory() == null) {
+                toRemove.add(viewer);
+            }
+        }
+        for (InterfaceViewer viewer : toRemove) {
+            handler.removeViewer(viewer);
+        }
+    }
 }

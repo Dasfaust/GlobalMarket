@@ -13,54 +13,53 @@ import com.survivorserver.GlobalMarket.SQL.Database;
 
 public class PriceCheckCommand extends SubCommand {
 
-	public PriceCheckCommand(Market market, LocaleHandler locale) {
-		super(market, locale);
-	}
+    public PriceCheckCommand(Market market, LocaleHandler locale) {
+        super(market, locale);
+    }
 
-	@Override
-	public String getCommand() {
-		return "pricecheck";
-	}
+    @Override
+    public String getCommand() {
+        return "pricecheck";
+    }
 
-	@Override
-	public String[] getAliases() {
-		return new String[] {"price", "pc"};
-	}
+    @Override
+    public String[] getAliases() {
+        return new String[] {"price", "pc"};
+    }
 
-	@Override
-	public String getPermissionNode() {
-		return "globalmarket.pricecheck";
-	}
+    @Override
+    public String getPermissionNode() {
+        return "globalmarket.pricecheck";
+    }
 
-	@Override
-	public String getHelp() {
-		return locale.get("cmd.prefix") + locale.get("cmd.pc_syntax") + " " + locale.get("cmd.pc_descr");
-	}
+    @Override
+    public String getHelp() {
+        return locale.get("cmd.prefix") + locale.get("cmd.pc_syntax") + " " + locale.get("cmd.pc_descr");
+    }
 
-	@Override
-	public boolean allowConsoleSender() {
-		return false;
-	}
+    @Override
+    public boolean allowConsoleSender() {
+        return false;
+    }
 
-	@Override
-	public boolean onCommand(CommandSender sender, String[] args) {
-		if (!market.enableHistory()) {
-			sender.sendMessage(ChatColor.RED + locale.get("history_not_enabled"));
-			return true;
-		}
-		final Player player = (Player) sender;
-		if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR) {
-			final ItemStack item = player.getItemInHand();
-			new BukkitRunnable() {
-				public void run() {
-					Database db = market.getStorage().getAsyncDb().getDb();
-					synchronized(db) {
-						player.sendMessage(market.getHistory().getPricesInformation(item, db));
-					}
-				}
-			}.runTaskAsynchronously(market);
-		}
-		return true;
-	}
-
+    @Override
+    public boolean onCommand(CommandSender sender, String[] args) {
+        if (!market.enableHistory()) {
+            sender.sendMessage(ChatColor.RED + locale.get("history_not_enabled"));
+            return true;
+        }
+        final Player player = (Player) sender;
+        if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR) {
+            final ItemStack item = player.getItemInHand();
+            new BukkitRunnable() {
+                public void run() {
+                    Database db = market.getStorage().getAsyncDb().getDb();
+                    synchronized(db) {
+                        player.sendMessage(market.getHistory().getPricesInformation(item, db));
+                    }
+                }
+            }.runTaskAsynchronously(market);
+        }
+        return true;
+    }
 }
