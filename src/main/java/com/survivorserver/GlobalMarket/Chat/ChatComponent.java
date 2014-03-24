@@ -16,7 +16,7 @@ public class ChatComponent {
 		this.market = market;
 		
 		try {
-			Class.forName("net.minecraft.server.v1_7_R1.ChatSerializer");
+			Class.forName("net.minecraft.server.v1_7_R2.ChatSerializer");
 			tellraw = new TellRawComponent();
 		} catch(Exception ignored) {}
 	}
@@ -148,8 +148,8 @@ public class ChatComponent {
 		
 		public void send(Player player, TellRawMessage msg) {
 			String json = gson.toJson(msg);
-			net.minecraft.server.v1_7_R1.IChatBaseComponent comp = net.minecraft.server.v1_7_R1.ChatSerializer.a(json);
-			((org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer) player).getHandle().playerConnection.sendPacket(new net.minecraft.server.v1_7_R1.PacketPlayOutChat(comp, true));
+			net.minecraft.server.v1_7_R2.IChatBaseComponent comp = net.minecraft.server.v1_7_R2.ChatSerializer.a(json);
+			((org.bukkit.craftbukkit.v1_7_R2.entity.CraftPlayer) player).getHandle().playerConnection.sendPacket(new net.minecraft.server.v1_7_R2.PacketPlayOutChat(comp, true));
 		}
 	}
 }

@@ -261,7 +261,11 @@ public class ListingsInterface extends MarketInterface {
 							inv.setItem(last, cursor);
 						} else {
 							ItemStack lastItem = inv.getItem(last);
-							lastItem.setAmount(lastItem.getAmount() + cursor.getAmount());
+                            if (lastItem.getType() == cursor.getType()) {
+                                lastItem.setAmount(lastItem.getAmount() + cursor.getAmount());
+                            } else {
+                                event.getWhoClicked().getWorld().dropItem(event.getWhoClicked().getLocation(), cursor);
+                            }
 						}
 						create((Player) event.getWhoClicked(), inv.getItem(last), viewer);
 					}
