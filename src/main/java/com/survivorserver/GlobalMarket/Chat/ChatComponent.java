@@ -147,9 +147,9 @@ public class ChatComponent {
         }
 
         public void send(Player player, TellRawMessage msg) {
-            String json = gson.toJson(msg);
-            net.minecraft.server.v1_7_R2.IChatBaseComponent comp = net.minecraft.server.v1_7_R2.ChatSerializer.a(json);
-            ((org.bukkit.craftbukkit.v1_7_R2.entity.CraftPlayer) player).getHandle().playerConnection.sendPacket(new net.minecraft.server.v1_7_R2.PacketPlayOutChat(comp, true));
+            /*String json = gson.toJson(msg);
+            net.minecraft.server.v1_7_R3.IChatBaseComponent comp = net.minecraft.server.v1_7_R3.ChatSerializer.a(json);
+            ((org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer) player).getHandle().playerConnection.sendPacket(new net.minecraft.server.v1_7_R3.PacketPlayOutChat(comp, true));*/
         }
     }
 }

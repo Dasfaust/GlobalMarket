@@ -30,18 +30,30 @@
 		<dependency>
 			<groupId>net.milkbowl.vault</groupId>
 			<artifactId>Vault</artifactId>
-			<version>1.2.26-SNAPSHOT</version>
+			<version>1.2.32</version>
 		</dependency>
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>craftbukkit</artifactId>
-			<version>LATEST</version>
+			<version>1.7.9-R0.1</version>
 		</dependency>
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>craftbukkit</artifactId>
+            <version>1.6.4-R2.0</version>
+        </dependency>
 		<!--<dependency>
 			<groupId>com.github.derwisch.paperMail</groupId>
 			<artifactId>paperMail</artifactId>
 			<version>1.0.1.2</version>
 		</dependency>-->
+        <dependency>
+            <groupId>me.dasfaust</groupId>
+            <artifactId>MarketCompanion</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/modid-1.0.jar</systemPath>
+        </dependency>
 		<dependency>
 			<groupId>com.comphenix.protocol</groupId>
 			<artifactId>ProtocolLib</artifactId>

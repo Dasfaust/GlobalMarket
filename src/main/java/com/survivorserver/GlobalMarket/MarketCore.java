@@ -2,6 +2,7 @@ package com.survivorserver.GlobalMarket;
 
 import java.util.Arrays;
 
+import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
@@ -242,7 +243,11 @@ public class MarketCore {
             meta.setLore(Arrays.asList(new String[] {market.getLocale().get("not_tradable")}));
             item.setItemMeta(meta);
         }
-        playerInv.addItem(item);
+        if (market.mcpcpSupportEnabled()) {
+            MCPCPHelper.addItemToInventory(player.getName(), item);
+        } else {
+            playerInv.addItem(item);
+        }
         storage.removeMail(mail.getId());
     }
 

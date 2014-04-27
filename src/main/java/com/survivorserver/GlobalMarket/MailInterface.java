@@ -3,6 +3,7 @@ package com.survivorserver.GlobalMarket;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -139,7 +140,11 @@ public class MailInterface extends MarketInterface {
             // Shift clicked a listing
             Inventory inv = event.getWhoClicked().getInventory();
             if (inv.firstEmpty() >= 0) {
-                inv.addItem(market.getStorage().getItem(item.getItemId(), item.getAmount()));
+                if (market.mcpcpSupportEnabled()) {
+                    MCPCPHelper.addItemToInventory(viewer.getViewer(), market.getStorage().getItem(item.getItemId(), item.getAmount()));
+                } else {
+                    inv.addItem(market.getStorage().getItem(item.getItemId(), item.getAmount()));
+                }
                 market.getStorage().removeListing(-item.getId());
                 market.getInterfaceHandler().updateAllViewers();
             } else {

@@ -34,6 +34,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -79,6 +80,7 @@ public class Market extends JavaPlugin implements Listener {
     private ItemIndex items;
     private ChatComponent chat;
     private Updater updater;
+    private boolean mcpcp = false;
     String prefix;
 
     public void onEnable() {
@@ -160,6 +162,11 @@ public class Market extends JavaPlugin implements Listener {
                 log.info("ProtocolLib was found but GM only supports ProtocolLib for 1.7 and above.");
             }
         }
+        try {
+            Class.forName("me.dasfaust.GlobalMarket.MarketCompanion");
+            log.info("Market Forge mod detected!");
+            mcpcp = true;
+        } catch(Exception ignored) {}
         config = new ConfigHandler(this);
         locale = new LocaleHandler(config);
         prefix = locale.get("cmd.prefix");
@@ -259,6 +266,39 @@ public class Market extends JavaPlugin implements Listener {
     public InterfaceHandler getInterfaceHandler() {
         return interfaceHandler;
     }
+
+    public boolean mcpcpSupportEnabled() {
+        return mcpcp;
+    }
+
+    /*public ItemStack getWrappedItemStack(Player player, int slot) {
+        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
+        return inst.getWrappedForgeItemStack(player.getName(), slot);
+    }
+
+    public void returnWrappedItemStack(Player player, int slot, me.dasfaust.GlobalMarket.WrappedItemStack stack) {
+        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
+        inst.addToInventory(player.getName(), slot, stack);
+    }
+
+    public void setWrappedInventoryContents(Inventory inv, ItemStack[] contents) {
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack stack = contents[i];
+            if (!(stack instanceof me.dasfaust.GlobalMarket.WrappedItemStack)) {
+                contents[i] = new me.dasfaust.GlobalMarket.WrappedItemStack(org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack.asNMSCopy(stack), true);
+            }
+        }
+        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
+        inst.setInventoryContents(((org.bukkit.craftbukkit.v1_6_R3.inventory.CraftInventory) inv).getInventory(), contents);
+    }
+
+    public void setWrappedInventorySlot(Inventory inv, ItemStack item, int slot) {
+        if (!(item instanceof me.dasfaust.GlobalMarket.WrappedItemStack)) {
+            item = new me.dasfaust.GlobalMarket.WrappedItemStack(org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack.asNMSCopy(item), true);
+        }
+        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
+        inst.setInventorySlot(((org.bukkit.craftbukkit.v1_6_R3.inventory.CraftInventory) inv).getInventory(), item, slot);
+    }*/
 
     public boolean useProtocolLib() {
         return packet != null;
@@ -556,6 +596,9 @@ public class Market extends JavaPlugin implements Listener {
     }
 
     public String getItemName(ItemStack item) {
+        if (mcpcp) {
+            return ((me.dasfaust.GlobalMarket.WrappedItemStack) item).getItemName();
+        }
         String itemName = items.getItemName(item);
         if (item.getAmount() > 1) {
             return locale.get("friendly_item_name_with_amount", item.getAmount(), itemName);

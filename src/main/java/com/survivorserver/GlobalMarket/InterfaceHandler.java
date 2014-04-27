@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -185,7 +186,11 @@ public class InterfaceHandler {
                 }
             }
         }
-        inv.setItem(slot, mInterface.prepareItem(item, viewer, viewer.getPage(), slot, left, shift));
+        if (market.mcpcpSupportEnabled()) {
+            MCPCPHelper.addItemToInventory(mInterface.prepareItem(item, viewer, viewer.getPage(), slot, left, shift), inv, slot);
+        } else {
+            inv.setItem(slot, mInterface.prepareItem(item, viewer, viewer.getPage(), slot, left, shift));
+        }
     }
 
     public void refreshFunctionBar(InterfaceViewer viewer) {
@@ -253,8 +258,15 @@ public class InterfaceHandler {
         }
         boolean nextPage = index < contents.size();
         boolean prevPage = viewer.getPage() > 1;
+
         mInterface.buildFunctionBar(market, this, viewer, invContents, prevPage, nextPage);
-        inv.setContents(invContents);
+
+        if (market.mcpcpSupportEnabled()) {
+            MCPCPHelper.setInventoryContents(inv, invContents);
+        } else {
+            inv.setContents(invContents);
+        }
+
         viewer.setBoundSlots(boundSlots);
         if (!clicked) {
             viewer.resetActions();

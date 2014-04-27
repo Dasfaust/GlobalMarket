@@ -2,6 +2,7 @@ package com.survivorserver.GlobalMarket.Command;
 
 import java.util.List;
 
+import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -75,12 +76,6 @@ public class SendCommand extends SubCommand {
                 player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
                 return true;
             }
-            if (market.blacklistMail()) {
-                if (market.itemBlacklisted(player.getItemInHand())) {
-                    sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted_from_mail"));
-                    return true;
-                }
-            }
             if (args.length < 2) {
                 sender.sendMessage(prefix + locale.get("cmd.send_syntax"));
                 return true;
@@ -102,6 +97,16 @@ public class SendCommand extends SubCommand {
                     return true;
                 }
             }
+            ItemStack toList = player.getItemInHand().clone();
+            if (market.mcpcpSupportEnabled()) {
+                toList = MCPCPHelper.wrapItemStack(player.getInventory(), player.getInventory().getHeldItemSlot());
+            }
+            if (market.blacklistMail()) {
+                if (market.itemBlacklisted(toList)) {
+                    sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted_from_mail"));
+                    return true;
+                }
+            }
             int mailTime = market.getMailTime(player);
             if (args.length == 3) {
                 int amount;
@@ -119,7 +124,6 @@ public class SendCommand extends SubCommand {
                     player.sendMessage(ChatColor.RED + locale.get("you_dont_have_x_of_this_item", amount));
                     return true;
                 }
-                ItemStack toList = player.getItemInHand().clone();
                 if (player.getItemInHand().getAmount() == amount) {
                     player.setItemInHand(new ItemStack(Material.AIR));
                 } else {
@@ -135,7 +139,6 @@ public class SendCommand extends SubCommand {
                     market.notifyPlayer(args[1], market.getLocale().get("you_have_new_mail"));
                 }
             } else {
-                ItemStack toList = player.getItemInHand().clone();
                 if (mailTime > 0) {
                     market.getStorage().queueMail(args[1], sender.getName(), toList, world);
                     sender.sendMessage(prefix + locale.get("item_will_send", mailTime));

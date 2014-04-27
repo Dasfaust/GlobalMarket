@@ -3,6 +3,7 @@ package com.survivorserver.GlobalMarket.Command;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.ChatColor;
@@ -85,10 +86,6 @@ public class CreateCommand extends SubCommand {
                 player.sendMessage(ChatColor.RED + locale.get("not_allowed_while_in_creative"));
                 return true;
             }
-            if (market.itemBlacklisted(player.getItemInHand())) {
-                sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted"));
-                return true;
-            }
             double price = 0;
             try {
                 price = Double.parseDouble(args[1]);
@@ -139,6 +136,13 @@ public class CreateCommand extends SubCommand {
                 }
             }
             ItemStack toList = player.getItemInHand().clone();
+            if (market.mcpcpSupportEnabled()) {
+                toList = MCPCPHelper.wrapItemStack(player.getInventory(), player.getInventory().getHeldItemSlot());
+            }
+            if (market.itemBlacklisted(toList)) {
+                sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted"));
+                return true;
+            }
             if (fee > 0) {
                 if (econ.has(sender.getName(), fee)) {
                     econ.withdrawPlayer(sender.getName(), fee);

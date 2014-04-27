@@ -58,7 +58,7 @@ public class ListingsInterface extends MarketInterface {
     public ItemStack prepareItem(MarketItem marketItem, InterfaceViewer viewer, int page, int slot, boolean leftClick, boolean shiftClick) {
         Listing listing = (Listing) marketItem;
         ItemStack item = storage.getItem(listing.getItemId(), listing.getAmount());
-        ItemMeta meta = item.getItemMeta().clone();
+        ItemMeta meta = item.getItemMeta();
 
         boolean isSeller = viewer.getViewer().equalsIgnoreCase(listing.getSeller());
         boolean isAdmin = market.getInterfaceHandler().isAdmin(viewer.getViewer());
