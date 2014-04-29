@@ -11,7 +11,8 @@ public class MCPCPHelper {
     }
 
     public static ItemStack wrapItemStack(ItemStack stack) {
-        return new me.dasfaust.GlobalMarket.WrappedItemStack(getNMSStack(stack), true);
+        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
+        return inst.wrap(getNMSStack(stack));
     }
 
     public static void addItemToInventory(ItemStack stack, Inventory inv, int slot) {
@@ -31,15 +32,15 @@ public class MCPCPHelper {
     }
 
     public static void setInventoryContents(Inventory inv, ItemStack[] contents) {
+        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
         for (int i = 0; i < contents.length; i++) {
             ItemStack stack = contents[i];
             if (stack != null) {
                 if (!(stack instanceof me.dasfaust.GlobalMarket.WrappedItemStack)) {
-                    contents[i] = new me.dasfaust.GlobalMarket.WrappedItemStack(getNMSStack(stack), true);
+                    contents[i] = inst.wrap(getNMSStack(stack));
                 }
             }
         }
-        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
         inst.setInventoryContents(getNMSInventory(inv), contents);
     }
 
