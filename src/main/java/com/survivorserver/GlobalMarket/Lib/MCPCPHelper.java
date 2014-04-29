@@ -3,7 +3,6 @@ package com.survivorserver.GlobalMarket.Lib;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-
 public class MCPCPHelper {
 
     public static ItemStack wrapItemStack(Inventory inv, int slot) {
@@ -42,6 +41,16 @@ public class MCPCPHelper {
         }
         me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
         inst.setInventoryContents(getNMSInventory(inv), contents);
+    }
+
+    public static ItemStack deserialize(String str) {
+        return me.dasfaust.GlobalMarket.WrappedItemStack.unserializeJSON(str);
+    }
+
+    public static String serialize(ItemStack item) {
+        me.dasfaust.GlobalMarket.WrappedItemStack stack = ((me.dasfaust.GlobalMarket.WrappedItemStack) item).clone();
+        stack.setAmount(1);
+        return stack.serializeJSON();
     }
 
     // TODO: some type of abstraction to support 1.7+

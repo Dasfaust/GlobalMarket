@@ -271,35 +271,6 @@ public class Market extends JavaPlugin implements Listener {
         return mcpcp;
     }
 
-    /*public ItemStack getWrappedItemStack(Player player, int slot) {
-        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
-        return inst.getWrappedForgeItemStack(player.getName(), slot);
-    }
-
-    public void returnWrappedItemStack(Player player, int slot, me.dasfaust.GlobalMarket.WrappedItemStack stack) {
-        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
-        inst.addToInventory(player.getName(), slot, stack);
-    }
-
-    public void setWrappedInventoryContents(Inventory inv, ItemStack[] contents) {
-        for (int i = 0; i < contents.length; i++) {
-            ItemStack stack = contents[i];
-            if (!(stack instanceof me.dasfaust.GlobalMarket.WrappedItemStack)) {
-                contents[i] = new me.dasfaust.GlobalMarket.WrappedItemStack(org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack.asNMSCopy(stack), true);
-            }
-        }
-        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
-        inst.setInventoryContents(((org.bukkit.craftbukkit.v1_6_R3.inventory.CraftInventory) inv).getInventory(), contents);
-    }
-
-    public void setWrappedInventorySlot(Inventory inv, ItemStack item, int slot) {
-        if (!(item instanceof me.dasfaust.GlobalMarket.WrappedItemStack)) {
-            item = new me.dasfaust.GlobalMarket.WrappedItemStack(org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack.asNMSCopy(item), true);
-        }
-        me.dasfaust.GlobalMarket.MarketCompanion inst = me.dasfaust.GlobalMarket.MarketCompanion.getInstance();
-        inst.setInventorySlot(((org.bukkit.craftbukkit.v1_6_R3.inventory.CraftInventory) inv).getInventory(), item, slot);
-    }*/
-
     public boolean useProtocolLib() {
         return packet != null;
     }
@@ -532,8 +503,14 @@ public class Market extends JavaPlugin implements Listener {
         boolean isWhitelist = getConfig().getBoolean("blacklist.as_whitelist");
         if (getConfig().isSet("blacklist.item_id." + item.getTypeId())) {
             String path = "blacklist.item_id." + item.getTypeId();
-            if (getConfig().getInt(path) == -1 || getConfig().getInt(path) == item.getData().getData()) {
-                return isWhitelist ? false : true;
+            if (getConfig().isList(path)) {
+                if (getConfig().getIntegerList(path).contains(new Integer(item.getDurability()))) {
+                    return isWhitelist ? false : true;
+                }
+            } else {
+                if (getConfig().getInt(path) == -1 || getConfig().getInt(path) == item.getDurability()) {
+                    return isWhitelist ? false : true;
+                }
             }
         }
         if (item.hasItemMeta()) {

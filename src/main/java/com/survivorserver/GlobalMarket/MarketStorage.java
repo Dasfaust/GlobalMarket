@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
+import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -142,7 +143,7 @@ public class MarketStorage {
             try {
                 itemId = res.getInt(1);
                 if (market.mcpcpSupportEnabled()) {
-                    item = me.dasfaust.GlobalMarket.WrappedItemStack.unserializeJSON(res.getString(2));
+                    item = itemStackFromString(res.getString(2));
                 } else {
                     YamlConfiguration conf = new YamlConfiguration();
                     conf.loadFromString(res.getString(2));
@@ -417,9 +418,7 @@ public class MarketStorage {
 
     public static String itemStackToString(ItemStack item) {
         if (Market.getMarket().mcpcpSupportEnabled()) {
-            me.dasfaust.GlobalMarket.WrappedItemStack stack = ((me.dasfaust.GlobalMarket.WrappedItemStack) item).clone();
-            stack.setAmount(1);
-            return stack.serializeJSON();
+            return MCPCPHelper.serialize(item);
         } else {
             YamlConfiguration conf = new YamlConfiguration();
             ItemStack toSave = item.clone();
@@ -431,7 +430,7 @@ public class MarketStorage {
 
     public static ItemStack itemStackFromString(String item) throws InvalidConfigurationException {
         if (Market.getMarket().mcpcpSupportEnabled()) {
-            return me.dasfaust.GlobalMarket.WrappedItemStack.unserializeJSON(item);
+            return MCPCPHelper.deserialize(item);
         } else {
             YamlConfiguration conf = new YamlConfiguration();
             conf.loadFromString(item);
@@ -441,7 +440,7 @@ public class MarketStorage {
 
     public static ItemStack itemStackFromString(String item, int amount) {
         if (Market.getMarket().mcpcpSupportEnabled()) {
-            ItemStack stack = me.dasfaust.GlobalMarket.WrappedItemStack.unserializeJSON(item);
+            ItemStack stack = MCPCPHelper.deserialize(item);
             stack.setAmount(amount);
             return stack;
         } else {
@@ -857,6 +856,9 @@ public class MarketStorage {
                         market.getLocale().get("transaction_log.amount_recieved", amount);
         meta.setPages(logStr);
         book.setItemMeta(meta);
+        if (market.mcpcpSupportEnabled()) {
+            book = MCPCPHelper.wrapItemStack(book);
+        }
         createMail(player, buyer, book, amount, world);
     }
 
