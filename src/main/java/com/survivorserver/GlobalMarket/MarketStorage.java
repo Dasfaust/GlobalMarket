@@ -781,7 +781,7 @@ public class MarketStorage {
 
     public int getNumListingsFor(String name, String world) {
         int amount = 0;
-        for (Listing listing : market.enableMultiworld() ? getListingsForWorld(world) : listings.values()) {
+        for (Listing listing : market.enableMultiworld() ? getListingsForWorld(world) : new ArrayList<Listing>(condensedListings)) {
             if (listing.getSeller().equalsIgnoreCase(name)) {
                 amount++;
             }
