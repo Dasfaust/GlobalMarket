@@ -99,7 +99,7 @@ public class SendCommand extends SubCommand {
             }
             ItemStack toList = player.getItemInHand().clone();
             if (market.mcpcpSupportEnabled()) {
-                toList = MCPCPHelper.wrapItemStack(player.getInventory(), player.getInventory().getHeldItemSlot());
+                toList = MCPCPHelper.wrapItemStack(player.getInventory(), player.getInventory().getHeldItemSlot()).clone();
             }
             if (market.blacklistMail()) {
                 if (market.itemBlacklisted(toList)) {
@@ -127,7 +127,7 @@ public class SendCommand extends SubCommand {
                 if (player.getItemInHand().getAmount() == amount) {
                     player.setItemInHand(new ItemStack(Material.AIR));
                 } else {
-                    player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
+                    player.getItemInHand().setAmount(toList.getAmount() - amount);
                 }
                 toList.setAmount(amount);
                 if (mailTime > 0) {

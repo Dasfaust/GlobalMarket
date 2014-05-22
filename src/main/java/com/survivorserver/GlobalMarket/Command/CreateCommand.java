@@ -137,7 +137,7 @@ public class CreateCommand extends SubCommand {
             }
             ItemStack toList = player.getItemInHand().clone();
             if (market.mcpcpSupportEnabled()) {
-                toList = MCPCPHelper.wrapItemStack(player.getInventory(), player.getInventory().getHeldItemSlot());
+                toList = MCPCPHelper.wrapItemStack(player.getInventory(), player.getInventory().getHeldItemSlot()).clone();
             }
             if (market.itemBlacklisted(toList)) {
                 sender.sendMessage(ChatColor.RED + locale.get("item_is_blacklisted"));
@@ -162,7 +162,7 @@ public class CreateCommand extends SubCommand {
                     }
                 } else {
                     if (!infinite) {
-                        player.getItemInHand().setAmount(player.getItemInHand().getAmount() - amount);
+                        player.getItemInHand().setAmount(toList.getAmount() - amount);
                     }
                 }
                 toList.setAmount(amount);
