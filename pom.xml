@@ -45,9 +45,9 @@
         <dependency>
             <groupId>me.dasfaust</groupId>
             <artifactId>MarketCompanion</artifactId>
-            <version>1.0.0</version>
+            <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/modid-1.0.jar</systemPath>
+            <systemPath>${project.basedir}/lib/MarketCompanion-1.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
@@ -65,11 +65,6 @@
             <version>2.4.2</version>
             <type>jar</type>
             <scope>compile</scope>
-        </dependency>-->
-        <!--<dependency>
-            <groupId>com.cedarsoftware</groupId>
-            <artifactId>json-io</artifactId>
-            <version>2.6.1-SNAPSHOT</version>
         </dependency>-->
     </dependencies>
     <build>
