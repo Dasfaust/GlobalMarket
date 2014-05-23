@@ -92,7 +92,7 @@ public class SendCommand extends SubCommand {
             args[1] = off.getName();
             int maxMail = market.getMaxMail(args[1], player.getWorld().getName());
             if (maxMail > 0) {
-                if (market.getStorage().getNumMail(args[1], player.getWorld().getName()) >= maxMail) {
+                if (market.getStorage().getNumMail(args[1], player.getWorld().getName(), true) >= maxMail) {
                     player.sendMessage(ChatColor.RED + locale.get("full_mailbox_other", args[1]));
                     return true;
                 }

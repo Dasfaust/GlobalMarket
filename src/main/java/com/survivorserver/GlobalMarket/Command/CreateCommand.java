@@ -76,7 +76,7 @@ public class CreateCommand extends SubCommand {
         }
         int maxMail = market.getMaxMail(player);
         if (maxMail > 0) {
-            if (market.getStorage().getNumMail(sender.getName(), player.getWorld().getName()) >= maxMail) {
+            if (market.getStorage().getNumMail(sender.getName(), player.getWorld().getName(), true) >= maxMail) {
                 player.sendMessage(ChatColor.RED + locale.get("full_mailbox"));
                 return true;
             }

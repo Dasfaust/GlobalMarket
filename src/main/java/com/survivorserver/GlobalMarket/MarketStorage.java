@@ -923,13 +923,13 @@ public class MarketStorage {
         }
     }
 
-    public int getNumMail(final String player, final String world) {
+    public int getNumMail(final String player, final String world, boolean listings) {
         Collection<Mail> ownedMail = Collections2.filter(market.enableMultiworld() ? getMailForWorld(world) : mail.values(), new Predicate<Mail>() {
             public boolean apply(Mail mail) {
                 return mail.getOwner().equals(player);
              }
         });
-        return ownedMail.size() + getNumListingsFor(player, world);
+        return ownedMail.size() + (listings ? getNumListingsFor(player, world) : 0);
     }
 
     /*

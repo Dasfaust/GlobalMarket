@@ -34,7 +34,6 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -798,7 +797,7 @@ public class Market extends JavaPlugin implements Listener {
             public void run() {
                 Player player = market.getServer().getPlayer(name);
                 if (player != null) {
-                    if (storage.getNumMail(player.getName(), player.getWorld().getName()) > 0) {
+                    if (storage.getNumMail(player.getName(), player.getWorld().getName(), false) > 0) {
                         player.sendMessage(prefix + locale.get("you_have_new_mail"));
                     }
                 }

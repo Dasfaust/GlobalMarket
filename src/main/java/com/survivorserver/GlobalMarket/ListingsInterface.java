@@ -340,7 +340,7 @@ public class ListingsInterface extends MarketInterface {
         }
         int maxMail = market.getMaxMail(player);
         if (maxMail > 0) {
-            if (market.getStorage().getNumMail(player.getName(), player.getWorld().getName()) >= maxMail) {
+            if (market.getStorage().getNumMail(player.getName(), player.getWorld().getName(), true) >= maxMail) {
                 viewer.setCreateMessage(locale.get("full_mailbox"));
                 market.getInterfaceHandler().refreshFunctionBar(viewer);
                 return;
