@@ -123,6 +123,8 @@ public class Market extends JavaPlugin implements Listener {
         getConfig().addDefault("announce_new_listings", true);
         getConfig().addDefault("stall_radius", 0);
         getConfig().addDefault("mailbox_radius", 0);
+        getConfig().addDefault("new_mail_notification", true);
+        getConfig().addDefault("new_mail_notification_delay", 10);
         getConfig().addDefault("enable_metrics", true);
         getConfig().addDefault("notify_on_update", true);
 
@@ -793,16 +795,18 @@ public class Market extends JavaPlugin implements Listener {
     @EventHandler
     public void onLogin(PlayerJoinEvent event) {
         final String name = event.getPlayer().getName();
-        new BukkitRunnable() {
-            public void run() {
-                Player player = market.getServer().getPlayer(name);
-                if (player != null) {
-                    if (storage.getNumMail(player.getName(), player.getWorld().getName(), false) > 0) {
-                        player.sendMessage(prefix + locale.get("you_have_new_mail"));
+        if (getConfig().getBoolean("new_mail_notification")) {
+            new BukkitRunnable() {
+                public void run() {
+                    Player player = market.getServer().getPlayer(name);
+                    if (player != null) {
+                        if (storage.getNumMail(player.getName(), player.getWorld().getName(), false) > 0) {
+                            player.sendMessage(prefix + locale.get("you_have_new_mail"));
+                        }
                     }
                 }
-            }
-        }.runTaskLater(this, 10);
+            }.runTaskLater(this, getConfig().getInt("new_mail_notification_delay"));
+        }
         final Player player = event.getPlayer();
         if (player.hasPermission("globalmarket.admin")) {
             if (getConfig().getBoolean("notify_on_update")) {
