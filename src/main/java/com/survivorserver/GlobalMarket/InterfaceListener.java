@@ -38,12 +38,13 @@ public class InterfaceListener implements Listener {
         //ItemStack curItem = event.getCurrentItem();
         int rawSlot = event.getRawSlot();
         int slot = event.getSlot();
-        // Verify we're in a Market interface
+
+        int lastTopSlot = (event.getInventory().getSize() < 54 ? 26 : 53);
         if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
 
-            int lastTopSlot = (event.getInventory().getSize() < 54 ? 26 : 53);
             if (rawSlot <= lastTopSlot && rawSlot > -1) {
                 // Determine if a click was within the top portion of the inventory
+
                 event.setCancelled(true);
                 event.setResult(Result.DENY);
 
@@ -97,6 +98,11 @@ public class InterfaceListener implements Listener {
                     }
                     inter.onUnboundClick(market, handler, viewer, rawSlot, event);
                 }
+            } else if (isMarketItem(event.getCurrentItem())) {
+                event.setCancelled(true);
+                event.setResult(Result.DENY);
+                event.getCurrentItem().setType(Material.AIR);
+                event.getCursor().setType(Material.AIR);
             } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
                     || (event.getAction() == InventoryAction.PLACE_ALL
                     || event.getAction() == InventoryAction.PLACE_ONE
@@ -202,11 +208,6 @@ public class InterfaceListener implements Listener {
         if (!item.hasItemMeta()) {
             return false;
         }
-        for (MarketInterface in : handler.getInterfaces()) {
-            if (in.identifyItem(item.getItemMeta())) {
-                return true;
-            }
-        }
-        return false;
+        return item.getItemMeta().hasLore() ? item.getItemMeta().getLore().contains(InterfaceHandler.ITEM_UUID) : false;
     }
 }
