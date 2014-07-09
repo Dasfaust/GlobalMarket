@@ -13,10 +13,12 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Interface.MarketItem;
+import org.bukkit.inventory.PlayerInventory;
 
 public class InterfaceListener implements Listener {
 
@@ -150,6 +152,9 @@ public class InterfaceListener implements Listener {
                     event.setCancelled(true);
                 }
             }
+        } else if (isMarketItem(event.getCursor())) {
+            event.setCancelled(true);
+            event.setResult(Result.DENY);
         }
     }
 
@@ -172,23 +177,32 @@ public class InterfaceListener implements Listener {
             if (market.useProtocolLib()) {
                 market.getPacket().getMessage().clearPlayer((Player) event.getPlayer());
             }
+            cleanInventory(event.getPlayer().getInventory());
         }
-        // Ugly fix for item duping via shift+click and esc. Oh well, we'll have to wait until Bukkit fixes this
-        ItemStack[] items = event.getPlayer().getInventory().getContents();
+    }
+
+    public static void cleanInventory(Inventory inv) {
+        ItemStack[] items = inv.getContents();
+        ItemStack[] clone = items.clone();
         for (int i = 0; i < items.length; i++) {
             if (items[i] != null) {
                 if (isMarketItem(items[i])) {
-                    event.getPlayer().getInventory().remove(items[i]);
+                    clone[i] = null;
                 }
             }
         }
-        items = event.getPlayer().getInventory().getArmorContents();
-        for (int i = 0; i < items.length; i++) {
-            if (items[i] != null) {
-                if (isMarketItem(items[i])) {
-                    event.getPlayer().getInventory().remove(items[i]);
+        inv.setContents(clone);
+        if (inv instanceof PlayerInventory) {
+            items = ((PlayerInventory) inv).getArmorContents();
+            clone = items.clone();
+            for (int i = 0; i < items.length; i++) {
+                if (items[i] != null) {
+                    if (isMarketItem(items[i])) {
+                        clone[i] = null;
+                    }
                 }
             }
+            ((PlayerInventory) inv).setArmorContents(clone);
         }
     }
 
@@ -198,10 +212,11 @@ public class InterfaceListener implements Listener {
         ItemStack item = event.getEntity().getItemStack();
         if (item != null && isMarketItem(item)) {
             event.getEntity().remove();
+            event.setCancelled(true);
         }
     }
 
-    public boolean isMarketItem(ItemStack item) {
+    public static boolean isMarketItem(ItemStack item) {
         if (item == null) {
             return false;
         }

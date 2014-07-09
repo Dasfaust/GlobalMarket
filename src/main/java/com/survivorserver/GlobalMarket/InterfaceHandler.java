@@ -111,7 +111,8 @@ public class InterfaceHandler {
         return null;
     }
 
-    public void purgeViewer(String name) {
+    public void purgeViewer(Player player) {
+        String name = player.getName();
         InterfaceViewer viewer = findViewer(name);
         if (viewer != null) {
             viewers.remove(viewer);
@@ -120,6 +121,7 @@ public class InterfaceHandler {
         if (viewer != null) {
             suspended.remove(viewer);
         }
+        InterfaceListener.cleanInventory(player.getInventory());
     }
 
     public void removeViewer(InterfaceViewer viewer) {
@@ -270,7 +272,7 @@ public class InterfaceHandler {
         mInterface.buildFunctionBar(market, this, viewer, invContents, prevPage, nextPage);
 
         for (ItemStack s : invContents) {
-            if (s != null && s.hasItemMeta()) {
+            if (s != null) {
                 ItemMeta meta = s.getItemMeta();
                 List<String> l = meta.hasLore() ? meta.getLore() : new ArrayList<String>();
                 l.add(0, ITEM_UUID);

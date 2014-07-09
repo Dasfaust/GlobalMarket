@@ -365,7 +365,7 @@ public class ListingsInterface extends MarketInterface {
                             public void run() {
                                 if (cancelled) {
                                     // The player has disconnected
-                                    market.getInterfaceHandler().purgeViewer(player.getName());
+                                    market.getInterfaceHandler().purgeViewer(player);
                                     return;
                                 }
                                 market.getInterfaceHandler().unsuspendViewer(player, viewer);

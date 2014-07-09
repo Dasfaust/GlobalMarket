@@ -3,6 +3,7 @@ package com.survivorserver.GlobalMarket.Tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.survivorserver.GlobalMarket.InterfaceListener;
 import org.bukkit.entity.Player;
 
 import com.survivorserver.GlobalMarket.InterfaceHandler;
@@ -24,8 +25,16 @@ public class CleanTask implements Runnable {
         List<InterfaceViewer> toRemove = new ArrayList<InterfaceViewer>();
         for (InterfaceViewer viewer : handler.getAllViewers()) {
             Player player = market.getServer().getPlayer(viewer.getViewer());
-            if (player != null && player.getOpenInventory() == null) {
+            if (player == null) {
                 toRemove.add(viewer);
+                continue;
+            }
+            if (player.getOpenInventory() == null) {
+                toRemove.add(viewer);
+                if (market.useProtocolLib()) {
+                    market.getPacket().getMessage().clearPlayer(player);
+                }
+                InterfaceListener.cleanInventory(player.getInventory());
             }
         }
         for (InterfaceViewer viewer : toRemove) {

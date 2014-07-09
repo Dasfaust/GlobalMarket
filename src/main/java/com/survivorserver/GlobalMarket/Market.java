@@ -696,7 +696,7 @@ public class Market extends JavaPlugin implements Listener {
 
     public void onQuit(PlayerQuitEvent event) {
         if (interfaceHandler != null) {
-            interfaceHandler.purgeViewer(event.getPlayer().getName());
+            interfaceHandler.purgeViewer(event.getPlayer());
         }
     }
 
