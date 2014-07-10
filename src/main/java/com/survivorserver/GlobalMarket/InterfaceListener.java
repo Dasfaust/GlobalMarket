@@ -1,5 +1,6 @@
 package com.survivorserver.GlobalMarket;
 
+import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -105,6 +106,7 @@ public class InterfaceListener implements Listener {
                 event.setResult(Result.DENY);
                 event.getCurrentItem().setType(Material.AIR);
                 event.getCursor().setType(Material.AIR);
+                event.getInventory().remove(event.getCurrentItem());
             } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
                     || (event.getAction() == InventoryAction.PLACE_ALL
                     || event.getAction() == InventoryAction.PLACE_ONE
@@ -123,6 +125,7 @@ public class InterfaceListener implements Listener {
                 event.setResult(Result.DENY);
                 event.getCurrentItem().setType(Material.AIR);
                 event.getCursor().setType(Material.AIR);
+                event.getInventory().remove(event.getCurrentItem());
             }
             if (event.getInventory().getType() == InventoryType.MERCHANT) {
                 ItemStack trading = event.getCursor();
@@ -155,6 +158,7 @@ public class InterfaceListener implements Listener {
         } else if (isMarketItem(event.getCursor())) {
             event.setCancelled(true);
             event.setResult(Result.DENY);
+            event.setCursor(new ItemStack(Material.AIR));
         }
     }
 
