@@ -770,6 +770,9 @@ public class Market extends JavaPlugin implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
         Block block = event.getBlock();
         if (block.getType() == Material.CHEST
                 // Trapped chest
