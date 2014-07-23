@@ -1,6 +1,7 @@
 package com.survivorserver.GlobalMarket;
 
-import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
+import com.survivorserver.GlobalMarket.Interface.IMarketItem;
+import com.survivorserver.GlobalMarket.Interface.IMenu;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -17,8 +18,6 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import com.survivorserver.GlobalMarket.Interface.MarketInterface;
-import com.survivorserver.GlobalMarket.Interface.MarketItem;
 import org.bukkit.inventory.PlayerInventory;
 
 public class InterfaceListener implements Listener {
@@ -51,12 +50,12 @@ public class InterfaceListener implements Listener {
                 event.setCancelled(true);
                 event.setResult(Result.DENY);
 
-                MarketInterface inter = viewer.getInterface();
+                IMenu inter = viewer.getInterface();
                 if (viewer.getBoundSlots().containsKey(rawSlot)) {
                     // This item has an ID attached to it
-                    MarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
+                    IMarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
                     if (item == null) {
-                        market.log.warning(String.format("Null MarketItem in %s with position %s (raw: %s) in interface %s, should have an ID of %s.", event.getEventName(), slot, rawSlot, inter.getName(), viewer.getBoundSlots().get(rawSlot)));
+                        market.log.warning(String.format("Null IMarketItem in %s with position %s (raw: %s) in interface %s, should have an ID of %s.", event.getEventName(), slot, rawSlot, inter.getName(), viewer.getBoundSlots().get(rawSlot)));
                         return;
                     }
                     if (event.isRightClick()) {
@@ -74,7 +73,7 @@ public class InterfaceListener implements Listener {
                         viewer.setLastAction(event.getAction());
                         viewer.setLastActionSlot(slot);
 
-                        // Yay, we've got the MarketItem instance. Let's do stuff with it
+                        // Yay, we've got the IMarketItem instance. Let's do stuff with it
                         viewer.setLastItem(item.getId());
                         viewer.incrementClicks();
 
@@ -162,7 +161,7 @@ public class InterfaceListener implements Listener {
         }
     }
 
-    public void handleSingleClick(InventoryClickEvent event, InterfaceViewer viewer, MarketInterface gui, MarketItem item) {
+    public void handleSingleClick(InventoryClickEvent event, InterfaceViewer viewer, IMenu gui, IMarketItem item) {
         if (event.isShiftClick()) {
             gui.handleShiftClickAction(viewer, item, event);
         } else if (event.isLeftClick()) {

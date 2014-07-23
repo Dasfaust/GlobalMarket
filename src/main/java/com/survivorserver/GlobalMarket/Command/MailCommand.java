@@ -1,5 +1,6 @@
 package com.survivorserver.GlobalMarket.Command;
 
+import com.survivorserver.GlobalMarket.Interface.IMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.OfflinePlayer;
@@ -10,7 +11,6 @@ import org.bukkit.inventory.Inventory;
 import com.survivorserver.GlobalMarket.InterfaceViewer;
 import com.survivorserver.GlobalMarket.LocaleHandler;
 import com.survivorserver.GlobalMarket.Market;
-import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 
 public class MailCommand extends SubCommand {
 
@@ -53,7 +53,7 @@ public class MailCommand extends SubCommand {
                 sender.sendMessage(ChatColor.RED + locale.get("player_not_found", viewAs));
                 return true;
             }
-            MarketInterface mInterface = market.getInterfaceHandler().getInterface("Mail");
+            IMenu mInterface = market.getInterfaceHandler().getInterface("Mail");
             Inventory inv = market.getServer().createInventory(player, mInterface.getSize(), mInterface.getTitle() + " (" + viewAs + ")");
             InterfaceViewer viewer = new InterfaceViewer(viewAs, player.getName(), inv, mInterface, player.getWorld().getName());
             market.getInterfaceHandler().addViewer(viewer);

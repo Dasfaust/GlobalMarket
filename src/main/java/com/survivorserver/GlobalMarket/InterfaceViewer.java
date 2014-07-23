@@ -2,11 +2,10 @@ package com.survivorserver.GlobalMarket;
 
 import java.util.Map;
 
-import org.bukkit.configuration.file.YamlConfiguration;
+import com.survivorserver.GlobalMarket.Interface.IMenu;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 
-import com.survivorserver.GlobalMarket.Interface.MarketInterface;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
 
 public class InterfaceViewer {
@@ -22,13 +21,13 @@ public class InterfaceViewer {
     int lastClicked;
     int clicks = 0;
     String world;
-    MarketInterface mInterface;
+    IMenu mInterface;
     int searchSize = 0;
     SortMethod sort;
     int lastLowerSlot = -1;
     String createMessage;
 
-    public InterfaceViewer(String name, String player, Inventory gui, MarketInterface mInterface, String world) {
+    public InterfaceViewer(String name, String player, Inventory gui, IMenu mInterface, String world) {
         this.name = name;
         this.player = player;
         this.gui = gui;
@@ -101,7 +100,7 @@ public class InterfaceViewer {
         return search;
     }
 
-    public MarketInterface getInterface() {
+    public IMenu getInterface() {
         return mInterface;
     }
 

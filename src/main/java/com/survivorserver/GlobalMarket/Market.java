@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import com.survivorserver.GlobalMarket.Interface.IHandler;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
@@ -43,7 +44,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.Chat.ChatComponent;
 import com.survivorserver.GlobalMarket.Command.MarketCommand;
-import com.survivorserver.GlobalMarket.Interface.Handler;
 import com.survivorserver.GlobalMarket.Legacy.Importer;
 import com.survivorserver.GlobalMarket.Lib.ItemIndex;
 import com.survivorserver.GlobalMarket.Lib.PacketManager;
@@ -641,7 +641,7 @@ public class Market extends JavaPlugin implements Listener {
         if (player != null) {
             player.sendMessage(locale.get("cmd.prefix") + notification);
         }
-        for (Handler handler : interfaceHandler.getHandlers()) {
+        for (IHandler handler : interfaceHandler.getHandlers()) {
             handler.notifyPlayer(who, notification);
         }
     }

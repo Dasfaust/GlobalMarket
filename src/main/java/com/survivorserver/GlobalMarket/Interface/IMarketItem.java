@@ -2,7 +2,7 @@ package com.survivorserver.GlobalMarket.Interface;
 
 import org.bukkit.inventory.ItemStack;
 
-public interface MarketItem {
+public interface IMarketItem {
 	
     int getId();
 

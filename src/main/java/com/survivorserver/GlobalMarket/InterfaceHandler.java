@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.survivorserver.GlobalMarket.Interface.IHandler;
+import com.survivorserver.GlobalMarket.Interface.IMarketItem;
+import com.survivorserver.GlobalMarket.Interface.IMenu;
 import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -13,9 +16,6 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import com.survivorserver.GlobalMarket.Interface.Handler;
-import com.survivorserver.GlobalMarket.Interface.MarketInterface;
-import com.survivorserver.GlobalMarket.Interface.MarketItem;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class InterfaceHandler {
@@ -24,29 +24,29 @@ public class InterfaceHandler {
     MarketStorage storage;
     List<InterfaceViewer> viewers;
     List<InterfaceViewer> suspended;
-    List<MarketInterface> interfaces;
-    List<Handler> handlers;
+    List<IMenu> interfaces;
+    List<IHandler> handlers;
     public static String ITEM_UUID = ChatColor.translateAlternateColorCodes('&', "&d&3&4&6");
 
     public InterfaceHandler(Market market, MarketStorage storage) {
         this.market = market;
         this.storage = storage;
         viewers = new ArrayList<InterfaceViewer>();
-        interfaces = new ArrayList<MarketInterface>();
-        handlers = new ArrayList<Handler>();
+        interfaces = new ArrayList<IMenu>();
+        handlers = new ArrayList<IHandler>();
         suspended = new ArrayList<InterfaceViewer>();
     }
 
-    public void registerInterface(MarketInterface gui) {
+    public void registerInterface(IMenu gui) {
         interfaces.add(gui);
     }
 
-    public void unregisterInterface(MarketInterface gui) {
+    public void unregisterInterface(IMenu gui) {
         interfaces.remove(gui);
     }
 
-    public MarketInterface getInterface(String name) {
-        for (MarketInterface gui : interfaces) {
+    public IMenu getInterface(String name) {
+        for (IMenu gui : interfaces) {
             if (gui.getName().equalsIgnoreCase(name)) {
                 return gui;
             }
@@ -54,23 +54,23 @@ public class InterfaceHandler {
         throw new IllegalArgumentException("Interface " + name + " was not found");
     }
 
-    public List<MarketInterface> getInterfaces() {
+    public List<IMenu> getInterfaces() {
         return interfaces;
     }
 
-    public void registerHandler(Handler handler) {
+    public void registerHandler(IHandler handler) {
         handlers.add(handler);
     }
 
-    public void unregisterHandler(Handler handler) {
+    public void unregisterHandler(IHandler handler) {
         handlers.remove(handler);
     }
 
-    public List<Handler> getHandlers() {
+    public List<IHandler> getHandlers() {
         return handlers;
     }
 
-    public InterfaceViewer addViewer(Player player, Inventory gui, MarketInterface mInterface) {
+    public InterfaceViewer addViewer(Player player, Inventory gui, IMenu mInterface) {
         String name = player.getName();
         for (InterfaceViewer viewer : viewers) {
             if (viewer.getViewer().equalsIgnoreCase(name)) {
@@ -142,7 +142,7 @@ public class InterfaceHandler {
             throw new IllegalArgumentException("Can't find viewer to unsuspend");
         }
         suspended.remove(viewer);
-        MarketInterface inter = viewer.getInterface();
+        IMenu inter = viewer.getInterface();
         InterfaceViewer newViewer = addViewer(player,
                 market.getServer().createInventory(player, inter.getSize(), market.enableMultiworld() ?  inter.getTitle() + " (" + player.getWorld().getName() + ")" :  inter.getTitle()),
                 inter);
@@ -158,7 +158,7 @@ public class InterfaceHandler {
     }
 
     public void openInterface(Player player, String search, String marketInterface) {
-        MarketInterface mInterface = getInterface(marketInterface);
+        IMenu mInterface = getInterface(marketInterface);
         InterfaceViewer viewer = addViewer(player,
                 market.getServer().createInventory(player, mInterface.getSize(), market.enableMultiworld() ?  mInterface.getTitle() + " (" + player.getWorld().getName() + ")" :  mInterface.getTitle()),
                 mInterface);
@@ -167,8 +167,8 @@ public class InterfaceHandler {
         openGui(viewer);
     }
 
-    public void refreshSlot(InterfaceViewer viewer, int slot, MarketItem item) {
-        MarketInterface mInterface = viewer.getInterface();
+    public void refreshSlot(InterfaceViewer viewer, int slot, IMarketItem item) {
+        IMenu mInterface = viewer.getInterface();
         Inventory inv = viewer.getGui();
         boolean left = false;
         boolean shift = false;
@@ -204,7 +204,7 @@ public class InterfaceHandler {
     }
 
     public void refreshFunctionBar(InterfaceViewer viewer) {
-        MarketInterface mInterface = viewer.getInterface();
+        IMenu mInterface = viewer.getInterface();
         Inventory inv = viewer.getGui();
         ItemStack[] contents = inv.getContents();
         boolean nPage = false;
@@ -222,9 +222,9 @@ public class InterfaceHandler {
     }
 
     public void refreshInterface(InterfaceViewer viewer) {
-        MarketInterface mInterface = viewer.getInterface();
+        IMenu mInterface = viewer.getInterface();
         Map<Integer, Integer> boundSlots = new HashMap<Integer, Integer>();
-        List<MarketItem> contents = mInterface.getContents(viewer);
+        List<IMarketItem> contents = mInterface.getContents(viewer);
         Inventory inv = viewer.getGui();
         ItemStack[] invContents = new ItemStack[viewer.getGui().getSize()];
         mInterface.onInterfacePrepare(viewer, contents, invContents, inv);
@@ -237,7 +237,7 @@ public class InterfaceHandler {
         int slot = 0;
         boolean clicked = false;
         while(contents.size() > index && slot < pageSize) {
-            MarketItem marketItem = contents.get(index);
+            IMarketItem marketItem = contents.get(index);
             boolean left = false;
             boolean shift = false;
             if (viewer.getLastAction() != null) {
@@ -304,7 +304,7 @@ public class InterfaceHandler {
         if (viewer != null) {
             refreshViewer(viewer, view);
         }
-        for (Handler handler : handlers) {
+        for (IHandler handler : handlers) {
             handler.updateViewer(name);
         }
     }
@@ -327,7 +327,7 @@ public class InterfaceHandler {
                 removeViewer(viewer);
             }
         }
-        for (Handler handler : handlers) {
+        for (IHandler handler : handlers) {
             handler.updateAllViewers();
         }
     }

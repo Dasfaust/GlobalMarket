@@ -3,6 +3,9 @@ package com.survivorserver.GlobalMarket;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.survivorserver.GlobalMarket.Interface.IFunctionButton;
+import com.survivorserver.GlobalMarket.Interface.IMarketItem;
+import com.survivorserver.GlobalMarket.Interface.IMenu;
 import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
 import net.milkbowl.vault.economy.Economy;
@@ -13,7 +16,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -21,17 +23,44 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.survivorserver.GlobalMarket.HistoryHandler.MarketAction;
-import com.survivorserver.GlobalMarket.Interface.MarketInterface;
-import com.survivorserver.GlobalMarket.Interface.MarketItem;
 
-public class MailInterface extends MarketInterface {
+public class MailInterface extends IMenu {
 
-    protected Market market;
-    private MarketStorage storage;
+    private Market market;
 
     public MailInterface(Market market) {
+        super();
         this.market = market;
-        storage = market.getStorage();
+        addDefaultButtons();
+        removeFunctionButton(47);
+        removeFunctionButton(49);
+        addFunctionButton(49, new IFunctionButton("SortToggle", null, Material.DIODE) {
+            @Override
+            public boolean showButton(InterfaceHandler handler, InterfaceViewer viewer, boolean hasPrevPage, boolean hasNextPage) {
+                return true;
+            }
+
+            @Override
+            public void preBuild(InterfaceHandler handler, InterfaceViewer viewer, ItemStack stack, ItemMeta meta, List<String> lore) {
+                Market market = Market.getMarket();
+                meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.sort_by"));
+                lore.add(ChatColor.YELLOW + market.getLocale().get("interface.sorting_by", market.getLocale().get("interface.sort_methods." + (viewer.getSort() == SortMethod.DEFAULT ? viewer.getSort().toString() + "_mail" : viewer.getSort().toString()))));
+            }
+
+            @Override
+            public void onClick(Player player, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event) {
+                SortMethod sort = viewer.getSort();
+                if (sort == SortMethod.DEFAULT) {
+                    viewer.setSort(SortMethod.MAIL_ONLY);
+                } else if (sort == SortMethod.MAIL_ONLY) {
+                    viewer.setSort(SortMethod.LISTINGS_ONLY);
+                } else {
+                    viewer.setSort(SortMethod.DEFAULT);
+                }
+                handler.refreshViewer(viewer, viewer.getInterface().getName());
+                return;
+            }
+        });
     }
 
     @Override
@@ -55,9 +84,9 @@ public class MailInterface extends MarketInterface {
     }
 
     @Override
-    public ItemStack prepareItem(MarketItem mailItem, InterfaceViewer viewer, int page, int slot, boolean leftClick, boolean shiftClick) {
+    public ItemStack prepareItem(IMarketItem mailItem, InterfaceViewer viewer, int page, int slot, boolean leftClick, boolean shiftClick) {
         Mail mail = (Mail) mailItem;
-        ItemStack item = storage.getItem(mail.getItemId(), mail.getAmount());
+        ItemStack item = market.getStorage().getItem(mail.getItemId(), mail.getAmount());
         ItemMeta meta = item.getItemMeta();
         List<String> lore = meta.getLore();
         if (!meta.hasLore()) {
@@ -98,7 +127,7 @@ public class MailInterface extends MarketInterface {
     }
 
     @Override
-    public void handleLeftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
+    public void handleLeftClickAction(InterfaceViewer viewer, IMarketItem item, InventoryClickEvent event) {
         if (item.getId() < 0) {
             return;
         }
@@ -135,7 +164,7 @@ public class MailInterface extends MarketInterface {
     }
 
     @Override
-    public void handleShiftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
+    public void handleShiftClickAction(InterfaceViewer viewer, IMarketItem item, InventoryClickEvent event) {
         if (item.getId() < 0) {
             // Shift clicked a listing
             Inventory inv = event.getWhoClicked().getInventory();
@@ -157,17 +186,17 @@ public class MailInterface extends MarketInterface {
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<MarketItem> getContents(InterfaceViewer viewer) {
-        return (List<MarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getWorld(), viewer.getSort());
+    public List<IMarketItem> getContents(InterfaceViewer viewer) {
+        return (List<IMarketItem>)(List<?>) market.getStorage().getMail(viewer.getName(), viewer.getWorld(), viewer.getSort());
     }
 
     @Override
-    public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
+    public List<IMarketItem> doSearch(InterfaceViewer viewer, String search) {
         return null;
     }
 
     @Override
-    public MarketItem getItem(InterfaceViewer viewer, int id) {
+    public IMarketItem getItem(InterfaceViewer viewer, int id) {
         if (id < 0) {
             Listing listing = market.getStorage().getListing(Math.abs(id));
             return new Mail(viewer.getName(), -listing.getId(), listing.getItemId(), listing.getAmount(), 0, null, viewer.getWorld());
@@ -176,19 +205,7 @@ public class MailInterface extends MarketInterface {
     }
 
     @Override
-    public boolean identifyItem(ItemMeta meta) {
-        if (meta.hasLore()) {
-            for (String lore : meta.getLore()) {
-                if (lore.contains(market.getLocale().get("price")) || lore.contains(market.getLocale().get("click_to_retrieve"))) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
+    public void onInterfacePrepare(InterfaceViewer viewer, List<IMarketItem> contents, ItemStack[] invContents, Inventory inv) {
     }
 
     @Override
@@ -212,52 +229,7 @@ public class MailInterface extends MarketInterface {
     }
 
     @Override
-    public ItemStack getItemStack(InterfaceViewer viewer, MarketItem item) {
+    public ItemStack getItemStack(InterfaceViewer viewer, IMarketItem item) {
         return market.getStorage().getItem(item.getItemId(), item.getAmount());
-    }
-
-    @Override
-    public void buildFunctionBar(Market market, InterfaceHandler handler, InterfaceViewer viewer, ItemStack[] contents, boolean pPage, boolean nPage) {
-        super.buildFunctionBar(market, handler, viewer, contents, pPage, nPage);
-
-        // Unset search
-        contents[contents.length - 7] = null;
-
-        // Sort toggle
-        ItemStack curPage = new ItemStack(Material.DIODE);
-        ItemMeta curMeta = curPage.getItemMeta();
-        if (curMeta == null) {
-            curMeta = market.getServer().getItemFactory().getItemMeta(curPage.getType());
-        }
-        curMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.sort_by"));
-        List<String> curLore = new ArrayList<String>();
-        curLore.add(ChatColor.YELLOW + market.getLocale().get("interface.sorting_by", market.getLocale().get("interface.sort_methods." + (viewer.getSort() == SortMethod.DEFAULT ? viewer.getSort().toString() + "_mail" : viewer.getSort().toString()))));
-        curMeta.setLore(curLore);
-        curPage.setItemMeta(curMeta);
-        contents[contents.length - 5] = curPage;
-    }
-
-    @Override
-    public void onUnboundClick(final Market market, final InterfaceHandler handler, final InterfaceViewer viewer, int slot, final InventoryClickEvent event) {
-        super.onUnboundClick(market, handler, viewer, slot, event);
-        int invSize = event.getInventory().getSize();
-
-        if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
-            return;
-        }
-
-        // Sort toggle
-        if (slot == invSize - 5 && event.getAction() != InventoryAction.SWAP_WITH_CURSOR) {
-            SortMethod sort = viewer.getSort();
-            if (sort == SortMethod.DEFAULT) {
-                viewer.setSort(SortMethod.MAIL_ONLY);
-            } else if (sort == SortMethod.MAIL_ONLY) {
-                viewer.setSort(SortMethod.LISTINGS_ONLY);
-            } else {
-                viewer.setSort(SortMethod.DEFAULT);
-            }
-            handler.refreshViewer(viewer, viewer.getInterface().getName());
-            return;
-        }
     }
 }

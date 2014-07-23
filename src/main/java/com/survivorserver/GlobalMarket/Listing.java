@@ -7,9 +7,9 @@ import java.util.List;
 
 import org.bukkit.inventory.ItemStack;
 
-import com.survivorserver.GlobalMarket.Interface.MarketItem;
+import com.survivorserver.GlobalMarket.Interface.IMarketItem;
 
-public class Listing implements MarketItem, Comparable<Listing> {
+public class Listing implements IMarketItem, Comparable<Listing> {
 
     public int id;
     public int itemId;

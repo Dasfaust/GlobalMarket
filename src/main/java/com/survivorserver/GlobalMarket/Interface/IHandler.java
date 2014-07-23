@@ -1,6 +1,6 @@
 package com.survivorserver.GlobalMarket.Interface;
 
-public abstract class Handler {
+public abstract class IHandler {
 
     public abstract void updateAllViewers();
     public abstract void updateViewer(String name);

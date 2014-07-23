@@ -5,6 +5,9 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.survivorserver.GlobalMarket.Interface.IFunctionButton;
+import com.survivorserver.GlobalMarket.Interface.IMarketItem;
+import com.survivorserver.GlobalMarket.Interface.IMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -18,20 +21,93 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.HistoryHandler.MarketAction;
-import com.survivorserver.GlobalMarket.Interface.MarketInterface;
-import com.survivorserver.GlobalMarket.Interface.MarketItem;
 import com.survivorserver.GlobalMarket.Lib.PacketManager;
 import com.survivorserver.GlobalMarket.Lib.SearchResult;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
 
-public class ListingsInterface extends MarketInterface {
+public class ListingsInterface extends IMenu {
 
-    protected Market market;
-    private MarketStorage storage;
+    private Market market;
 
     public ListingsInterface(Market market) {
+        super();
         this.market = market;
-        storage = market.getStorage();
+        addDefaultButtons();
+        removeFunctionButton(49);
+        addFunctionButton(49, new IFunctionButton("SortToggle", null, Material.REDSTONE_COMPARATOR) {
+            @Override
+            public boolean showButton(InterfaceHandler handler, InterfaceViewer viewer, boolean hasPrevPage, boolean hasNextPage) {
+                return true;
+            }
+
+            @Override
+            public void preBuild(InterfaceHandler handler, InterfaceViewer viewer, ItemStack stack, ItemMeta meta, List<String> lore) {
+                Market market = Market.getMarket();
+                meta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.sort_by"));
+                lore.add(ChatColor.YELLOW + market.getLocale().get("interface.sorting_by", market.getLocale().get("interface.sort_methods." + viewer.getSort().toString())));
+            }
+
+            @Override
+            public void onClick(Player player, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event) {
+                SortMethod sort = viewer.getSort();
+                if (sort == SortMethod.DEFAULT) {
+                    viewer.setSort(SortMethod.PRICE_HIGHEST);
+                } else if (sort == SortMethod.PRICE_HIGHEST) {
+                    viewer.setSort(SortMethod.PRICE_LOWEST);
+                } else if(sort == SortMethod.PRICE_LOWEST) {
+                    viewer.setSort(SortMethod.AMOUNT_HIGHEST);
+                } else {
+                    viewer.setSort(SortMethod.DEFAULT);
+                }
+                handler.refreshViewer(viewer, viewer.getInterface().getName());
+            }
+        });
+        addFunctionButton(46, new IFunctionButton("PLibCreate", null, Material.HOPPER) {
+            @Override
+            public boolean showButton(InterfaceHandler handler, InterfaceViewer viewer, boolean hasPrevPage, boolean hasNextPage) {
+                return Market.getMarket().useProtocolLib();
+            }
+
+            @Override
+            public void preBuild(InterfaceHandler handler, InterfaceViewer viewer, ItemStack stack, ItemMeta meta, List<String> lore) {
+                Market market = Market.getMarket();
+                meta.setDisplayName(ChatColor.RESET + market.getLocale().get("interface.create"));
+                if (viewer.getCreateMessage() != null) {
+                    lore.add(ChatColor.RED + "<" + viewer.getCreateMessage() + ">");
+                    viewer.resetActions();
+                } else {
+                    lore.add(ChatColor.GREEN + market.getLocale().get("interface.swap_to_create"));
+                }
+            }
+
+            @Override
+            public void onClick(Player player, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event) {
+                if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
+                    // Put the item back into the inv for safe keeping
+                    int last = viewer.getLastLowerSlot();
+                    Inventory inv = event.getWhoClicked().getInventory();
+                    ItemStack cursor = event.getCursor().clone();
+                    event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
+                    if (last >= 0) {
+                        ItemStack lastSlot = inv.getItem(last);
+                        if (lastSlot == null || lastSlot.getType() == Material.AIR) {
+                            inv.setItem(last, cursor);
+                        } else {
+                            ItemStack lastItem = inv.getItem(last);
+                            if (lastItem.getType() == cursor.getType()) {
+                                lastItem.setAmount(lastItem.getAmount() + cursor.getAmount());
+                            } else {
+                                event.getWhoClicked().getWorld().dropItem(event.getWhoClicked().getLocation(), cursor);
+                            }
+                        }
+                        create((Player) event.getWhoClicked(), inv.getItem(last), viewer);
+                    }
+                } else {
+                    viewer.resetActions();
+                    handler.refreshFunctionBar(viewer);
+                }
+            }
+        });
     }
 
     @Override
@@ -55,9 +131,9 @@ public class ListingsInterface extends MarketInterface {
     }
 
     @Override
-    public ItemStack prepareItem(MarketItem marketItem, InterfaceViewer viewer, int page, int slot, boolean leftClick, boolean shiftClick) {
+    public ItemStack prepareItem(IMarketItem marketItem, InterfaceViewer viewer, int page, int slot, boolean leftClick, boolean shiftClick) {
         Listing listing = (Listing) marketItem;
-        ItemStack item = storage.getItem(listing.getItemId(), listing.getAmount());
+        ItemStack item = market.getStorage().getItem(listing.getItemId(), listing.getAmount());
         ItemMeta meta = item.getItemMeta();
 
         boolean isSeller = viewer.getViewer().equalsIgnoreCase(listing.getSeller());
@@ -137,63 +213,39 @@ public class ListingsInterface extends MarketInterface {
     }
 
     @Override
-    public void handleLeftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
+    public void handleLeftClickAction(InterfaceViewer viewer, IMarketItem item, InventoryClickEvent event) {
         if (market.getCore().buyListing((Listing) item, (Player) event.getWhoClicked(), viewer, true, true, true)) {
             viewer.resetActions();
         }
     }
 
     @Override
-    public void handleShiftClickAction(InterfaceViewer viewer, MarketItem item, InventoryClickEvent event) {
+    public void handleShiftClickAction(InterfaceViewer viewer, IMarketItem item, InventoryClickEvent event) {
         viewer.resetActions();
         market.getCore().removeListing((Listing) item, (Player) event.getWhoClicked());
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<MarketItem> getContents(InterfaceViewer viewer) {
-        return (List<MarketItem>)(List<?>) market.getStorage().getListings(viewer.getViewer(), viewer.getSort(), viewer.getWorld());
+    public List<IMarketItem> getContents(InterfaceViewer viewer) {
+        return (List<IMarketItem>)(List<?>) market.getStorage().getListings(viewer.getViewer(), viewer.getSort(), viewer.getWorld());
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<MarketItem> doSearch(InterfaceViewer viewer, String search) {
+    public List<IMarketItem> doSearch(InterfaceViewer viewer, String search) {
         SearchResult result = market.getStorage().getListings(viewer.getViewer(), viewer.getSort(), search, viewer.getWorld());
         viewer.setSearchSize(result.getTotalFound());
-        return (List<MarketItem>)(List<?>) result.getPage();
+        return (List<IMarketItem>)(List<?>) result.getPage();
     }
 
     @Override
-    public MarketItem getItem(InterfaceViewer viewer, int id) {
+    public IMarketItem getItem(InterfaceViewer viewer, int id) {
         return market.getStorage().getListing(id);
     }
 
     @Override
-    public boolean identifyItem(ItemMeta meta) {
-        if (meta.hasDisplayName()) {
-            String name = meta.getDisplayName();
-            if (name.contains(market.getLocale().get("interface.page").replace(" %s", ""))) {
-                return true;
-            }
-            if (name.contains(market.getLocale().get("interface.search"))) {
-                return true;
-            }
-            if (name.contains(market.getLocale().get("interface.cancel_search"))) {
-                return true;
-            }
-        }
-        if (meta.hasLore()) {
-            for (String lore : meta.getLore()) {
-                if (lore.contains(market.getLocale().get("price")) || lore.contains(market.getLocale().get("click_to_retrieve"))) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public void onInterfacePrepare(InterfaceViewer viewer, List<MarketItem> contents, ItemStack[] invContents, Inventory inv) {
+    public void onInterfacePrepare(InterfaceViewer viewer, List<IMarketItem> contents, ItemStack[] invContents, Inventory inv) {
     }
 
     @Override
@@ -217,102 +269,13 @@ public class ListingsInterface extends MarketInterface {
     }
 
     @Override
-    public ItemStack getItemStack(InterfaceViewer viewer, MarketItem item) {
+    public ItemStack getItemStack(InterfaceViewer viewer, IMarketItem item) {
         return market.getStorage().getItem(item.getItemId(), item.getAmount());
     }
 
-    @Override
-    public void onUnboundClick(final Market market, final InterfaceHandler handler, final InterfaceViewer viewer, int slot, final InventoryClickEvent event) {
-        super.onUnboundClick(market, handler, viewer, slot, event);
-        int invSize = event.getInventory().getSize();
-
-        if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
-            return;
-        }
-
-        // Sort toggle
-        if (slot == invSize - 5 && event.getAction() != InventoryAction.SWAP_WITH_CURSOR) {
-            SortMethod sort = viewer.getSort();
-            if (sort == SortMethod.DEFAULT) {
-                viewer.setSort(SortMethod.PRICE_HIGHEST);
-            } else if (sort == SortMethod.PRICE_HIGHEST) {
-                viewer.setSort(SortMethod.PRICE_LOWEST);
-            } else if(sort == SortMethod.PRICE_LOWEST) {
-                viewer.setSort(SortMethod.AMOUNT_HIGHEST);
-            } else {
-                viewer.setSort(SortMethod.DEFAULT);
-            }
-            handler.refreshViewer(viewer, viewer.getInterface().getName());
-            return;
-        }
-
-        if (market.useProtocolLib()) {
-            // Create
-            if (slot == invSize - 8) {
-                if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
-                    // Put the item back into the inv for safe keeping
-                    int last = viewer.getLastLowerSlot();
-                    Inventory inv = event.getWhoClicked().getInventory();
-                    ItemStack cursor = event.getCursor().clone();
-                    event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
-                    if (last >= 0) {
-                        ItemStack lastSlot = inv.getItem(last);
-                        if (lastSlot == null || lastSlot.getType() == Material.AIR) {
-                            inv.setItem(last, cursor);
-                        } else {
-                            ItemStack lastItem = inv.getItem(last);
-                            if (lastItem.getType() == cursor.getType()) {
-                                lastItem.setAmount(lastItem.getAmount() + cursor.getAmount());
-                            } else {
-                                event.getWhoClicked().getWorld().dropItem(event.getWhoClicked().getLocation(), cursor);
-                            }
-                        }
-                        create((Player) event.getWhoClicked(), inv.getItem(last), viewer);
-                    }
-                } else {
-                    viewer.resetActions();
-                    handler.refreshFunctionBar(viewer);
-                }
-            }
-        }
-    }
-
-    @Override
-    public void buildFunctionBar(Market market, InterfaceHandler handler, InterfaceViewer viewer, ItemStack[] contents, boolean pPage, boolean nPage) {
-        super.buildFunctionBar(market, handler, viewer, contents, pPage, nPage);
-
-        // Sort toggle
-        ItemStack curPage = new ItemStack(Material.REDSTONE_COMPARATOR);
-        ItemMeta curMeta = curPage.getItemMeta();
-        if (curMeta == null) {
-            curMeta = market.getServer().getItemFactory().getItemMeta(curPage.getType());
-        }
-        curMeta.setDisplayName(ChatColor.WHITE + market.getLocale().get("interface.sort_by"));
-        List<String> curLore = new ArrayList<String>();
-        curLore.add(ChatColor.YELLOW + market.getLocale().get("interface.sorting_by", market.getLocale().get("interface.sort_methods." + viewer.getSort().toString())));
-        curMeta.setLore(curLore);
-        curPage.setItemMeta(curMeta);
-        contents[contents.length - 5] = curPage;
-
-        if (market.useProtocolLib()) {
-            // Create button
-            ItemStack create = new ItemStack(Material.HOPPER);
-            ItemMeta createMeta = create.getItemMeta();
-            createMeta.setDisplayName(ChatColor.RESET + market.getLocale().get("interface.create"));
-            List<String> createLore = new ArrayList<String>();
-            if (viewer.getCreateMessage() != null) {
-                createLore.add(ChatColor.RED + "<" + viewer.getCreateMessage() + ">");
-                viewer.resetActions();
-            } else {
-                createLore.add(ChatColor.GREEN + market.getLocale().get("interface.swap_to_create"));
-            }
-            createMeta.setLore(createLore);
-            create.setItemMeta(createMeta);
-            contents[contents.length - 8] = create;
-        }
-    }
-
-    private void create(final Player player, final ItemStack item, final InterfaceViewer viewer) {
+    private static void create(final Player player, final ItemStack item, final InterfaceViewer viewer) {
+        final Market market = Market.getMarket();
+        final MarketStorage storage = market.getStorage();
         // Not sure that this can happen, but better safe than sorry!
         if (player == null) {
             return;

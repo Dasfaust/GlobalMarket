@@ -2,9 +2,9 @@ package com.survivorserver.GlobalMarket;
 
 import org.bukkit.inventory.ItemStack;
 
-import com.survivorserver.GlobalMarket.Interface.MarketItem;
+import com.survivorserver.GlobalMarket.Interface.IMarketItem;
 
-public class Mail implements MarketItem {
+public class Mail implements IMarketItem {
 
     public String owner;
     public int id;
