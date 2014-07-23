@@ -592,7 +592,7 @@ public class MarketStorage {
         }
     }
 
-    public synchronized Listing getListing(int id) {
+    public Listing getListing(int id) {
         if (listings.containsKey(id)) {
             return listings.get(id);
         }
