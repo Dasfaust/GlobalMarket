@@ -32,8 +32,6 @@ public class MailInterface extends IMenu {
         super();
         this.market = market;
         addDefaultButtons();
-        removeFunctionButton(47);
-        removeFunctionButton(49);
         addFunctionButton(49, new IFunctionButton("SortToggle", null, Material.DIODE) {
             @Override
             public boolean showButton(InterfaceHandler handler, InterfaceViewer viewer, boolean hasPrevPage, boolean hasNextPage) {

@@ -33,7 +33,6 @@ public class ListingsInterface extends IMenu {
         super();
         this.market = market;
         addDefaultButtons();
-        removeFunctionButton(49);
         addFunctionButton(49, new IFunctionButton("SortToggle", null, Material.REDSTONE_COMPARATOR) {
             @Override
             public boolean showButton(InterfaceHandler handler, InterfaceViewer viewer, boolean hasPrevPage, boolean hasNextPage) {
@@ -106,6 +105,36 @@ public class ListingsInterface extends IMenu {
                     viewer.resetActions();
                     handler.refreshFunctionBar(viewer);
                 }
+            }
+        });
+        addFunctionButton(47, new IFunctionButton("Search", null, Material.EMPTY_MAP) {
+            @Override
+            public void onClick(Player player, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event) {
+                if (viewer.getSearch() == null) {
+                    player.closeInventory();
+                    Market.getMarket().startSearch(player, viewer.getInterface().getName());
+                    handler.removeViewer(viewer);
+                } else {
+                    viewer.setSearch(null);
+                    viewer.resetActions();
+                    handler.refreshViewer(viewer, viewer.getInterface().getName());
+                }
+            }
+
+            @Override
+            public void preBuild(InterfaceHandler handler, InterfaceViewer viewer, ItemStack stack, ItemMeta meta, List<String> lore) {
+                if (viewer.getSearch() == null) {
+                    meta.setDisplayName(ChatColor.WHITE + Market.getMarket().getLocale().get("interface.search"));
+                    lore.add(ChatColor.YELLOW + Market.getMarket().getLocale().get("interface.start_search"));
+                } else {
+                    meta.setDisplayName(ChatColor.WHITE + Market.getMarket().getLocale().get("interface.cancel_search"));
+                    lore.add(ChatColor.YELLOW + Market.getMarket().getLocale().get("interface.searching_for", viewer.getSearch()));
+                }
+            }
+
+            @Override
+            public boolean showButton(InterfaceHandler handler, InterfaceViewer viewer, boolean hasPrevPage, boolean hasNextPage) {
+                return true;
             }
         });
     }

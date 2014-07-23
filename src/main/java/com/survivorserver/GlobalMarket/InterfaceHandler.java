@@ -217,7 +217,7 @@ public class InterfaceHandler {
         if (n != null && n.getType() != Material.AIR) {
             nPage = true;
         }
-        mInterface.buildFunctionBar(market, this, viewer, contents, pPage, nPage);
+        mInterface.buildFunctionBar(this, viewer, contents, pPage, nPage);
         inv.setContents(contents);
     }
 
@@ -269,7 +269,7 @@ public class InterfaceHandler {
         boolean nextPage = index < contents.size();
         boolean prevPage = viewer.getPage() > 1;
 
-        mInterface.buildFunctionBar(market, this, viewer, invContents, prevPage, nextPage);
+        mInterface.buildFunctionBar(this, viewer, invContents, prevPage, nextPage);
 
         for (ItemStack s : invContents) {
             if (s != null) {

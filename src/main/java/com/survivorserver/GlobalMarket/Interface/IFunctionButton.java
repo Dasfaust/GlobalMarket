@@ -18,7 +18,6 @@ public abstract class IFunctionButton {
     public String title;
     public String[] description;
     public Material mat;
-    private ItemStack stack;
 
     public IFunctionButton(String title, String[] description, Material mat) {
         this.title = title;
@@ -27,6 +26,7 @@ public abstract class IFunctionButton {
     }
 
     public ItemStack buildItem(InterfaceHandler handler, InterfaceViewer viewer, ItemStack[] contents, boolean hasPrevPage, boolean hasNextPage) {
+        ItemStack stack = null;
         if (showButton(handler, viewer, hasPrevPage, hasNextPage)) {
             stack = new ItemStack(mat);
             ItemMeta meta = stack.getItemMeta();
