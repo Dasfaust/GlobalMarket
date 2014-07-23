@@ -43,80 +43,86 @@ public class InterfaceListener implements Listener {
 
         int lastTopSlot = (event.getInventory().getSize() < 54 ? 26 : 53);
         if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
+            if (viewer.getGui() != null) {
+                if (rawSlot <= lastTopSlot && rawSlot > -1) {
+                    // Determine if a click was within the top portion of the inventory
 
-            if (rawSlot <= lastTopSlot && rawSlot > -1) {
-                // Determine if a click was within the top portion of the inventory
+                    event.setCancelled(true);
+                    event.setResult(Result.DENY);
 
-                event.setCancelled(true);
-                event.setResult(Result.DENY);
-
-                IMenu inter = viewer.getInterface();
-                if (viewer.getBoundSlots().containsKey(rawSlot)) {
-                    // This item has an ID attached to it
-                    IMarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
-                    if (item == null) {
-                        market.log.warning(String.format("Null IMarketItem in %s with position %s (raw: %s) in interface %s, should have an ID of %s.", event.getEventName(), slot, rawSlot, inter.getName(), viewer.getBoundSlots().get(rawSlot)));
-                        return;
-                    }
-                    if (event.isRightClick()) {
-                        // Drop everything and start over
-                        viewer.resetActions();
-                        handler.refreshSlot(viewer, slot, item);
-                    } else {
-                        // Reset their actions if clicking a different item than last time
-                        int lastSlot = viewer.getLastActionSlot();
-                        if (lastSlot > -1 && lastSlot != slot) {
-                            viewer.resetActions();
-                            handler.refreshSlot(viewer, lastSlot, item);
+                    IMenu inter = viewer.getInterface();
+                    if (viewer.getBoundSlots().containsKey(rawSlot)) {
+                        // This item has an ID attached to it
+                        IMarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
+                        if (item == null) {
+                            market.log.warning(String.format("Null IMarketItem in %s with position %s (raw: %s) in interface %s, should have an ID of %s.", event.getEventName(), slot, rawSlot, inter.getName(), viewer.getBoundSlots().get(rawSlot)));
+                            return;
                         }
-
-                        viewer.setLastAction(event.getAction());
-                        viewer.setLastActionSlot(slot);
-
-                        // Yay, we've got the IMarketItem instance. Let's do stuff with it
-                        viewer.setLastItem(item.getId());
-                        viewer.incrementClicks();
-
-                        if (inter.doSingleClickActions()) {
-                            if (event.isShiftClick()) {
-                                inter.handleShiftClickAction(viewer, item, event);
-                            } else {
-                                inter.handleLeftClickAction(viewer, item, event);
-                            }
-                        } else {
+                        if (event.isRightClick()) {
+                            // Drop everything and start over
+                            viewer.resetActions();
                             handler.refreshSlot(viewer, slot, item);
-                            if (viewer.getClicks() == 2) {
+                        } else {
+                            // Reset their actions if clicking a different item than last time
+                            int lastSlot = viewer.getLastActionSlot();
+                            if (lastSlot > -1 && lastSlot != slot) {
+                                viewer.resetActions();
+                                handler.refreshSlot(viewer, lastSlot, item);
+                            }
+
+                            viewer.setLastAction(event.getAction());
+                            viewer.setLastActionSlot(slot);
+
+                            // Yay, we've got the IMarketItem instance. Let's do stuff with it
+                            viewer.setLastItem(item.getId());
+                            viewer.incrementClicks();
+
+                            if (inter.doSingleClickActions()) {
                                 if (event.isShiftClick()) {
                                     inter.handleShiftClickAction(viewer, item, event);
                                 } else {
                                     inter.handleLeftClickAction(viewer, item, event);
                                 }
+                            } else {
+                                handler.refreshSlot(viewer, slot, item);
+                                if (viewer.getClicks() == 2) {
+                                    if (event.isShiftClick()) {
+                                        inter.handleShiftClickAction(viewer, item, event);
+                                    } else {
+                                        inter.handleLeftClickAction(viewer, item, event);
+                                    }
+                                }
                             }
                         }
+                    } else {
+                        if (event.isRightClick()) {
+                            return;
+                        }
+                        inter.onUnboundClick(market, handler, viewer, rawSlot, event);
                     }
+                } else if (isMarketItem(event.getCurrentItem())) {
+                    event.setCancelled(true);
+                    event.setResult(Result.DENY);
+                    event.getCurrentItem().setType(Material.AIR);
+                    event.getCursor().setType(Material.AIR);
+                    event.getInventory().remove(event.getCurrentItem());
+                } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                        || (event.getAction() == InventoryAction.PLACE_ALL
+                        || event.getAction() == InventoryAction.PLACE_ONE
+                        || event.getAction() == InventoryAction.PLACE_SOME
+                        || event.getAction() == InventoryAction.SWAP_WITH_CURSOR)
+                        && event.getRawSlot() == event.getSlot()) {
+                    // They're trying to put an item from their inventory into the Market inventory. Not bad for us, but they will lose their item. Cancel it because we're nice :)
+                    event.setCancelled(true);
+                    event.setResult(Result.DENY);
                 } else {
-                    if (event.isRightClick()) {
-                        return;
-                    }
-                    inter.onUnboundClick(market, handler, viewer, rawSlot, event);
+                    viewer.setLastLower(event.getSlot());
                 }
-            } else if (isMarketItem(event.getCurrentItem())) {
-                event.setCancelled(true);
-                event.setResult(Result.DENY);
-                event.getCurrentItem().setType(Material.AIR);
-                event.getCursor().setType(Material.AIR);
-                event.getInventory().remove(event.getCurrentItem());
-            } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                    || (event.getAction() == InventoryAction.PLACE_ALL
-                    || event.getAction() == InventoryAction.PLACE_ONE
-                    || event.getAction() == InventoryAction.PLACE_SOME
-                    || event.getAction() == InventoryAction.SWAP_WITH_CURSOR)
-                    && event.getRawSlot() == event.getSlot()) {
-                // They're trying to put an item from their inventory into the Market inventory. Not bad for us, but they will lose their item. Cancel it because we're nice :)
-                event.setCancelled(true);
-                event.setResult(Result.DENY);
             } else {
-                viewer.setLastLower(event.getSlot());
+                event.setCancelled(true);
+                event.setResult(Result.DENY);
+                handler.removeViewer(viewer);
+                cleanInventory(event.getWhoClicked().getInventory());
             }
         } else {
             if (isMarketItem(event.getCurrentItem())) {
