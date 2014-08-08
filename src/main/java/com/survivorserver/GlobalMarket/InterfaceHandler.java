@@ -248,10 +248,7 @@ public class InterfaceHandler {
                             left = true;
                         }
                     }
-                }
-            }
-            if (viewer.getLastAction() != null) {
-                if (viewer.getLastAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                } else if (viewer.getLastAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     if (viewer.getLastActionSlot() == slot) {
                         if (viewer.getLastItem() >= 0 && viewer.getLastItem() == marketItem.getId()) {
                             clicked = true;

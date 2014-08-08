@@ -68,14 +68,28 @@ public class InterfaceListener implements Listener {
                             if (lastSlot > -1 && lastSlot != slot) {
                                 viewer.resetActions();
                                 handler.refreshSlot(viewer, lastSlot, item);
+                                return;
+                            }
+
+                            // Only increment clicks if both are of the same type
+                            if (!inter.doSingleClickActions()) {
+                                if (event.getAction() == InventoryAction.PICKUP_ALL
+                                        && (viewer.getLastAction() == null ? true : viewer.getLastAction() == InventoryAction.PICKUP_ALL)) {
+                                    viewer.incrementClicks();
+                                } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                                        && (viewer.getLastAction() == null ? true : viewer.getLastAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
+                                    viewer.incrementClicks();
+                                } else {
+                                    viewer.resetActions();
+                                    handler.refreshSlot(viewer, lastSlot, item);
+                                    return;
+                                }
                             }
 
                             viewer.setLastAction(event.getAction());
                             viewer.setLastActionSlot(slot);
 
-                            // Yay, we've got the IMarketItem instance. Let's do stuff with it
                             viewer.setLastItem(item.getId());
-                            viewer.incrementClicks();
 
                             if (inter.doSingleClickActions()) {
                                 if (event.isShiftClick()) {
@@ -86,7 +100,7 @@ public class InterfaceListener implements Listener {
                             } else {
                                 handler.refreshSlot(viewer, slot, item);
                                 if (viewer.getClicks() == 2) {
-                                    if (event.isShiftClick()) {
+                                    if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                                         inter.handleShiftClickAction(viewer, item, event);
                                     } else {
                                         inter.handleLeftClickAction(viewer, item, event);
