@@ -392,7 +392,7 @@ public class ListingsInterface extends IMenu {
                                 if (item.getAmount() < amount) {
                                     int carrying = 0;
                                     for (ItemStack i: player.getInventory().getContents()) {
-                                        if (i != null && i.isSimilar(item)) {
+                                        if (i != null && i.equals(item)) {
                                             carrying += i.getAmount();
                                         }
                                     }
@@ -426,7 +426,7 @@ public class ListingsInterface extends IMenu {
                                             break;
                                         }
                                         ItemStack c = contents[i];
-                                        if (c != null && c.isSimilar(item)) {
+                                        if (c != null && c.equals(item)) {
                                             if (am >= c.getAmount()) {
                                                 ItemStack a = c.clone();
                                                 contents[i] = null;
@@ -436,8 +436,8 @@ public class ListingsInterface extends IMenu {
                                                 ItemStack a = c.clone();
                                                 c.setAmount(c.getAmount() - am);
                                                 a.setAmount(am);
-                                                am = 0;
                                                 toList.add(a);
+                                                am = 0;
                                                 break;
                                             }
                                         }
