@@ -86,19 +86,19 @@ public class ListingsInterface extends IMenu {
                     int last = viewer.getLastLowerSlot();
                     Inventory inv = event.getWhoClicked().getInventory();
                     ItemStack cursor = event.getCursor().clone();
-                    event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
                     if (last >= 0) {
                         ItemStack lastSlot = inv.getItem(last);
                         if (lastSlot == null || lastSlot.getType() == Material.AIR) {
                             inv.setItem(last, cursor);
                         } else {
                             ItemStack lastItem = inv.getItem(last);
-                            if (lastItem.getType() == cursor.getType()) {
+                            if (lastItem.equals(cursor)) {
                                 lastItem.setAmount(lastItem.getAmount() + cursor.getAmount());
                             } else {
-                                event.getWhoClicked().getWorld().dropItem(event.getWhoClicked().getLocation(), cursor);
+                                return;
                             }
                         }
+                        event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
                         create((Player) event.getWhoClicked(), inv.getItem(last), viewer);
                     }
                 } else {
@@ -362,7 +362,7 @@ public class ListingsInterface extends IMenu {
                                 }
                                 market.getInterfaceHandler().unsuspendViewer(player, viewer);
                                 int ticks = 80;
-                                int amount = 0;
+                                int amount;
                                 try {
                                     amount = Integer.parseInt(input[1]);
                                 } catch(NumberFormatException e) {
@@ -373,7 +373,7 @@ public class ListingsInterface extends IMenu {
                                     packet.getMessage().display(player, ChatColor.RED + locale.get("not_a_valid_amount", input[1]), ticks);
                                     return;
                                 }
-                                double price = 0;
+                                double price;
                                 try {
                                     price = Double.parseDouble(input[3]);
                                 } catch(NumberFormatException e) {
