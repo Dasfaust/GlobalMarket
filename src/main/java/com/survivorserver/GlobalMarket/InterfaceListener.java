@@ -44,14 +44,14 @@ public class InterfaceListener implements Listener {
         int lastTopSlot = (event.getInventory().getSize() < 54 ? 26 : 53);
         if (viewer != null && event.getInventory().getName().equalsIgnoreCase(viewer.getGui().getName())) {
             if (viewer.getGui() != null) {
-                if (rawSlot <= lastTopSlot && rawSlot > -1) {
+                if (rawSlot <= lastTopSlot && slot > -1) {
                     // Determine if a click was within the top portion of the inventory
 
                     event.setCancelled(true);
                     event.setResult(Result.DENY);
 
                     IMenu inter = viewer.getInterface();
-                    if (viewer.getBoundSlots().containsKey(rawSlot)) {
+                    if (viewer.getBoundSlots().containsKey(slot)) {
                         // This item has an ID attached to it
                         IMarketItem item = inter.getItem(viewer, viewer.getBoundSlots().get(event.getRawSlot()));
                         if (item == null) {
