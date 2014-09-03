@@ -95,7 +95,7 @@ public class Market extends JavaPlugin implements Listener {
         getConfig().addDefault("storage.mysql_address", "localhost");
         getConfig().addDefault("storage.mysql_port", 3306);
         getConfig().addDefault("multiworld.enable", false);
-        getConfig().addDefault("multiworld.links.world", Arrays.asList(new String[]{"world_nether", "world_the_end"}));
+        getConfig().addDefault("multiworld.links", Arrays.asList(new String[]{}));
         getConfig().addDefault("limits.default.cut", 0.05);
         getConfig().addDefault("limits.default.max_price", 0.0);
         getConfig().addDefault("limits.default.max_item_prices.air.dmg", 0);
