@@ -144,7 +144,7 @@ public class InterfaceHandler {
         suspended.remove(viewer);
         IMenu inter = viewer.getInterface();
         InterfaceViewer newViewer = addViewer(player,
-                market.getServer().createInventory(player, inter.getSize(), market.enableMultiworld() ?  inter.getTitle() + " (" + player.getWorld().getName() + ")" :  inter.getTitle()),
+                market.getServer().createInventory(player, inter.getSize(), inter.getTitle()),
                 inter);
         newViewer.setPage(viewer.getPage());
         newViewer.setSearch(viewer.getSearch());
@@ -160,7 +160,7 @@ public class InterfaceHandler {
     public void openInterface(Player player, String search, String marketInterface) {
         IMenu mInterface = getInterface(marketInterface);
         InterfaceViewer viewer = addViewer(player,
-                market.getServer().createInventory(player, mInterface.getSize(), market.enableMultiworld() ?  mInterface.getTitle() + " (" + player.getWorld().getName() + ")" :  mInterface.getTitle()),
+                market.getServer().createInventory(player, mInterface.getSize(), mInterface.getTitle()),
                 mInterface);
         viewer.setSearch(search);
         refreshInterface(viewer);
