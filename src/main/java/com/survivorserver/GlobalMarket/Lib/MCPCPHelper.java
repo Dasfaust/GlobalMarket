@@ -1,7 +1,10 @@
 package com.survivorserver.GlobalMarket.Lib;
 
+import com.comphenix.protocol.utility.MinecraftReflection;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import java.lang.reflect.Method;
 
 public class MCPCPHelper {
 
@@ -54,13 +57,18 @@ public class MCPCPHelper {
         return stack.serializeJSON();
     }
 
-    // TODO: some type of abstraction to support 1.7+
     public static Object getNMSStack(ItemStack item) {
-        return org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack.asNMSCopy(item);
+        return MinecraftReflection.getMinecraftItemStack(MinecraftReflection.getBukkitItemStack(item));
     }
 
-    // TODO: some type of abstraction to support 1.7+
     public static Object getNMSInventory(Inventory inv) {
-        return ((org.bukkit.craftbukkit.v1_6_R3.inventory.CraftInventory) inv).getInventory();
+        Class c = MinecraftReflection.getCraftBukkitClass("CraftInventory");
+        try {
+            Method m = c.getMethod("getInventory", null);
+            return m.invoke(inv, null);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

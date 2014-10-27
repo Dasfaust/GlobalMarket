@@ -82,6 +82,8 @@ public class Database {
                     con = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "?useUnicode=true&characterEncoding=utf8", user, pass);
                     con.createStatement().executeUpdate("CREATE DATABASE IF NOT EXISTS " + db);
                     con.setCatalog(db);
+
+
                 }
             }
             return true;
