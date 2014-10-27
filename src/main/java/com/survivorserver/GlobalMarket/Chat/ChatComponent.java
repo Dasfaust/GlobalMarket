@@ -132,19 +132,20 @@ public class ChatComponent {
     }
 
     public String jsonStack(ItemStack item) {
-        if (tellraw != null) {
+        /*if (tellraw != null) {
             return tellraw.gson.toJson(new TellRawItemStack(item)).replaceAll("\"", "");
-        }
+        }*/
         return "";
     }
 
     public class TellRawComponent {
 
-        org.bukkit.craftbukkit.libs.com.google.gson.Gson gson;
+        /*org.bukkit.craftbukkit.libs.com.google.gson.Gson gson;
+
 
         public TellRawComponent() {
             gson = new org.bukkit.craftbukkit.libs.com.google.gson.Gson();
-        }
+        }*/
 
         public void send(Player player, TellRawMessage msg) {
             /*String json = gson.toJson(msg);

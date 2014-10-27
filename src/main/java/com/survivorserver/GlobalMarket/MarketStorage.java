@@ -645,7 +645,7 @@ public class MarketStorage {
 
         if (market.getChat() != null) {
             // Don't run this if we're importing...
-            if (market.announceOnCreate()) {
+            /*if (market.announceOnCreate()) {
                 ItemStack created = getItem(listing.getItemId(), 1);
                 market.getChat().announce(new TellRawMessage().setText(market.getLocale().get("listing_created.prefix1"))
                         .setColor(market.getLocale().get("listing_created.prefix1_color"))
@@ -678,7 +678,7 @@ public class MarketStorage {
                         )
                     })
                 , "globalmarket.seeannounce");
-            }
+            }*/
         }
     }
 
