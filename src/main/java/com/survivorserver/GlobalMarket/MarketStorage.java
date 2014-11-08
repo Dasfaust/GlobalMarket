@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
-import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
+import com.survivorserver.GlobalMarket.Lib.Cauldron.CauldronHelper;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -25,9 +25,6 @@ import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
-import com.survivorserver.GlobalMarket.Chat.TellRawClickEvent;
-import com.survivorserver.GlobalMarket.Chat.TellRawHoverEvent;
-import com.survivorserver.GlobalMarket.Chat.TellRawMessage;
 import com.survivorserver.GlobalMarket.Lib.SearchResult;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
 import com.survivorserver.GlobalMarket.SQL.Database;
@@ -418,7 +415,7 @@ public class MarketStorage {
 
     public static String itemStackToString(ItemStack item) {
         if (Market.getMarket().mcpcpSupportEnabled()) {
-            return MCPCPHelper.serialize(item);
+            return CauldronHelper.serialize(item);
         } else {
             YamlConfiguration conf = new YamlConfiguration();
             ItemStack toSave = item.clone();
@@ -430,7 +427,7 @@ public class MarketStorage {
 
     public static ItemStack itemStackFromString(String item) throws InvalidConfigurationException {
         if (Market.getMarket().mcpcpSupportEnabled()) {
-            return MCPCPHelper.deserialize(item);
+            return CauldronHelper.deserialize(item);
         } else {
             YamlConfiguration conf = new YamlConfiguration();
             conf.loadFromString(item);
@@ -440,7 +437,7 @@ public class MarketStorage {
 
     public static ItemStack itemStackFromString(String item, int amount) {
         if (Market.getMarket().mcpcpSupportEnabled()) {
-            ItemStack stack = MCPCPHelper.deserialize(item);
+            ItemStack stack = CauldronHelper.deserialize(item);
             stack.setAmount(amount);
             return stack;
         } else {
@@ -857,7 +854,7 @@ public class MarketStorage {
         meta.setPages(logStr);
         book.setItemMeta(meta);
         if (market.mcpcpSupportEnabled()) {
-            book = MCPCPHelper.wrapItemStack(book);
+            book = CauldronHelper.wrapItemStack(book);
         }
         createMail(player, buyer, book, amount, world);
     }

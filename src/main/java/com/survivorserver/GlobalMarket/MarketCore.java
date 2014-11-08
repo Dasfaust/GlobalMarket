@@ -2,7 +2,7 @@ package com.survivorserver.GlobalMarket;
 
 import java.util.Arrays;
 
-import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
+import com.survivorserver.GlobalMarket.Lib.Cauldron.CauldronHelper;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
@@ -244,7 +244,7 @@ public class MarketCore {
             item.setItemMeta(meta);
         }
         if (market.mcpcpSupportEnabled()) {
-            MCPCPHelper.addItemToInventory(player.getName(), item);
+            CauldronHelper.addItemToInventory(player.getName(), item);
         } else {
             playerInv.addItem(item);
         }

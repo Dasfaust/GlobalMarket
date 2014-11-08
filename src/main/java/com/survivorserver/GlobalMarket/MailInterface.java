@@ -6,7 +6,7 @@ import java.util.List;
 import com.survivorserver.GlobalMarket.Interface.IFunctionButton;
 import com.survivorserver.GlobalMarket.Interface.IMarketItem;
 import com.survivorserver.GlobalMarket.Interface.IMenu;
-import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
+import com.survivorserver.GlobalMarket.Lib.Cauldron.CauldronHelper;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -168,7 +168,7 @@ public class MailInterface extends IMenu {
             Inventory inv = event.getWhoClicked().getInventory();
             if (inv.firstEmpty() >= 0) {
                 if (market.mcpcpSupportEnabled()) {
-                    MCPCPHelper.addItemToInventory(viewer.getViewer(), market.getStorage().getItem(item.getItemId(), item.getAmount()));
+                    CauldronHelper.addItemToInventory(viewer.getViewer(), market.getStorage().getItem(item.getItemId(), item.getAmount()));
                 } else {
                     inv.addItem(market.getStorage().getItem(item.getItemId(), item.getAmount()));
                 }

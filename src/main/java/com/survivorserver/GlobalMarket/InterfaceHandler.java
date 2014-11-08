@@ -8,7 +8,7 @@ import java.util.Map;
 import com.survivorserver.GlobalMarket.Interface.IHandler;
 import com.survivorserver.GlobalMarket.Interface.IMarketItem;
 import com.survivorserver.GlobalMarket.Interface.IMenu;
-import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
+import com.survivorserver.GlobalMarket.Lib.Cauldron.CauldronHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -197,7 +197,7 @@ public class InterfaceHandler {
         meta.setLore(l);
         s.setItemMeta(meta);
         if (market.mcpcpSupportEnabled()) {
-            MCPCPHelper.addItemToInventory(s, inv, slot);
+            CauldronHelper.addItemToInventory(s, inv, slot);
         } else {
             inv.setItem(slot, s);
         }
@@ -279,7 +279,7 @@ public class InterfaceHandler {
         }
 
         if (market.mcpcpSupportEnabled()) {
-            MCPCPHelper.setInventoryContents(inv, invContents);
+            CauldronHelper.setInventoryContents(inv, invContents);
         } else {
             inv.setContents(invContents);
         }

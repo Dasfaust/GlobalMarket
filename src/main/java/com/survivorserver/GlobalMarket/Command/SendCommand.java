@@ -2,7 +2,7 @@ package com.survivorserver.GlobalMarket.Command;
 
 import java.util.List;
 
-import com.survivorserver.GlobalMarket.Lib.MCPCPHelper;
+import com.survivorserver.GlobalMarket.Lib.Cauldron.CauldronHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -99,7 +99,7 @@ public class SendCommand extends SubCommand {
             }
             ItemStack toList = player.getItemInHand().clone();
             if (market.mcpcpSupportEnabled()) {
-                toList = MCPCPHelper.wrapItemStack(player.getInventory(), player.getInventory().getHeldItemSlot()).clone();
+                toList = CauldronHelper.wrapItemStack(player.getInventory(), player.getInventory().getHeldItemSlot()).clone();
             }
             if (market.blacklistMail()) {
                 if (market.itemBlacklisted(toList)) {
