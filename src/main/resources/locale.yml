@@ -61,6 +61,7 @@ english:
         market_cut: "Market cut: %s"
         amount_recieved: "Amount received: %s"
         buyer: "Buyer: %s"
+        unsignable: "Unsignable"
     listing_purchased_mailbox: "Your listing of %s has been purchased, pick up your earnings at a mailbox"
     history:
         prefix: "%1$s. <%2$s> "
@@ -90,7 +91,6 @@ english:
     shift_click_to_remove: "<shift+click to remove>"
     shift_click_again_to_confirm: "<shift+click again to confirm, right click to cancel>"
     not_enough_money: "<don't have enough %s!>"
-    not_tradable: "&8Not tradable"
     interface:
         listings_title: "Market Listings"
         mail_title: "Market Mail"
@@ -140,6 +140,7 @@ english:
     friendly_item_name_with_amount: "%1$s %2$s"
     full_mailbox: "Your mailbox is full"
     full_mailbox_other: "%s's mailbox is full"
+    "cant_sign_book": "You can't sign that book."
     prices:
         no_data: "No data available for %s. Price data will not be available until the item has been sold at least once"
         header: "%s Pricing:"

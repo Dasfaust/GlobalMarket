@@ -2,6 +2,7 @@ package com.survivorserver.GlobalMarket;
 
 import com.survivorserver.GlobalMarket.Interface.IMarketItem;
 import com.survivorserver.GlobalMarket.Interface.IMenu;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -11,10 +12,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.InventoryType.SlotType;
+import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.BookMeta;
 
 public class InterfaceListener implements Listener {
 
@@ -192,7 +195,7 @@ public class InterfaceListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public synchronized void handleInventoryClose(InventoryCloseEvent event) {
+    public void handleInventoryClose(InventoryCloseEvent event) {
         InterfaceViewer viewer = handler.findViewer(event.getPlayer().getName());
         if (viewer != null) {
             viewer.getGui().clear();
@@ -230,12 +233,25 @@ public class InterfaceListener implements Listener {
     }
 
     @EventHandler
-    public synchronized void handleItemPickup(ItemSpawnEvent event) {
+    public void handleItemPickup(ItemSpawnEvent event) {
         // More fixing for item duping
         ItemStack item = event.getEntity().getItemStack();
         if (item != null && isMarketItem(item)) {
             event.getEntity().remove();
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onBookEvent(PlayerEditBookEvent event) {
+        if (event.isCancelled()) return;
+
+        BookMeta meta = event.getNewBookMeta();
+        if (event.isSigning() && meta.hasLore()) {
+            if (meta.getLore().contains(ChatColor.GRAY + market.getLocale().get("transaction_log.unsignable"))) {
+                event.getPlayer().sendMessage(market.getLocale().get("cant_sign_book"));
+                event.setCancelled(true);
+            }
         }
     }
 

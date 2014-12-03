@@ -838,7 +838,7 @@ public class MarketStorage {
     }
 
     public void storePayment(ItemStack item, String player, String buyer, double fullAmount, double amount, double cut, String world) {
-        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+        ItemStack book = new ItemStack(Material.BOOK_AND_QUILL);
         BookMeta meta = (BookMeta) book.getItemMeta();
         if (meta == null) {
             meta = (BookMeta) market.getServer().getItemFactory().getItemMeta(book.getType());
