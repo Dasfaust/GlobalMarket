@@ -24,6 +24,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -608,22 +609,25 @@ public class Market extends JavaPlugin implements Listener {
     public void buildWorldLinks() {
         worldLinks.clear();
         Map<String, List<String>> links = new HashMap<String, List<String>>();
-        Set<String> linkList = getConfig().getConfigurationSection("multiworld.links").getKeys(false);
-        for (World wor : getServer().getWorlds()) {
-            String world = wor.getName();
-            links.put(world, linkList.contains(world) ? getConfig().getStringList("multiworld.links." + world) : new ArrayList<String>());
-            for (String w : linkList) {
-                if (!w.equalsIgnoreCase(world)) {
-                    if (getConfig().getStringList("multiworld.links." + w).contains(world)) {
-                        if (!links.get(world).contains(w)) {
-                            links.get(world).add(w);
+        ConfigurationSection section = getConfig().getConfigurationSection("multiworld.links");
+        if (section != null) {
+            Set<String> linkList = section.getKeys(false);
+            for (World wor : getServer().getWorlds()) {
+                String world = wor.getName();
+                links.put(world, linkList.contains(world) ? getConfig().getStringList("multiworld.links." + world) : new ArrayList<String>());
+                for (String w : linkList) {
+                    if (!w.equalsIgnoreCase(world)) {
+                        if (getConfig().getStringList("multiworld.links." + w).contains(world)) {
+                            if (!links.get(world).contains(w)) {
+                                links.get(world).add(w);
+                            }
                         }
                     }
                 }
             }
-        }
-        for (Entry<String, List<String>> entry : links.entrySet()) {
-            worldLinks.put(entry.getKey(), entry.getValue().toArray(new String[0]));
+            for (Entry<String, List<String>> entry : links.entrySet()) {
+                worldLinks.put(entry.getKey(), entry.getValue().toArray(new String[0]));
+            }
         }
     }
 

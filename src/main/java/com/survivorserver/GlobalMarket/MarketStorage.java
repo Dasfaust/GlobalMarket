@@ -843,7 +843,7 @@ public class MarketStorage {
         if (meta == null) {
             meta = (BookMeta) market.getServer().getItemFactory().getItemMeta(book.getType());
         }
-        meta.setTitle(market.getLocale().get("transaction_log.item_name"));
+        meta.setDisplayName(market.getLocale().get("transaction_log.item_name"));
         String itemName = market.getItemName(item);
         String logStr = market.getLocale().get("transaction_log.title") + "\n\n" +
                         market.getLocale().get("transaction_log.item_sold", itemName) + "\n\n" +
