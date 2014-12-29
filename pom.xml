@@ -5,8 +5,8 @@
     <version>1.3.0-SNAPSHOT</version>
     <repositories>
         <repository>
-            <id>bukkit-repo</id>
-            <url>http://repo.bukkit.org/content/groups/public/</url>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/groups/public</url>
         </repository>
         <repository>
             <id>milkbowl-repo</id>
@@ -23,14 +23,14 @@
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>LATEST</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.8-R0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>net.milkbowl.vault</groupId>
             <artifactId>Vault</artifactId>
-            <version>1.2.32</version>
+            <version>1.5.0</version>
         </dependency>
         <dependency>
             <groupId>me.dasfaust</groupId>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <version>3.6.3-SNAPSHOT</version>
+            <version>3.4.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.comphenix.packetwrapper</groupId>
@@ -51,7 +51,7 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>GlobalMarket-${version}-b${build.number}</finalName>
+        <finalName>GlobalMarket-${project.version}-b${build.number}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
