@@ -17,12 +17,8 @@
             <url>http://repo1.maven.org/maven2</url>
         </repository>
         <repository>
-            <id>comphenix-rep</id>
-            <url>http://repo.comphenix.net/content/groups/public</url>
-        </repository>
-        <repository>
             <id>shadowvolt-repo</id>
-            <url>http://ci.shadowvolt.com/plugin/repository/everything/</url>
+            <url>http://ci.shadowvolt.com/plugin/repository/everything</url>
         </repository>
     </repositories>
     <dependencies>
