@@ -10,10 +10,7 @@ import java.util.Map;
 import com.survivorserver.GlobalMarket.Interface.IFunctionButton;
 import com.survivorserver.GlobalMarket.Interface.IMarketItem;
 import com.survivorserver.GlobalMarket.Interface.IMenu;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
@@ -67,7 +64,7 @@ public class ListingsInterface extends IMenu {
         addFunctionButton(46, new IFunctionButton("PLibCreate", null, Material.HOPPER) {
             @Override
             public boolean showButton(InterfaceHandler handler, InterfaceViewer viewer, boolean hasPrevPage, boolean hasNextPage) {
-                return Market.getMarket().useProtocolLib();
+                return Market.getMarket().useProtocolLib() ? Bukkit.getVersion().contains("1.7") : false;
             }
 
             @Override
