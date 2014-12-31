@@ -1,4 +1,4 @@
-version: ${version}
+version: '@version@'
 selected: english
 english:
     you_have_new_mail: "You have new mail!"
