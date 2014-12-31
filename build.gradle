@@ -1,7 +1,11 @@
+import org.apache.tools.ant.filters.*
+
 apply plugin: 'java'
 
 sourceCompatibility = 1.7
-version = '1.3.0'
+ext.env = System.getenv()
+ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
+ext.build = env.BUILD_ID
 
 repositories
 {
@@ -27,10 +31,29 @@ repositories
     }
 }
 
+if (ext.build == null)
+{
+    if (ext.hash != null)
+    {
+        ext.build = ext.hash
+    }
+    else
+    {
+        ext.build =  "nogit"
+    }
+}
+version = "1.3.0-" + build
+
 dependencies
 {
     compile group: 'org.spigotmc', name: 'spigot-api', version: '1.8-R0.1-SNAPSHOT'
     compile group: 'net.milkbowl.vault', name: 'Vault', version: '1.5.0'
     compile group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '3.6.3-SNAPSHOT'
     compile files("libs/MarketCompanion-1.7.10-2.0.1.jar")
+}
+
+processResources {
+    filter ReplaceTokens, tokens: [
+            "version": project.version
+    ]
 }
