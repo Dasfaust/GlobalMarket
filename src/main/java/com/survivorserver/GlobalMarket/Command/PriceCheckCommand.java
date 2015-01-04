@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.survivorserver.GlobalMarket.LocaleHandler;
 import com.survivorserver.GlobalMarket.Market;
+import com.survivorserver.GlobalMarket.Lib.Cauldron.CauldronHelper;
 import com.survivorserver.GlobalMarket.SQL.Database;
 
 public class PriceCheckCommand extends SubCommand {
@@ -55,7 +56,11 @@ public class PriceCheckCommand extends SubCommand {
                 public void run() {
                     Database db = market.getStorage().getAsyncDb().getDb();
                     synchronized(db) {
-                        player.sendMessage(market.getHistory().getPricesInformation(item, db));
+                    	if (market.mcpcpSupportEnabled()) {
+                            player.sendMessage(market.getHistory().getPricesInformation(CauldronHelper.wrapItemStack(item), db));
+                        } else {
+                            player.sendMessage(market.getHistory().getPricesInformation(item, db));
+                        }
                     }
                 }
             }.runTaskAsynchronously(market);
