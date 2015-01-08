@@ -13,7 +13,7 @@ repositories
     // Spigot
     maven
     {
-    	url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+    	url "https://hub.spigotmc.org/nexus/content/groups/public/"
     }
     // ProtocolLib
     maven
@@ -46,7 +46,7 @@ version = "1.3.0-" + build
 
 dependencies
 {
-    compile group: 'org.spigotmc', name: 'spigot-api', version: '1.8-R0.1-SNAPSHOT'
+    compile group: 'org.bukkit', name: 'bukkit', version: '1.8-R0.1-SNAPSHOT'
     compile group: 'net.milkbowl.vault', name: 'Vault', version: '1.5.0'
     compile group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '3.6.3-SNAPSHOT'
     compile files("libs/MarketCompanion-1.7.10-2.0.1.jar")
