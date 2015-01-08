@@ -8,6 +8,7 @@ import com.survivorserver.GlobalMarket.Interface.IMarketItem;
 import com.survivorserver.GlobalMarket.Interface.IMenu;
 import com.survivorserver.GlobalMarket.Lib.Cauldron.CauldronHelper;
 import com.survivorserver.GlobalMarket.Lib.SortMethod;
+
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
@@ -54,6 +55,10 @@ public class MailInterface extends IMenu {
                     viewer.setSort(SortMethod.LISTINGS_ONLY);
                 } else {
                     viewer.setSort(SortMethod.DEFAULT);
+                }
+                YamlConfiguration playerConf = Market.market.getConfigHandler().getPlayerConfig(viewer.getViewer());
+                if (viewer.getSort() != SortMethod.DEFAULT) {
+                	playerConf.set("mail.sort_method", viewer.getSort().toString());
                 }
                 handler.refreshViewer(viewer, viewer.getInterface().getName());
                 return;
@@ -208,21 +213,14 @@ public class MailInterface extends IMenu {
 
     @Override
     public void onInterfaceClose(InterfaceViewer viewer) {
-        YamlConfiguration playerConf = market.getConfigHandler().getPlayerConfig(viewer.getViewer());
-        if (!playerConf.getString("mail.sort_method").equalsIgnoreCase(viewer.getSort().toString())) {
-            playerConf.set("mail.sort_method", viewer.getSort().toString());
-            market.getConfigHandler().savePlayerConfig(viewer.getViewer());
-        }
+    	market.getConfigHandler().savePlayerConfig(viewer.getViewer());
     }
 
     @Override
     public void onInterfaceOpen(InterfaceViewer viewer) {
-        YamlConfiguration playerConf = market.getConfigHandler().getPlayerConfig(viewer.getViewer());
-        if (!playerConf.isSet("mail.sort_method")) {
-            playerConf.set("mail.sort_method", SortMethod.DEFAULT.toString());
-            market.getConfigHandler().savePlayerConfig(viewer.getViewer());
-        } else {
-            viewer.setSort(SortMethod.valueOf(playerConf.getString("mail.sort_method").toUpperCase()));
+    	YamlConfiguration playerConf = market.getConfigHandler().getPlayerConfig(viewer.getViewer());
+        if (playerConf.isSet("mail.sort_method")) {
+        	viewer.setSort(SortMethod.valueOf(playerConf.getString("mail.sort_method").toUpperCase()));
         }
     }
 
