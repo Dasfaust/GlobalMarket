@@ -202,7 +202,7 @@ public class Market extends JavaPlugin implements Listener {
         core = new MarketCore(this, interfaceHandler, storage);
         listener = new InterfaceListener(this, interfaceHandler, storage, core);
         getServer().getPluginManager().registerEvents(listener, this);
-        tasks.add(new ExpireTask(this, config, core, storage).runTaskTimerAsynchronously(this, 0, 72000).getTaskId());
+        tasks.add(new ExpireTask(this, config, core, storage).runTaskTimer(this, 0, 72000).getTaskId());
         tasks.add(getServer().getScheduler().scheduleSyncRepeatingTask(this, new CleanTask(this, interfaceHandler), 0, 20));
         tasks.add(new Queue(this).runTaskTimer(this, 0, 1200).getTaskId());
         if (getConfig().getBoolean("enable_metrics")) {
