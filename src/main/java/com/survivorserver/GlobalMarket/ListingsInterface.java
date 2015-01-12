@@ -3,13 +3,13 @@ package com.survivorserver.GlobalMarket;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 
 import com.survivorserver.GlobalMarket.Interface.IFunctionButton;
 import com.survivorserver.GlobalMarket.Interface.IMarketItem;
 import com.survivorserver.GlobalMarket.Interface.IMenu;
+
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -85,23 +85,29 @@ public class ListingsInterface extends IMenu {
 
             @Override
             public void onClick(Player player, InterfaceHandler handler, InterfaceViewer viewer, int slot, InventoryClickEvent event) {
-                if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
+            	if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
+                    // Put the item back into the inv for safe keeping
+                    int last = viewer.getLastLowerSlot();
                     Inventory inv = event.getWhoClicked().getInventory();
                     ItemStack cursor = event.getCursor().clone();
-                    Map<Integer, ItemStack> leftover = inv.addItem(cursor);
-                    if (!leftover.isEmpty()) {
-                        Location loc = player.getLocation();
-                        for (Map.Entry<Integer, ItemStack> ent : leftover.entrySet()) {
-                            loc.getWorld().dropItem(loc, ent.getValue());
-                        }
-                    }
-                    int s = inv.first(cursor);
                     event.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
-                    if (s != -1) {
-                        ItemStack stack = inv.getItem(s);
-                        if (stack != null && stack.getType() != Material.AIR) {
-                            create(player, stack, viewer);
+                    if (last >= 0) {
+                        ItemStack lastSlot = inv.getItem(last);
+                        if (lastSlot == null || lastSlot.getType() == Material.AIR) {
+                            inv.setItem(last, cursor);
+                        } else {
+                        	for (Entry<Integer, ItemStack> ent : inv.addItem(cursor).entrySet()) {
+                        		player.getWorld().dropItem(player.getLocation(), ent.getValue());
+                        	}
+                        	ItemStack ls = lastSlot.clone();
+                        	ls.setAmount(1);
+                        	ItemStack is = cursor.clone();
+                        	is.setAmount(1);
+                        	if (!ls.equals(is)) {
+                        		return;
+                        	}
                         }
+                        create((Player) event.getWhoClicked(), inv.getItem(last), viewer);
                     }
                 } else {
                     viewer.resetActions();
