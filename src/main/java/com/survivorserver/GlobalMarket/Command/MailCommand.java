@@ -46,7 +46,7 @@ public class MailCommand extends SubCommand {
     @Override
     public boolean onCommand(CommandSender sender, String[] args) {
         Player player = (Player) sender;
-        if (args.length == 2 && sender.hasPermission("globalmarket.admin")) {
+        if (args.length == 2 && (sender.hasPermission("globalmarket.admin") || sender.hasPermission("globalmarket.quickmail.others"))) {
             String viewAs = args[1];
             OfflinePlayer p = market.getServer().getOfflinePlayer(viewAs);
             if (p == null || !p.hasPlayedBefore()) {
