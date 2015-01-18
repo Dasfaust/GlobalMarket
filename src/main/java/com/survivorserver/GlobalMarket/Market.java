@@ -571,7 +571,7 @@ public class Market extends JavaPlugin implements Listener {
     }
 
     public String getItemName(ItemStack item) {
-        if (mcpcp) {
+        if (mcpcp && item instanceof me.dasfaust.GlobalMarket.WrappedItemStack) {
             return ((me.dasfaust.GlobalMarket.WrappedItemStack) item).getItemName();
         }
         String itemName = items.getItemName(item);
