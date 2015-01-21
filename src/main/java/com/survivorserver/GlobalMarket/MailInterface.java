@@ -17,6 +17,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -182,6 +183,7 @@ public class MailInterface extends IMenu {
             } else {
                 market.getInterfaceHandler().refreshSlot(viewer, viewer.getLastActionSlot(), item);
             }
+            viewer.resetActions();
             return;
         }
         handleLeftClickAction(viewer, item, event);

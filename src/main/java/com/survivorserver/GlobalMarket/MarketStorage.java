@@ -762,9 +762,9 @@ public class MarketStorage {
     }
 
     public void removeListing(int id) {
-        Listing listing = listings.get(id);
-        removeFromCondensed(listing);
-        listings.remove(id);
+    	listings.remove(id);
+        condensedListings.clear();
+        buildCondensed();
         asyncDb.addStatement(
             new QueuedStatement("DELETE FROM listings WHERE id=?")
             .setValue(id)
