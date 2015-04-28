@@ -56,7 +56,7 @@ public abstract class MarketObject
 	
 	public WrappedStack getItemStack(MarketViewer viewer, StorageHandler storage)
 	{
-		return onItemCreated(viewer, Core.instance.storage().get(itemId).clone());
+		return Core.instance.storage().get(itemId);
 	}
 	
 	public abstract WrappedStack onItemCreated(MarketViewer viewer, WrappedStack stack);

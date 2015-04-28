@@ -1,5 +1,7 @@
 package me.dasfaust.gm;
 
+import java.util.UUID;
+
 import me.dasfaust.gm.config.Config;
 import me.dasfaust.gm.config.Config.Defaults;
 import me.dasfaust.gm.menus.Menus;
@@ -93,17 +95,17 @@ public class Core extends JavaPlugin
 		{
 			new BukkitRunnable()
 			{
-				int hash = 0;
+				UUID uuid = storage.getChanged();
 				
 				@Override
 				public void run()
 				{
-					if (hash != storage.hashCode())
+					if (!uuid.equals(storage.getChanged()))
 					{
 						GMLogger.debug("Saving data (async)");
 						storage.saveAsync();
 					}
-					hash = storage.hashCode();
+					uuid = storage.getChanged();
 				}
 				
 			}.runTaskTimer(this, saveTicks, saveTicks);

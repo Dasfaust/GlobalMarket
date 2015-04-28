@@ -124,6 +124,7 @@ public class MarketViewer
 				{	
 					MarketObject ob = obs[index];
 					WrappedStack stack = items.get(ob.id).clone();
+					ob.onItemCreated(this, stack);
 					objectMap.put(slot, ob.id);
 					contents[slot] = stack.bukkit();
 					index++;
@@ -145,6 +146,7 @@ public class MarketViewer
 		{
 			MarketObject ob = objects.get(objectMap.get(slot));
 			WrappedStack stack = items.get(ob.id).clone();
+			ob.onItemCreated(this, stack);
 			inventory.setItem(slot, stack.bukkit());
 		}
 		return this;

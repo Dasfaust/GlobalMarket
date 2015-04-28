@@ -73,7 +73,7 @@ public class Menus
 			@Override
 			public WrappedStack getItemStack(MarketViewer viewer, StorageHandler storage)
 			{
-				return onItemCreated(viewer, new WrappedStack(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 15)));
+				return new WrappedStack(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 15));
 			}
 			
 			@Override
