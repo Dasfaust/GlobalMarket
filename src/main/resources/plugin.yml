@@ -1,7 +1,14 @@
 name: GlobalMarket
-main: com.survivorserver.GlobalMarket.Market
+main: me.dasfaust.gm.Core
 version: '@version@'
 commands:
     market:
-        description: Market commands
-depend: [Vault]
+        aliases: [m]
+        description: "Trade items globally."
+        permission: globalmarket.use
+permissions:
+   globalmarket.use:
+       default: true
+   globalmarket.admin:
+       default: op
+depends: [ProtocolLib, Vault]
