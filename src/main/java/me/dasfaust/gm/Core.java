@@ -55,6 +55,7 @@ public class Core extends JavaPlugin
 		{
 			storage = new RedisStorage(
 				conf.get(Defaults.PERSISTENCE_METHOD_REDIS_ADDRESS),
+				conf.get(Defaults.PERSISTENCE_METHOD_REDIS_PASSWORD),
 				conf.get(Defaults.PERSISTENCE_METHOD_REDIS_PORT),
 				conf.get(Defaults.PERSISTENCE_METHOD_REDIS_POOLSIZE)
 			);

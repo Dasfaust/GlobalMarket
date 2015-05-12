@@ -21,6 +21,7 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
     	public static final ConfigDefault<String> PERSISTENCE_METHOD_REDIS_ADDRESS = new ConfigDefault<String>("persistence.redis.address", "localhost", null);
     	public static final ConfigDefault<Integer> PERSISTENCE_METHOD_REDIS_PORT = new ConfigDefault<Integer>("persistence.redis.port", 6379, null);
     	public static final ConfigDefault<Integer> PERSISTENCE_METHOD_REDIS_POOLSIZE = new ConfigDefault<Integer>("persistence.redis.poolSize", 16, null);
+    	public static final ConfigDefault<String> PERSISTENCE_METHOD_REDIS_PASSWORD = new ConfigDefault<String>("persistence.redis.password", "", null);
     	public static final ConfigDefault<Integer> PERSISTENCE_METHOD_SAVEINTERVAL = new ConfigDefault<Integer>("persistence.saveInterval", 1200, null);
     	protected static final ConfigDefault<Object> NULL_PERSISTENCE_COMMENT = new ConfigDefault<Object>("persistence", null, new String[] {
     			"Persistence options. Valid options are 'flat' and 'redis' (Default: flat)",

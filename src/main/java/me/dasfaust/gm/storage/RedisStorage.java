@@ -12,6 +12,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.Protocol;
 import redis.clients.johm.JOhm;
 import me.dasfaust.gm.Core;
 import me.dasfaust.gm.MenuHandler;
@@ -26,6 +27,7 @@ public class RedisStorage extends StorageHandler
 	private String address;
 	private int port;
 	private int poolSize;
+	private String password;
 	private JedisPool pool;
 	private Thread listener;
 	
@@ -47,12 +49,13 @@ public class RedisStorage extends StorageHandler
 		}
 	}
 	
-	public RedisStorage(String address, int port, int poolSize)
+	public RedisStorage(String address, String password, int port, int poolSize)
 	{
 		super();
 		this.address = address;
 		this.port = port;
 		this.poolSize = poolSize;
+		this.password = password;
 	}
 	
 	@Override
@@ -61,7 +64,7 @@ public class RedisStorage extends StorageHandler
 		JedisPoolConfig conf = new JedisPoolConfig();
 		conf.setBlockWhenExhausted(false);
 		conf.setMaxTotal(poolSize);
-		pool = new JedisPool(conf, address, port);
+		pool = new JedisPool(conf, address, port, Protocol.DEFAULT_TIMEOUT, password.length() == 0 ? null : password);
 		Jedis jedis = pool.getResource();
 		try
 		{
@@ -77,6 +80,8 @@ public class RedisStorage extends StorageHandler
 		}
 		pool.returnResource(jedis);
         
+		GMLogger.debug(String.format("Redis connection successful: %s:%s", address, port));
+		
 		listener = listener();
 		listener.start();
 		
