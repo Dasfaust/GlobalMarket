@@ -72,7 +72,6 @@ public class MenuHandler implements Listener
 	
 	public void removeViewer(UUID uuid)
 	{
-		GMLogger.debug(String.format("Viewer removed: %s (%s)", Core.instance.storage().findPlayer(uuid), uuid));
 		if (viewers.containsKey(uuid)) viewers.remove(uuid);
 	}
 	
