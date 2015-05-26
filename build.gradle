@@ -68,6 +68,9 @@ group = "me.dasfaust.gm"
 minecraft
 {
     version = "1.7.10-10.13.2.1236"
+    srgExtra "PK: redis/clients/jedis lib/jedis/jedis"
+    srgExtra "PK: redis/clients/util lib/jedis/util"
+    srgExtra "PK: com/google/gson lib/gson"
 }
 
 configurations
@@ -81,13 +84,14 @@ dependencies
     compile group: 'org.bukkit', name: 'bukkit', version: '1.8-R0.1-SNAPSHOT'
     compile group: 'net.milkbowl.vault', name: 'Vault', version: '1.5.0'
     compile group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '3.6.3-SNAPSHOT'
+    shade group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
     shade group: 'redis.clients', name: 'jedis', version: '2.5.2'
     shade group: 'redis', name: 'johm', version: '0.6.3'
     shade group: 'org.apache.commons', name: 'commons-pool2', version: '2.0'
-    shade group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
     shade group: 'commons-codec', name: 'commons-codec', version: '1.10'
     // Packaging this because CraftBukkit's package changed from 1.7 -> 1.8
     shade group: 'com.google.code.gson', name: 'gson', version: '2.3.1'
+    compile group: 'org.hsqldb', name: 'hsqldb', version: '2.3.2'
 }
 
 jar
