@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 import com.survivorserver.GlobalMarket.LocaleHandler;
 import com.survivorserver.GlobalMarket.Market;
 
+import java.util.HashSet;
+
 public class StallCommand extends SubCommand {
 
     public StallCommand(Market market, LocaleHandler locale) {
@@ -46,7 +48,7 @@ public class StallCommand extends SubCommand {
     public boolean onCommand(CommandSender sender, String[] args) {
         Player player = (Player) sender;
         Location location = null;
-        Block block = player.getTargetBlock(null, 4);
+        Block block = player.getTargetBlock((HashSet<Byte>) null, 4);
         if (block.getType() == Material.CHEST
                 // Trapped chest
                 || block.getTypeId() == 146
