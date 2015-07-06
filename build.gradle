@@ -24,7 +24,7 @@ buildscript
 
 repositories
 {
-	// Spigot
+    // Spigot
     maven
     {
     	url "https://hub.spigotmc.org/nexus/content/groups/public/"
@@ -32,11 +32,11 @@ repositories
     // ProtocolLib
     maven
     {
-    	url "http://repo.comphenix.net/content/groups/public/"
+    	url "http://repo.dmulloy2.net/content/groups/public/"
     }
     maven
     {
-    	url "http://ci.shadowvolt.com/plugin/repository/everything/"
+    	url "http://repo.comphenix.net/content/groups/public/"
     }
     // Vault
     maven
@@ -83,7 +83,7 @@ dependencies
 {
     compile group: 'org.bukkit', name: 'bukkit', version: '1.8-R0.1-SNAPSHOT'
     compile group: 'net.milkbowl.vault', name: 'Vault', version: '1.5.0'
-    compile group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '3.6.3-SNAPSHOT'
+    compile group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '3.6.4-SNAPSHOT'
     shade group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
     shade group: 'redis.clients', name: 'jedis', version: '2.5.2'
     shade group: 'redis', name: 'johm', version: '0.6.3'
