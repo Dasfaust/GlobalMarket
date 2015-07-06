@@ -18,7 +18,7 @@ repositories
     // ProtocolLib
     maven
     {
-    	url "http://ci.shadowvolt.com/plugin/repository/everything/"
+    	url "http://repo.dmulloy2.net/content/groups/public/"
     }
     maven
     {
