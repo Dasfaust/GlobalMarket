@@ -70,7 +70,6 @@ minecraft
     version = "1.7.10-10.13.2.1236"
     srgExtra "PK: redis/clients/jedis lib/jedis/jedis"
     srgExtra "PK: redis/clients/util lib/jedis/util"
-    srgExtra "PK: com/google/gson lib/gson"
 }
 
 configurations

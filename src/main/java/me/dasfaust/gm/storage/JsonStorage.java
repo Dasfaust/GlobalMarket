@@ -230,9 +230,15 @@ public class JsonStorage extends StorageHandler implements JsonDeserializer<Stor
 	{
 		try
 		{
+			GMLogger.debug("JsonStorage: save() called...");
+			GMLogger.debug(String.format("Saving to %s. File exists: %s, isFile: %s", data.getAbsolutePath(), data.exists(), data.isFile()));
 			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(data), "UTF-8"));
-			out.write(gson.toJson(this));
+			String output = gson.toJson(this);
+			out.write(output);
 			out.close();
+			GMLogger.debug("Output:");
+			GMLogger.debug(output);
+			GMLogger.debug("Save finished.");
 		}
 		catch (Exception e)
 		{
