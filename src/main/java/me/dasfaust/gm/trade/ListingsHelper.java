@@ -64,12 +64,13 @@ public class ListingsHelper
 		{
 			throw new TransactionException(LocaleHandler.get().get("general_bad_econ_response"));
 		}
+		double finalPrice = listing.price;
 		double cutPercentage = Core.instance.config().get(Defaults.LISTINGS_CUT_AMOUNT);
 		if (cutPercentage > 0)
 		{
-			listing.price = listing.price - listing.price * cutPercentage;
+			finalPrice = listing.price - listing.price * cutPercentage;
 		}
-		if (!Core.instance.econ().depositPlayer(seller, round(listing.price)).transactionSuccess())
+		if (!Core.instance.econ().depositPlayer(seller, round(finalPrice)).transactionSuccess())
 		{
 			throw new TransactionException(LocaleHandler.get().get("general_bad_econ_response"));
 		}
