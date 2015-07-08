@@ -90,8 +90,8 @@ public class Menus
 			@Override
 			public WrappedStack onClick(MarketViewer viewer, WrappedStack stack)
 			{
-				GMLogger.info("StockSlot onClick");
-				GMLogger.info("Clicks: " + viewer.timesClicked);
+				GMLogger.debug("StockSlot onClick");
+				GMLogger.debug("Clicks: " + viewer.timesClicked);
 				if (viewer.lastStackOnCursor != null)
 				{
 					if (BlacklistHandler.check(viewer.lastStackOnCursor))

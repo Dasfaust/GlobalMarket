@@ -86,8 +86,8 @@ public class StockedItem extends MarketObject
 	@Override
 	public WrappedStack onClick(MarketViewer viewer, WrappedStack stack)
 	{
-		GMLogger.info("StockedItem onClick");
-		GMLogger.info("Clicks: " + viewer.timesClicked);
+		GMLogger.debug("StockedItem onClick");
+		GMLogger.debug("Clicks: " + viewer.timesClicked);
 		if (viewer.timesClicked < 1)
 		{
 			final Player player = viewer.player();

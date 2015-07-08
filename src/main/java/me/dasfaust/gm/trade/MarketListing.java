@@ -64,8 +64,8 @@ public class MarketListing extends MarketObject
 	@Override
 	public WrappedStack onClick(MarketViewer viewer, WrappedStack stack)
 	{
-		GMLogger.info("MarketListing onClick");
-		GMLogger.info("Clicks: " + viewer.timesClicked);
+		GMLogger.debug("MarketListing onClick");
+		GMLogger.debug("Clicks: " + viewer.timesClicked);
 		Player player = viewer.player();
 		if (viewer.lastClickType == ClickType.SHIFT_LEFT)
 		{
