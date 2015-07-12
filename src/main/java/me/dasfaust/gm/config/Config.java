@@ -82,7 +82,7 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
         });
         
         public static final ConfigDefault<String> COMMAND_ROOT_NAME = new ConfigDefault<String>("command_root_name", "market", new String[] {
-    		"The root prefix to all GlobalMarket commands, like /market create or /market send. (Default: market)"
+    		"The root prefix to all GlobalMarket commands. (Default: market)"
         });
         
         public static final ConfigDefault<Object> NULL_CREATION_MENU_COMMENT = new ConfigDefault<Object>("creation_menu_increments", null, new String[] {
