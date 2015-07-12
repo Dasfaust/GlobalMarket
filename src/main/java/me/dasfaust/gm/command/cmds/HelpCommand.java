@@ -1,5 +1,7 @@
 package me.dasfaust.gm.command.cmds;
 
+import java.util.ArrayList;
+
 import org.bukkit.command.CommandSender;
 
 import me.dasfaust.gm.Core;
@@ -29,13 +31,16 @@ public class HelpCommand extends CommandContext
 	@Override
 	public void process(CommandSender sender, String[] arguments)
 	{
-		int size = CommandHandler.commands.size() + 1;
-		String[] helpText = new String[size];
-		helpText[0] = LocaleHandler.get().get("command_helptext_header");
-		for (int i = 1; i < size; i++)
+		ArrayList<String> cmds = new ArrayList<String>();
+		cmds.add(LocaleHandler.get().get("command_helptext_header"));
+		for (CommandContext context : CommandHandler.commands)
 		{
-			helpText[i] = String.format("/%s %s", Core.instance.config().get(Defaults.COMMAND_ROOT_NAME), LocaleHandler.get().get(CommandHandler.commands.get(i - 1).help));
+			if (context.permission != null && !sender.hasPermission(context.permission))
+			{
+				continue;
+			}
+			cmds.add(LocaleHandler.get().get(context.help, Core.instance.config().get(Defaults.COMMAND_ROOT_NAME)));
 		}
-		sender.sendMessage(helpText);
+		sender.sendMessage(cmds.toArray(new String[0]));
 	}
 }

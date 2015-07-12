@@ -48,5 +48,5 @@
     "command_player_only": "&cYou need to be a player to do this.",
     "command_no_permission": "&cSorry, you don't have permission.",
     "command_helptext_header": "&dLegend: /command (alias) <argument> [description]",
-    "command_helptext_help": "help (?) [&7See all GlobalMarket command syntax&f]"
+    "command_helptext_help": "/%s help (?) [&7See all GlobalMarket commands&f]"
 }}

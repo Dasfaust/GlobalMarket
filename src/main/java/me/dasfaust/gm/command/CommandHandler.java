@@ -70,6 +70,7 @@ public class CommandHandler implements Listener
 			GMLogger.severe(e, "Couldn't register GlobalMarket command:");
 		}
 		
+		commands.clear();
 		commands.add(new HelpCommand());
 	}
 	
