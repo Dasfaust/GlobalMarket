@@ -1,11 +1,6 @@
 name: GlobalMarket
 main: me.dasfaust.gm.Core
 version: '@version@'
-commands:
-    market:
-        aliases: [m]
-        description: "Trade items globally."
-        permission: globalmarket.use
 permissions:
    globalmarket.use:
        default: true

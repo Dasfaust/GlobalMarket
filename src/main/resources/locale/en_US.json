@@ -44,5 +44,7 @@
     "general_not_in_inventory": "&c<item/amount is no longer in your inventory>",
     "general_item_blacklisted": "&c<item is blacklisted>",
     "general_already_owned": "&c<you already own this>",
-    "general_no_permission": "&c<you don't have permission>"
+    "general_no_permission": "&c<you don't have permission>",
+    "command_player_only": "&cYou need to be a player to do this.",
+    "command_no_permission": "&cSorry, you don't have permission."
 }}

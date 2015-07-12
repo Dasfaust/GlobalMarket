@@ -2,9 +2,9 @@ package me.dasfaust.gm;
 
 import java.util.UUID;
 
+import me.dasfaust.gm.command.CommandHandler;
 import me.dasfaust.gm.config.Config;
 import me.dasfaust.gm.config.Config.Defaults;
-import me.dasfaust.gm.menus.Menus;
 import me.dasfaust.gm.storage.JsonStorage;
 import me.dasfaust.gm.storage.ObjectTicker;
 import me.dasfaust.gm.storage.RedisStorage;
@@ -13,9 +13,6 @@ import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.tools.LocaleHandler;
 import net.milkbowl.vault.economy.Economy;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -28,6 +25,7 @@ public class Core extends JavaPlugin
 	protected MenuHandler handler;
 	protected Config conf;
 	protected Economy economy;
+	protected CommandHandler command;
 	protected boolean postEnable = false;
 	
 	@Override
@@ -118,6 +116,9 @@ public class Core extends JavaPlugin
 		// Tick MarketObjects once per hour at 10 objects per 20 ticks
 		new ObjectTicker().runTaskTimer(this, 20, 1200);
 		
+		command = new CommandHandler();
+		command.init();
+		
 		postEnable = true;
 	}
 	
@@ -130,19 +131,7 @@ public class Core extends JavaPlugin
 			storage.close();
 		}
 	}
-	
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
-	{
-		if (cmd.getName().equalsIgnoreCase("market") && sender instanceof Player)
-		{
-			Player player = (Player) sender;
-			handler.initViewer(player, Menus.MENU_LISTINGS);
-			return true;
-		}
-		return false;
-	}
-	
+
 	/**
 	 * Get the StorageHandler
 	 * @return
