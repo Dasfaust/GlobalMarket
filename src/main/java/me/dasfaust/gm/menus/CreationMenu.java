@@ -98,8 +98,9 @@ public class CreationMenu extends MenuBase<MarketObject>
 			if (viewer.lastHotbarSlot >= 0)
 			{
 				int hotbar = viewer.lastHotbarSlot + 1;
-				ses.lastIncrement = hotbar;
-				ses.price += hotbar;
+				int incr = getValue(hotbar);
+				ses.lastIncrement = incr;
+				ses.price += incr;
 			}
 			else
 			{
@@ -145,8 +146,9 @@ public class CreationMenu extends MenuBase<MarketObject>
 			if (viewer.lastHotbarSlot >= 0)
 			{
 				int hotbar = viewer.lastHotbarSlot + 1;
-				ses.lastIncrement = hotbar;
-				if (ses.amount + hotbar >= viewer.lastStackClicked.bukkit().getMaxStackSize())
+				int incr = getValue(hotbar);
+				ses.lastIncrement = incr;
+				if (ses.amount + incr >= viewer.lastStackClicked.bukkit().getMaxStackSize())
 				{
 					ses.amount = viewer.lastStackClicked.bukkit().getMaxStackSize();
 				}
@@ -337,5 +339,31 @@ public class CreationMenu extends MenuBase<MarketObject>
 		{
 			this.stack = stack;
 		}
+	}
+	
+	private int getValue(int hotbar)
+	{
+		switch(hotbar)
+		{
+			case 1:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_1);
+			case 2:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_2);
+			case 3:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_3);
+			case 4:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_4);
+			case 5:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_5);
+			case 6:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_6);
+			case 7:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_7);
+			case 8:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_8);
+			case 9:
+				return Core.instance.config().get(Defaults.CREATION_MENU_INCREMENTS_9);
+		}
+		return 0;
 	}
 }

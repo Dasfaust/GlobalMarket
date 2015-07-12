@@ -81,6 +81,24 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
             "Set to 0.0 to disable cuts"
         });
         
+        public static final ConfigDefault<String> COMMAND_ROOT_NAME = new ConfigDefault<String>("command_root_name", "market", new String[] {
+    		"The root prefix to all GlobalMarket commands, like /market create or /market send. (Default: market)"
+        });
+        
+        public static final ConfigDefault<Object> NULL_CREATION_MENU_COMMENT = new ConfigDefault<Object>("creation_menu_increments", null, new String[] {
+    		"How much to increment or decrement when a number button is pressed",
+    		"while in the listings creation menu."
+        });
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_1 = new ConfigDefault<Integer>("creation_menu_increments.1", 1, null);
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_2 = new ConfigDefault<Integer>("creation_menu_increments.2", 5, null);
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_3 = new ConfigDefault<Integer>("creation_menu_increments.3", 10, null);
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_4 = new ConfigDefault<Integer>("creation_menu_increments.4", 50, null);
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_5 = new ConfigDefault<Integer>("creation_menu_increments.5", 100, null);
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_6 = new ConfigDefault<Integer>("creation_menu_increments.6", 500, null);
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_7 = new ConfigDefault<Integer>("creation_menu_increments.7", 1000, null);
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_8 = new ConfigDefault<Integer>("creation_menu_increments.8", 5000, null);
+        public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_9 = new ConfigDefault<Integer>("creation_menu_increments.9", 10000, null);
+        
         public static final ConfigDefault<Boolean> ENABLE_DEBUG = new ConfigDefault<Boolean>("enable_debug", true, new String[] {
             "Enables debug output. Warning: gets /VERY/ spammy. (Default: false)"
         });
