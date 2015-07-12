@@ -102,6 +102,10 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
         public static final ConfigDefault<Boolean> ENABLE_DEBUG = new ConfigDefault<Boolean>("enable_debug", true, new String[] {
             "Enables debug output. Warning: gets /VERY/ spammy. (Default: false)"
         });
+        
+        public static final ConfigDefault<Boolean> ENABLE_METRICS = new ConfigDefault<Boolean>("enable_metrics", true, new String[] {
+    		"Plugin Metrics helps the plugin developer track usage statistics. (Default: true)"
+        });
     }
     
     public static class ConfigDefault<T>

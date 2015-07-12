@@ -1,10 +1,12 @@
 package me.dasfaust.gm;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import me.dasfaust.gm.command.CommandHandler;
 import me.dasfaust.gm.config.Config;
 import me.dasfaust.gm.config.Config.Defaults;
+import me.dasfaust.gm.metrics.MetricsLite;
 import me.dasfaust.gm.storage.JsonStorage;
 import me.dasfaust.gm.storage.ObjectTicker;
 import me.dasfaust.gm.storage.RedisStorage;
@@ -118,6 +120,19 @@ public class Core extends JavaPlugin
 		
 		command = new CommandHandler();
 		command.init();
+		
+		if (conf.get(Defaults.ENABLE_METRICS))
+		{
+			try
+			{
+				MetricsLite metrics = new MetricsLite(this);
+				metrics.start();
+			}
+			catch (IOException e)
+			{
+				GMLogger.severe(e, "Failed to start Plugin Metrics, please report this error:");
+			}
+		}
 		
 		postEnable = true;
 	}
