@@ -126,7 +126,7 @@ public class MarketViewer
 					WrappedStack stack = items.get(ob.id).clone();
 					ob.onItemCreated(this, stack);
 					objectMap.put(slot, ob.id);
-					contents[slot] = stack.bukkit();
+					contents[slot] = stack.tag().bukkit();
 					index++;
 				}
 				slot++;

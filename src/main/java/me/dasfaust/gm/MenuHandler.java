@@ -224,6 +224,14 @@ public class MenuHandler implements Listener
 				else
 				{
 					viewerOb.menu.onUnboundClick(viewerOb, event);
+					
+					// Clean up after certain Forge mods who ignore Bukkit events
+					ItemStack item = event.getCurrentItem();
+					if (item != null && item.getType() != Material.AIR && new WrappedStack(item).hasTag())
+					{
+						event.setCancelled(true);
+						event.getCurrentItem().setType(Material.AIR);
+					}
 				}
 			}
 		}
@@ -254,5 +262,14 @@ public class MenuHandler implements Listener
 			viewer.menu.onClose(viewer);
 		}
 		removeViewer(event.getPlayer().getUniqueId());
+		
+		// Clean up after certain Forge mods who ignore Bukkit events
+		for (ItemStack stack : event.getInventory().getContents())
+		{
+			if (stack != null && stack.getType() != Material.AIR && new WrappedStack(stack).hasTag())
+			{
+				stack.setType(Material.AIR);
+			}
+		}
 	}
 }
