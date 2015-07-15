@@ -7,6 +7,8 @@ http://dev.bukkit.org/server-mods/global-market/
 
 ## Version 2.0.0 Beta
 
+[What's changed?](https://github.com/Dasfaust/GlobalMarket/commit/aba554c6f5c489b4ca0cb0ebad2a2f1f878e0b62)
+
 Builds of this branch can be obtained [here](http://build.survivorserver.com/job/GlobalMarket%202.0.0/).
 
 Until this branch is merged into the main branch...
