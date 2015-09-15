@@ -103,7 +103,9 @@ public class MarketViewer
 				items = new HashMap<Long, WrappedStack>();
 				for (MarketObject ob : objects.values())
 				{
-					items.put(ob.id, ob.getItemStack(this, Core.instance.storage()));
+					WrappedStack stack = ob.getItemStack(this, Core.instance.storage());
+					stack.tag();
+					items.put(ob.id, stack);
 				}
 				storage = storageCurrent;
 			}
@@ -126,7 +128,7 @@ public class MarketViewer
 					WrappedStack stack = items.get(ob.id).clone();
 					ob.onItemCreated(this, stack);
 					objectMap.put(slot, ob.id);
-					contents[slot] = stack.tag().bukkit();
+					contents[slot] = stack.bukkit();
 					index++;
 				}
 				slot++;

@@ -84,7 +84,7 @@ public class Menus
 						LocaleHandler.get().get("menu_stock_amount", Core.instance.config().get(Defaults.STOCK_SLOTS_SIZE)),
 						LocaleHandler.get().get("menu_stock_action_swap")
 				}));
-				return stack.clone();
+				return stack.clone().tag();
 			}
 			
 			@Override
@@ -212,7 +212,7 @@ public class Menus
 			stack.setLore(Arrays.asList(new String[] {
 					LocaleHandler.get().get("menu_nav_prev_page_info", viewer.currentPage - 1)
 			}));
-			return stack;
+			return stack.clone().tag();
 		}
 
 		@Override
@@ -240,7 +240,7 @@ public class Menus
 			stack.setLore(Arrays.asList(new String[] {
 					LocaleHandler.get().get("menu_nav_next_page_info", viewer.currentPage + 1)
 			}));
-			return stack;
+			return stack.clone().tag();
 		}
 
 		@Override
@@ -281,7 +281,7 @@ public class Menus
 						LocaleHandler.get().get("menu_nav_listings_info")
 				}));
 			}
-			return stack;
+			return stack.clone().tag();
 		}
 
 		@Override
@@ -331,7 +331,7 @@ public class Menus
 			WrappedStack stack = new WrappedStack(new ItemStack(Material.HOPPER));
 			stack.setDisplayName(LocaleHandler.get().get("menu_listings_create_title"));
 			stack.addLoreLast(Arrays.asList(LocaleHandler.get().get("menu_listings_create_info").split("\n")));
-			return stack;
+			return stack.clone().tag();
 		}
 
 		@Override

@@ -15,6 +15,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -104,6 +107,14 @@ public class MenuHandler implements Listener
 			if ((viewerOb = getViewer(uuid)) != null)
 			{
 				GMLogger.debug(String.format("%s has MarketViewer object", player.getName()));
+
+				if (event.getAction() == InventoryAction.UNKNOWN
+					|| event.getAction() == InventoryAction.NOTHING)
+				{
+					event.setCancelled(true);
+					event.setResult(Result.DENY);
+					return;
+				}
 				
 				GMLogger.debug("Hotbar button: " + event.getHotbarButton());
 				
@@ -224,19 +235,43 @@ public class MenuHandler implements Listener
 				else
 				{
 					viewerOb.menu.onUnboundClick(viewerOb, event);
-					
-					// Clean up after certain Forge mods who ignore Bukkit events
+
+					// Clean up after certain Forge mods who ignore Bukkit events (*cough* InvTweaks *cough*)
 					ItemStack item = event.getCurrentItem();
 					if (item != null && item.getType() != Material.AIR && new WrappedStack(item).hasTag())
 					{
 						event.setCancelled(true);
-						event.getCurrentItem().setType(Material.AIR);
+						event.setResult(Result.DENY);
+						event.setCurrentItem(new ItemStack(Material.AIR));
 					}
+				}
+			}
+			else
+			{
+				// Clean up after certain Forge mods who ignore Bukkit events (*cough* InvTweaks *cough*)
+				ItemStack item = event.getCurrentItem();
+				if (item != null && item.getType() != Material.AIR && new WrappedStack(item).hasTag())
+				{
+					event.setCancelled(true);
+					event.setResult(Result.DENY);
+					event.setCurrentItem(new ItemStack(Material.AIR));
 				}
 			}
 		}
 	}
-	
+
+	@EventHandler
+	public void onItemDrop(PlayerDropItemEvent event)
+	{
+		// Clean up after certain Forge mods who ignore Bukkit events (*cough* InvTweaks *cough*)
+		ItemStack item = event.getItemDrop().getItemStack();
+		if (item != null && item.getType() != Material.AIR && new WrappedStack(item).hasTag())
+		{
+			event.setCancelled(true);
+			event.getItemDrop().setItemStack(new ItemStack(Material.AIR));
+		}
+	}
+
 	private void updateViewer(MarketViewer viewer, InventoryClickEvent event)
 	{
 		viewer.lastClickType = event.getClick();
@@ -253,23 +288,28 @@ public class MenuHandler implements Listener
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler
 	private void onInventoryClose(InventoryCloseEvent event)
 	{
+		GMLogger.debug("InventoryClose");
 		MarketViewer viewer;
 		if ((viewer = getViewer(event.getPlayer().getUniqueId())) != null)
 		{
 			viewer.menu.onClose(viewer);
 		}
 		removeViewer(event.getPlayer().getUniqueId());
-		
-		// Clean up after certain Forge mods who ignore Bukkit events
-		for (ItemStack stack : event.getInventory().getContents())
+
+		// Clean up after certain Forge mods who ignore Bukkit events (*cough* InvTweaks *cough*)
+		ItemStack[] contents = event.getPlayer().getInventory().getContents();
+		for (int i = 0; i < contents.length; i++)
 		{
+			ItemStack stack = contents[i];
 			if (stack != null && stack.getType() != Material.AIR && new WrappedStack(stack).hasTag())
 			{
-				stack.setType(Material.AIR);
+				GMLogger.debug("ItemStack is tagged");
+				contents[i] = null;
 			}
 		}
+		event.getPlayer().getInventory().setContents(contents);
 	}
 }

@@ -1,9 +1,12 @@
 package me.dasfaust.gm.trade;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import me.dasfaust.gm.Core;
+import me.dasfaust.gm.config.Config;
 import me.dasfaust.gm.tools.GMLogger;
 
 import org.bukkit.Bukkit;
@@ -279,7 +282,11 @@ public class WrappedStack
 	 */
 	public WrappedStack tag()
 	{
-		nbt.put(NbtFactory.ofCompound(TAG.toString()));
+		nbt.put(NbtFactory.of("market", 1));
+		if (Core.instance.config().get(Config.Defaults.ENABLE_DEBUG))
+		{
+			addLoreLast(Arrays.asList(new String[]{"Has tag"}));
+		}
 		return this;
 	}
 	
@@ -289,7 +296,7 @@ public class WrappedStack
 	 */
 	public boolean hasTag()
 	{
-		return nbt.containsKey(TAG.toString());
+		return nbt.containsKey("market");
 	}
 	
 	/**
