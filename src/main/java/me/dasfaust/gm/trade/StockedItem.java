@@ -138,6 +138,7 @@ public class StockedItem extends MarketObject
 					if (remaining < viewer.lastStackOnCursor.getAmount())
 					{
 						viewer.lastStackOnCursor.setAmount(viewer.lastStackOnCursor.getAmount() - remaining);
+						player.setItemOnCursor(viewer.lastStackOnCursor.bukkit());
 						StorageHelper.updateStockAmount(this, amount + remaining);
 					}
 					else
