@@ -6,6 +6,8 @@ import java.util.List;
 
 import me.dasfaust.gm.Core;
 import me.dasfaust.gm.command.cmds.HelpCommand;
+import me.dasfaust.gm.command.cmds.ReloadCommand;
+import me.dasfaust.gm.command.cmds.SendCommand;
 import me.dasfaust.gm.config.Config.Defaults;
 import me.dasfaust.gm.menus.Menus;
 import me.dasfaust.gm.tools.GMLogger;
@@ -72,6 +74,8 @@ public class CommandHandler implements Listener
 		
 		commands.clear();
 		commands.add(new HelpCommand());
+		commands.add(new ReloadCommand());
+		commands.add(new SendCommand());
 	}
 	
 	@EventHandler
@@ -86,7 +90,9 @@ public class CommandHandler implements Listener
 				String prefix = Core.instance.config().get(Defaults.COMMAND_ROOT_NAME) + " " + cmd;
 				if (wholeCommand.startsWith(prefix))
 				{
-					String[] arguments = wholeCommand.replace(prefix, "").trim().split(" ");
+					String _cmd = wholeCommand.replace(prefix, "").replace(cmd, "").trim();
+					GMLogger.debug("Command pre-process server: " + _cmd + " Length: " + _cmd.length());
+					String[] arguments = _cmd.length() == 0 ? new String[0] : _cmd.split(" ");
 					handleCommand(event.getSender(), context, arguments);
 					break;
 				}
@@ -109,7 +115,9 @@ public class CommandHandler implements Listener
 					if (wholeCommand.startsWith(prefix))
 					{
 						event.setCancelled(true);
-						String[] arguments = wholeCommand.replace(prefix, "").trim().split(" ");
+						String _cmd = wholeCommand.replace(prefix, "").replace(cmd, "").trim();
+						GMLogger.debug("Command pre-process: " + _cmd + " Length: " + _cmd.length());
+						String[] arguments = _cmd.length() == 0 ? new String[0] : _cmd.split(" ");
 						handleCommand(event.getPlayer(), context, arguments);
 						break;
 					}
@@ -130,7 +138,8 @@ public class CommandHandler implements Listener
 			sender.sendMessage(LocaleHandler.get().get("command_no_permission"));
 			return;
 		}
-		if (arguments != null && context.forceArgumentCount && arguments.length < context.arguments)
+		GMLogger.debug(String.format("Context for %s called. Forcing arguments? %s Argument length: %s", context.command[0], context.forceArgumentCount, arguments.length));
+		if ((arguments == null && context.forceArgumentCount) || (context.forceArgumentCount && arguments.length < context.arguments))
 		{
 			sender.sendMessage(LocaleHandler.get().get(context.help));
 			return;

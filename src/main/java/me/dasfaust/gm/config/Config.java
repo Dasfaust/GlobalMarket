@@ -26,13 +26,16 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
     	protected static final ConfigDefault<Object> NULL_PERSISTENCE_COMMENT = new ConfigDefault<Object>("persistence", null, new String[] {
     			"Persistence options. Valid options are 'flat' and 'redis' (Default: flat)",
 		        "Pointing two GlobalMarket instances at the same Redis server allows them to share data.",
-		        "If using a multi-server setup, set 'persistence.saveInterval' to zero on all but one server"
+		        "If using a multi-server setup, set 'persistence.saveInterval' to zero on all but one server.",
+                "Changing this requires a server restart"
     	});
-    	
+
+    	// TODO
         public static final ConfigDefault<Integer> AUTO_CLICKER_DEFENSE_THRESHOLD = new ConfigDefault<Integer>("autoclicker_defense_threshold", 20, new String[] {
             "Minimum time in between click events in miliseconds before",
             "closing an inventory and logging the player. (Default: 20)"
         });
+        // TODO
         public static final ConfigDefault<Boolean> AUTO_CLICKER_DEFENSE_LOGGING = new ConfigDefault<Boolean>("enable_autoclicker_logging", true, new String[] {
             "Will log names of potential players with autoclickers. (Default: true)"
         });
@@ -48,8 +51,8 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
     		" they did in previous versions, minus the mailbox. Items will",
     		" go straight to the player's cursor. (Default: false)"
         });
-        public static final ConfigDefault<Integer> STOCK_SLOTS = new ConfigDefault<Integer>("stock_slots", 32, new String[] {
-            "How many stock slots to give each player. (Default: 32)"
+        public static final ConfigDefault<Integer> STOCK_SLOTS = new ConfigDefault<Integer>("stock_slots", 16, new String[] {
+            "How many stock slots to give each player. (Default: 16)"
         });
         // TODO: implementation. Build on login to prevent wonkyness
 		public static final ConfigDefault<List<String>> STOCK_SLOTS_GROUPS = new ConfigDefault<List<String>>("stock_slots_groups", Arrays.asList(new String[] {"default:0"}), new String[] {
@@ -57,8 +60,8 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
         	" with Vault support. This setting will be added to the default slots.",
         	"<group-name>:<# of slots>"
         });
-        public static final ConfigDefault<Integer> STOCK_SLOTS_SIZE = new ConfigDefault<Integer>("stock_slots_size", 512, new String[] {
-            "How many items can be stored in a stock slot. (Default: 512)"
+        public static final ConfigDefault<Integer> STOCK_SLOTS_SIZE = new ConfigDefault<Integer>("stock_slots_size", 320, new String[] {
+            "How many items can be stored in a stock slot. (Default: 320)"
         });
         // TODO: implementation. Build on login to prevent wonkyness
  		public static final ConfigDefault<List<String>> STOCK_SLOTS_SIZE_GROUPS = new ConfigDefault<List<String>>("stock_slots_size_groups", Arrays.asList(new String[] {"default:0"}), new String[] {
@@ -82,7 +85,8 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
         });
         
         public static final ConfigDefault<String> COMMAND_ROOT_NAME = new ConfigDefault<String>("command_root_name", "market", new String[] {
-    		"The root prefix to all GlobalMarket commands. (Default: market)"
+    		"The root prefix to all GlobalMarket commands. (Default: market)",
+            "Changing this requires a server restart"
         });
         
         public static final ConfigDefault<Object> NULL_CREATION_MENU_COMMENT = new ConfigDefault<Object>("creation_menu_increments", null, new String[] {
@@ -104,7 +108,8 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
         });
         
         public static final ConfigDefault<Boolean> ENABLE_METRICS = new ConfigDefault<Boolean>("enable_metrics", true, new String[] {
-    		"Plugin Metrics helps the plugin developer track usage statistics. (Default: true)"
+    		"Plugin Metrics helps the plugin developer track usage statistics. (Default: true)",
+            "Changing this requires a server restart"
         });
     }
     

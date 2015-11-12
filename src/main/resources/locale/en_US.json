@@ -45,8 +45,17 @@
     "general_item_blacklisted": "&c<item is blacklisted>",
     "general_already_owned": "&c<you already own this>",
     "general_no_permission": "&c<you don't have permission>",
+    "general_player_not_found": "&cA player by the name of %s wasn't found.",
     "command_player_only": "&cYou need to be a player to do this.",
     "command_no_permission": "&cSorry, you don't have permission.",
-    "command_helptext_header": "&dLegend: /command (alias) <argument> [description]",
-    "command_helptext_help": "/%s help (?) [&7See all GlobalMarket commands&f]"
+    "command_helptext_header": "&dLegend: /command (alias) <argument> <[optional]> [description]",
+    "command_helptext_help": "/%s help (?) [&7See all GlobalMarket commands&f]",
+    "command_helptext_reload": "/%s reload [&7Reload configuration&f]",
+    "command_helptext_send": "/%s send <player> <[amount]> [&7Send an item to another player&f]",
+    "command_send_failed_no_stock": "&cYou can't send items to other players at this moment. Ask your server administrator to enable Stock Mode.",
+    "command_send_failed_stock_full": "&cSending failed: %s doesn't have a free stock slot available.",
+    "command_send_no_item": "&cNo item found! Hold an item and try again, if not this item is blacklisted from the Market.",
+    "command_send_invalid_amount": "&cInvalid amount specified: %s",
+    "command_send_item_sent": "&aItem sent!",
+    "command_send_received": "&aYou have new stock from %s."
 }}

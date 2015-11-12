@@ -39,6 +39,7 @@ public class BlacklistHandler
 		blacklist = new ArrayList<String>();
 		blacklist.add(Material.APPLE.toString().toLowerCase() + ":-1");
 		blacklist.add("minecraft:cobblestone:-1");
+		blacklist.add("oredict:ingotSteel");
 		
 		reload();
 	}
@@ -94,19 +95,29 @@ public class BlacklistHandler
 		if (cauldron)
 		{
 			Object nms = MinecraftReflection.getMinecraftItemStack(stack.bukkit());
+			net.minecraft.item.ItemStack is = (net.minecraft.item.ItemStack) nms;
 			cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier uid =
-			cpw.mods.fml.common.registry.GameRegistry.findUniqueIdentifierFor(((net.minecraft.item.ItemStack) nms).getItem());
+			cpw.mods.fml.common.registry.GameRegistry.findUniqueIdentifierFor(is.getItem());
 			String id = String.format("%s:%s:%s", uid.modId, uid.name, stack.getDamage());
 			String idAny = String.format("%s:%s:%s", uid.modId, uid.name, -1);
-			GMLogger.info(id);
+			GMLogger.debug(id);
 			if (blacklist.contains(id) || blacklist.contains(idAny))
 			{
 				return true;
 			}
+			int[] ids = net.minecraftforge.oredict.OreDictionary.getOreIDs(is);
+			for (int o : ids)
+			{
+				String idOreDict = String.format("oredict:%s", net.minecraftforge.oredict.OreDictionary.getOreName(o));
+				if (blacklist.contains(idOreDict))
+				{
+					return true;
+				}
+			}
 		}
 		String id = String.format("%s:%s", stack.getMaterial().toString().toLowerCase(), stack.getDamage());
 		String idAny = String.format("%s:%s", stack.getMaterial().toString().toLowerCase(), -1);
-		GMLogger.info(id);
+		GMLogger.debug(id);
 		return blacklist.contains(id) || blacklist.contains(idAny);
 	}
 }
