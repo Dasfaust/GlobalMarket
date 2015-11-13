@@ -18,6 +18,7 @@
     "menu_stock_create": "&a&o<right+click to create a listing>",
     "menu_stock_selling": "&aSelling at %s &aper %s",
     "menu_stock_arrival": "&9<stock will arrive in %s minutes>",
+    "menu_serverlistings_title": "Server Listings",
     "menu_nav_listings": "&fListings",
     "menu_nav_listings_info": "&7Browse listings",
     "menu_nav_stock": "&fStock",
@@ -26,6 +27,8 @@
     "menu_nav_next_page_info": "&fPage %s",
     "menu_nav_prev_page": "&fPrevious Page",
     "menu_nav_prev_page_info": "&fPage %s",
+    "menu_nav_serverlistings": "&fServer Listings",
+    "menu_nav_serverlistings_info": "&7Buy infinitely stocked items",
     "menu_creation_title": "Create a Listing",
     "menu_creation_cancel": "&cCancel",
     "menu_creation_cancel_return_listings": "&fReturn to Listings",
@@ -52,10 +55,14 @@
     "command_helptext_help": "/%s help (?) [&7See all GlobalMarket commands&f]",
     "command_helptext_reload": "/%s reload [&7Reload configuration&f]",
     "command_helptext_send": "/%s send <player> <[amount]> [&7Send an item to another player&f]",
+    "command_helptext_createserverlisting": "/%s createserverlisting [createinf] <price> <[amount]> [&7Create an infinitely stocked listing&f]",
     "command_send_failed_no_stock": "&cYou can't send items to other players at this moment. Ask your server administrator to enable Stock Mode.",
     "command_send_failed_stock_full": "&cSending failed: %s doesn't have a free stock slot available.",
     "command_send_no_item": "&cNo item found! Hold an item and try again, if not this item is blacklisted from the Market.",
     "command_send_invalid_amount": "&cInvalid amount specified: %s",
     "command_send_item_sent": "&aItem sent!",
-    "command_send_received": "&aYou have new stock from %s."
+    "command_send_received": "&aYou have new stock from %s.",
+    "command_createserverlisting_no_item": "&cHold an item and try again.",
+    "command_createserverlisting_invalid_amount": "&cInvalid amount specified: %s",
+    "command_createserverlisting_listing_created": "&aInfinite listing created!"
 }}

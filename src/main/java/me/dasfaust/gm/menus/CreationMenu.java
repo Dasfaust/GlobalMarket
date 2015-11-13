@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import me.dasfaust.gm.config.Config;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -28,14 +30,21 @@ import me.dasfaust.gm.trade.WrappedStack;
 
 public class CreationMenu extends MenuBase<MarketObject>
 {
-	public Map<UUID, CreationSession> sessions = new HashMap<UUID, CreationSession>();
+	public static Map<UUID, CreationSession> sessions = new HashMap<UUID, CreationSession>();
 	
-	public FunctionButton CANCEL = new FunctionButton()
+	public static FunctionButton FUNC_CREATE_LISTING_CANCEL = new FunctionButton()
 	{
+		@Override
+		public String getItemId()
+		{
+			String configured = Core.instance.config().get(new Config.ConfigDefault<String>("menu_function_items.FUNC_CREATE_LISTING_CANCEL", null, null));
+			return configured != null ? configured : Core.isCauldron ? "minecraft:stained_glass_pane:14" : Material.STAINED_GLASS_PANE.toString() + ":14";
+		}
+
 		@Override
 		public WrappedStack build(MarketViewer viewer)
 		{
-			return new WrappedStack(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 14))
+			return Config.functionItems.get("FUNC_CREATE_LISTING_CANCEL").clone()
 			.setDisplayName(LocaleHandler.get().get("menu_creation_cancel"))
 			.addLoreLast(Arrays.asList(Core.instance.config().get(
 				Defaults.DISABLE_STOCK) ?
@@ -74,6 +83,11 @@ public class CreationMenu extends MenuBase<MarketObject>
 	
 	public FunctionButton PRICE = new FunctionButton()
 	{
+		@Override
+		public String getItemId() {
+			return null;
+		}
+
 		@Override
 		public WrappedStack build(MarketViewer viewer)
 		{
@@ -120,6 +134,11 @@ public class CreationMenu extends MenuBase<MarketObject>
 	
 	public FunctionButton AMOUNT = new FunctionButton()
 	{
+		@Override
+		public String getItemId() {
+			return null;
+		}
+
 		@Override
 		public WrappedStack build(MarketViewer viewer)
 		{
@@ -179,12 +198,19 @@ public class CreationMenu extends MenuBase<MarketObject>
 		}
 	};
 	
-	public FunctionButton CREATE = new FunctionButton()
+	public static FunctionButton FUNC_CREATE_LISTING_CREATE = new FunctionButton()
 	{
+		@Override
+		public String getItemId()
+		{
+			String configured = Core.instance.config().get(new Config.ConfigDefault<String>("menu_function_items.FUNC_CREATE_LISTING_CREATE", null, null));
+			return configured != null ? configured : Core.isCauldron ? "minecraft:stained_glass_pane:5" : Material.STAINED_GLASS_PANE.toString() + ":5";
+		}
+
 		@Override
 		public WrappedStack build(MarketViewer viewer)
 		{
-			return new WrappedStack(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 5))
+			return Config.functionItems.get("FUNC_CREATE_LISTING_CREATE").clone()
 			.setDisplayName(LocaleHandler.get().get("menu_creation_create"))
 			.addLoreLast(Arrays.asList(new String[] {LocaleHandler.get().get("menu_creation_create_info")}));
 		}
@@ -252,10 +278,10 @@ public class CreationMenu extends MenuBase<MarketObject>
 	
 	public CreationMenu()
 	{
-		functions.put(10, CANCEL);
+		functions.put(10, FUNC_CREATE_LISTING_CANCEL);
 		functions.put(12, PRICE);
 		functions.put(14, AMOUNT);
-		functions.put(16, CREATE);
+		functions.put(16, FUNC_CREATE_LISTING_CREATE);
 	}
 	
 	@Override

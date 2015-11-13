@@ -29,6 +29,7 @@ public class Core extends JavaPlugin
 	protected Economy economy;
 	protected CommandHandler command;
 	protected boolean postEnable = false;
+	public static boolean isCauldron = isCauldron();
 	
 	@Override
 	public void onEnable()
@@ -181,5 +182,18 @@ public class Core extends JavaPlugin
 	public Economy econ()
 	{
 		return economy;
+	}
+
+	private static boolean isCauldron()
+	{
+		try
+		{
+			Class c = net.minecraftforge.common.ForgeHooks.class;
+		}
+		catch(Exception ignored)
+		{
+			return false;
+		}
+		return true;
 	}
 }

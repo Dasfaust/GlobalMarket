@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.dasfaust.gm.Core;
+import me.dasfaust.gm.command.cmds.CreateSeverListingCommand;
 import me.dasfaust.gm.command.cmds.HelpCommand;
 import me.dasfaust.gm.command.cmds.ReloadCommand;
 import me.dasfaust.gm.command.cmds.SendCommand;
@@ -76,6 +77,7 @@ public class CommandHandler implements Listener
 		commands.add(new HelpCommand());
 		commands.add(new ReloadCommand());
 		commands.add(new SendCommand());
+		commands.add(new CreateSeverListingCommand());
 	}
 	
 	@EventHandler
@@ -141,7 +143,7 @@ public class CommandHandler implements Listener
 		GMLogger.debug(String.format("Context for %s called. Forcing arguments? %s Argument length: %s", context.command[0], context.forceArgumentCount, arguments.length));
 		if ((arguments == null && context.forceArgumentCount) || (context.forceArgumentCount && arguments.length < context.arguments))
 		{
-			sender.sendMessage(LocaleHandler.get().get(context.help));
+			sender.sendMessage(LocaleHandler.get().get(context.help, Defaults.COMMAND_ROOT_NAME.value));
 			return;
 		}
 		context.process(sender, arguments);

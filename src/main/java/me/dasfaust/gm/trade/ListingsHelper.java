@@ -112,7 +112,64 @@ public class ListingsHelper
 			viewer.reset().buildMenu();
 		}
 	}
-	
+
+	public static void buy(ServerListing listing, UUID buyer) throws TransactionException
+	{
+		OfflinePlayer player = Core.instance.getServer().getOfflinePlayer(buyer);
+		if (!Core.instance.econ().has(player, listing.price))
+		{
+			throw new TransactionException(LocaleHandler.get().get("general_no_money"));
+		}
+		if (Core.instance.config().get(Defaults.DISABLE_STOCK))
+		{
+			if (!player.isOnline())
+			{
+				throw new TransactionException("Buyer is offline");
+			}
+		}
+		else
+		{
+			if (StorageHelper.isStockFull(buyer))
+			{
+				throw new TransactionException(LocaleHandler.get().get("general_full_stock"));
+			}
+		}
+		StockedItem buyerStock = null;
+		if (!Core.instance.config().get(Defaults.DISABLE_STOCK))
+		{
+			buyerStock = StorageHelper.stockFor(buyer, listing.itemId);
+			if (buyerStock != null)
+			{
+				if (buyerStock.amount + listing.amount > Core.instance.config().get(Defaults.STOCK_SLOTS_SIZE))
+				{
+					throw new TransactionException(LocaleHandler.get().get("general_full_stock"));
+				}
+			}
+		}
+		if (!Core.instance.econ().withdrawPlayer(player, listing.price).transactionSuccess())
+		{
+			throw new TransactionException(LocaleHandler.get().get("general_bad_econ_response"));
+		}
+		if (!Core.instance.config().get(Defaults.DISABLE_STOCK))
+		{
+			if (buyerStock == null)
+			{
+				StockedItem _stock = new StockedItem();
+				_stock.amount = listing.amount;
+				_stock.creationTime = System.currentTimeMillis();
+				_stock.itemId = listing.itemId;
+				_stock.owner = buyer;
+				// TODO: don't do this
+				_stock.world = UUID.randomUUID();
+				Core.instance.storage().store(_stock);
+			}
+			else
+			{
+				StorageHelper.updateStockAmount(buyerStock, buyerStock.amount + listing.amount);
+			}
+		}
+	}
+
 	public static double round(double a)
 	{
 		return new BigDecimal(a).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();

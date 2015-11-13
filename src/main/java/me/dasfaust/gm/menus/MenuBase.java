@@ -80,6 +80,8 @@ public abstract class MenuBase<T extends MarketObject>
 	
 	public static abstract class FunctionButton
 	{
+		public abstract String getItemId();
+
 		public abstract WrappedStack build(MarketViewer viewer);
 		
 		public abstract boolean showButton(MarketViewer viewer);

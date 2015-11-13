@@ -100,6 +100,7 @@ public class MarketViewer
 			{
 				GMLogger.debug("Building menu from scratch!");
 				objects = new TreeMap<Long, MarketObject>((Map<Long, MarketObject>) menu.getObjects(this));
+				GMLogger.debug(String.format("Menu %s has %s objects", menu.getTitle(), objects.size()));
 				items = new HashMap<Long, WrappedStack>();
 				for (MarketObject ob : objects.values())
 				{

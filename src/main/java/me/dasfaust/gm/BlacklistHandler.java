@@ -30,7 +30,7 @@ public class BlacklistHandler
 	{
 		gson = new Gson();
 		
-		if (Core.instance.getServer().getVersion().contains("Cauldron"))
+		if (Core.isCauldron)
 		{
 			GMLogger.debug("We're running on Cauldron!");
 			cauldron = true;

@@ -4,17 +4,26 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+import com.comphenix.protocol.utility.MinecraftReflection;
+import me.dasfaust.gm.menus.CreationMenu;
+import me.dasfaust.gm.menus.MenuBase;
+import me.dasfaust.gm.menus.Menus;
+import me.dasfaust.gm.tools.GMLogger;
+import me.dasfaust.gm.trade.WrappedStack;
+import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 
 import me.dasfaust.gm.Core;
+import org.bukkit.inventory.ItemStack;
 
 public class Config
 {
 public static String header = String.format("GlobalMarket config: v%s", Core.instance.getDescription().getVersion());
-    
+
+    public static Map<String, WrappedStack> functionItems = new HashMap<String, WrappedStack>();
+
     public static class Defaults
     {
     	public static final ConfigDefault<String> PERSISTENCE_METHOD = new ConfigDefault<String>("persistence.method", "flat", null);
@@ -102,7 +111,11 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
         public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_7 = new ConfigDefault<Integer>("creation_menu_increments.7", 1000, null);
         public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_8 = new ConfigDefault<Integer>("creation_menu_increments.8", 5000, null);
         public static final ConfigDefault<Integer> CREATION_MENU_INCREMENTS_9 = new ConfigDefault<Integer>("creation_menu_increments.9", 10000, null);
-        
+
+        public static final ConfigDefault<Boolean> ENABLE_INFINITE_LISTINGS = new ConfigDefault<Boolean>("enable_infinite_listings", true, new String[] {
+                "Adds a section to the Market menu where you can sell infinite listings. (Default: true)"
+        });
+
         public static final ConfigDefault<Boolean> ENABLE_DEBUG = new ConfigDefault<Boolean>("enable_debug", true, new String[] {
             "Enables debug output. Warning: gets /VERY/ spammy. (Default: false)"
         });
@@ -110,6 +123,12 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
         public static final ConfigDefault<Boolean> ENABLE_METRICS = new ConfigDefault<Boolean>("enable_metrics", true, new String[] {
     		"Plugin Metrics helps the plugin developer track usage statistics. (Default: true)",
             "Changing this requires a server restart"
+        });
+
+        public static final ConfigDefault<Object> NULL_MENU_FUNCTION_ITEMS_COMMENT = new ConfigDefault<Object>("menu_function_items", null, new String[] {
+                "What item ID strings to use when creating a function button.",
+                "Bukkit/Spigot supports material values like CHEST:0 or PAPER:0.",
+                "Cauldron supports Forge item strings like ImmersiveEngineering:material:12"
         });
     }
     
@@ -159,9 +178,51 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
 				}
 			}
 		}
+        for(Field f : Menus.class.getDeclaredFields())
+        {
+            if (f != null)
+            {
+                if (f.getName().startsWith("FUNC"))
+                {
+                    MenuBase.FunctionButton button = (MenuBase.FunctionButton) f.get(null);
+                    config.addDefault("menu_function_items." + f.getName(), button.getItemId());
+                }
+            }
+        }
+        for(Field f : CreationMenu.class.getDeclaredFields())
+        {
+            if (f != null)
+            {
+                if (f.getName().startsWith("FUNC"))
+                {
+                    MenuBase.FunctionButton button = (MenuBase.FunctionButton) f.get(null);
+                    config.addDefault("menu_function_items." + f.getName(), button.getItemId());
+                }
+            }
+        }
 		config.options().copyDefaults(true);
 		
 		save();
+
+        functionItems.clear();
+        Set<String> keys = config.getConfigurationSection("menu_function_items").getKeys(false);
+        for (String key : keys)
+        {
+            String value = config.getString("menu_function_items." + key);
+            WrappedStack stack;
+            String[] id = value.split(":");
+            if (id.length == 2)
+            {
+                stack = new WrappedStack(new ItemStack(Material.getMaterial(id[0]), (short) Integer.parseInt(id[1])));
+            }
+            else
+            {
+                Object nms = cpw.mods.fml.common.registry.GameRegistry.findItemStack(id[0], id[1], 1);
+                ItemStack itemStack = MinecraftReflection.getBukkitItemStack(nms);
+                stack = new WrappedStack(itemStack).setDamage(Integer.parseInt(id[2]));
+            }
+            functionItems.put(key.replace("menu_function_items.", ""), stack);
+        }
     }
     
     public void save() throws IOException

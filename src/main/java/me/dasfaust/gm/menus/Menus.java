@@ -5,6 +5,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.dasfaust.gm.config.Config;
+import me.dasfaust.gm.trade.ServerListing;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -58,6 +61,39 @@ public class Menus
 		public Class<?> getObjectType()
 		{
 			return MarketListing.class;
+		}
+	};
+
+	public static MenuBase<ServerListing> MENU_SERVER_LISTINGS = new MenuBase<ServerListing>()
+	{
+		@Override
+		public String getTitle()
+		{
+			return LocaleHandler.get().get("menu_serverlistings_title");
+		}
+
+		@Override
+		public boolean isStatic()
+		{
+			return false;
+		}
+
+		@Override
+		public Map<Long, ServerListing> getObjects(MarketViewer viewer)
+		{
+			return Core.instance.storage().getAll(ServerListing.class);
+		}
+
+		@Override
+		public ServerListing getObject(long id)
+		{
+			return Core.instance.storage().get(ServerListing.class, id);
+		}
+
+		@Override
+		public Class<?> getObjectType()
+		{
+			return ServerListing.class;
 		}
 	};
 	
@@ -205,9 +241,16 @@ public class Menus
 	public static FunctionButton FUNC_PREVPAGE = new FunctionButton()
 	{
 		@Override
+		public String getItemId()
+		{
+			String configured = Core.instance.config().get(new Config.ConfigDefault<String>("menu_function_items.FUNC_PREVPAGE", null, null));
+			return configured != null ? configured : Core.isCauldron ? "minecraft:map:0" : Material.EMPTY_MAP.toString() + ":0";
+		}
+
+		@Override
 		public WrappedStack build(MarketViewer viewer)
 		{
-			WrappedStack stack = new WrappedStack(new ItemStack(Material.EMPTY_MAP));
+			WrappedStack stack = Config.functionItems.get("FUNC_PREVPAGE").clone();
 			stack.setDisplayName(LocaleHandler.get().get("menu_nav_prev_page"));
 			stack.setLore(Arrays.asList(new String[] {
 					LocaleHandler.get().get("menu_nav_prev_page_info", viewer.currentPage - 1)
@@ -233,9 +276,16 @@ public class Menus
 	public static FunctionButton FUNC_NEXTPAGE = new FunctionButton()
 	{
 		@Override
+		public String getItemId()
+		{
+			String configured = Core.instance.config().get(new Config.ConfigDefault<String>("menu_function_items.FUNC_NEXTPAGE", null, null));
+			return configured != null ? configured : Core.isCauldron ? "minecraft:map:0" : Material.EMPTY_MAP.toString() + ":0";
+		}
+
+		@Override
 		public WrappedStack build(MarketViewer viewer)
 		{
-			WrappedStack stack = new WrappedStack(new ItemStack(Material.EMPTY_MAP));
+			WrappedStack stack = Config.functionItems.get("FUNC_NEXTPAGE").clone();
 			stack.setDisplayName(LocaleHandler.get().get("menu_nav_next_page"));
 			stack.setLore(Arrays.asList(new String[] {
 					LocaleHandler.get().get("menu_nav_next_page_info", viewer.currentPage + 1)
@@ -260,14 +310,19 @@ public class Menus
 	
 	public static FunctionButton FUNC_NAVIGATION = new FunctionButton()
 	{
+		@Override
+		public String getItemId()
+		{
+			String configured = Core.instance.config().get(new Config.ConfigDefault<String>("menu_function_items.FUNC_NAVIGATION", null, null));
+			return configured != null ? configured : Core.isCauldron ? "minecraft:chest:0" : Material.CHEST.toString() + ":0";
+		}
 
 		@Override
 		public WrappedStack build(MarketViewer viewer)
 		{
-			WrappedStack stack;
-			if (viewer.menu == MENU_LISTINGS)
+			WrappedStack stack = Config.functionItems.get("FUNC_NAVIGATION").clone();
+			if (viewer.menu == MENU_LISTINGS || viewer.menu == MENU_SERVER_LISTINGS)
 			{
-				stack = new WrappedStack(new ItemStack(Material.TRAPPED_CHEST));
 				stack.setDisplayName(LocaleHandler.get().get("menu_nav_stock"));
 				stack.setLore(Arrays.asList(new String[] {
 						LocaleHandler.get().get("menu_nav_stock_info")
@@ -275,7 +330,6 @@ public class Menus
 			}
 			else
 			{
-				stack = new WrappedStack(new ItemStack(Material.CHEST));
 				stack.setDisplayName(LocaleHandler.get().get("menu_nav_listings"));
 				stack.setLore(Arrays.asList(new String[] {
 						LocaleHandler.get().get("menu_nav_listings_info")
@@ -293,7 +347,7 @@ public class Menus
 		@Override
 		public WrappedStack onClick(final Player player, MarketViewer viewer) 
 		{
-			if (viewer.menu == MENU_LISTINGS)
+			if (viewer.menu == MENU_LISTINGS || viewer.menu == MENU_SERVER_LISTINGS)
 			{
 				Core.instance.handler().removeViewer(viewer);
 				new BukkitRunnable()
@@ -321,14 +375,89 @@ public class Menus
 		}
 		
 	};
-	
-	public static FunctionButton FUNC_NOSTOCK_CREATE_LISTING = new FunctionButton()
+
+	public static FunctionButton FUNC_SERVER_LISTINGS_NAVIGATION = new FunctionButton()
 	{
+		@Override
+		public String getItemId()
+		{
+			String configured = Core.instance.config().get(new Config.ConfigDefault<String>("menu_function_items.FUNC_SERVER_LISTINGS_NAVIGATION", null, null));
+			return configured != null ? configured : Core.isCauldron ? "minecraft:chest:0" : Material.CHEST.toString() + ":0";
+		}
 
 		@Override
 		public WrappedStack build(MarketViewer viewer)
 		{
-			WrappedStack stack = new WrappedStack(new ItemStack(Material.HOPPER));
+			WrappedStack stack = Config.functionItems.get("FUNC_SERVER_LISTINGS_NAVIGATION").clone();
+			if (viewer.menu == MENU_LISTINGS || viewer.menu == MENU_STOCK)
+			{
+				stack.makeGlow();
+				stack.setDisplayName(LocaleHandler.get().get("menu_nav_serverlistings"));
+				stack.setLore(Arrays.asList(new String[] {
+						LocaleHandler.get().get("menu_nav_serverlistings_info")
+				}));
+			}
+			else
+			{
+				stack.setDisplayName(LocaleHandler.get().get("menu_nav_listings"));
+				stack.setLore(Arrays.asList(new String[] {
+						LocaleHandler.get().get("menu_nav_listings_info")
+				}));
+			}
+			return stack.clone().tag();
+		}
+
+		@Override
+		public boolean showButton(MarketViewer viewer)
+		{
+			return true;
+		}
+
+		@Override
+		public WrappedStack onClick(final Player player, MarketViewer viewer)
+		{
+			if (viewer.menu == MENU_LISTINGS || viewer.menu == MENU_STOCK)
+			{
+				Core.instance.handler().removeViewer(viewer);
+				new BukkitRunnable()
+				{
+					@Override
+					public void run()
+					{
+						Core.instance.handler().initViewer(player, MENU_SERVER_LISTINGS);
+					}
+				}.runTaskLater(Core.instance, 1);
+			}
+			else
+			{
+				Core.instance.handler().removeViewer(viewer);
+				new BukkitRunnable()
+				{
+					@Override
+					public void run()
+					{
+						Core.instance.handler().initViewer(player, MENU_LISTINGS);
+					}
+				}.runTaskLater(Core.instance, 1);
+			}
+			return null;
+		}
+
+	};
+
+	public static FunctionButton FUNC_NOSTOCK_CREATE_LISTING = new FunctionButton()
+	{
+		@Override
+		public String getItemId()
+		{
+			String configured = Core.instance.config().get(new Config.ConfigDefault<String>("menu_function_items.FUNC_NOSTOCK_CREATE_LISTING", null, null));
+			return configured != null ? configured : Core.isCauldron ? "minecraft:hopper:0" : Material.HOPPER.toString() + ":0";
+		}
+
+		@Override
+		public WrappedStack build(MarketViewer viewer)
+		{
+			WrappedStack stack = Config.functionItems.get("FUNC_NOSTOCK_CREATE_LISTING").clone();
 			stack.setDisplayName(LocaleHandler.get().get("menu_listings_create_title"));
 			stack.addLoreLast(Arrays.asList(LocaleHandler.get().get("menu_listings_create_info").split("\n")));
 			return stack.clone().tag();
@@ -376,7 +505,10 @@ public class Menus
 	{
 		MENU_LISTINGS.addFunction(45, FUNC_PREVPAGE);
 		MENU_LISTINGS.addFunction(53, Menus.FUNC_NEXTPAGE);
-		
+
+		MENU_SERVER_LISTINGS.addFunction(45, FUNC_PREVPAGE);
+		MENU_SERVER_LISTINGS.addFunction(53, Menus.FUNC_NEXTPAGE);
+
 		MENU_STOCK.addFunction(45, FUNC_PREVPAGE);
 		MENU_STOCK.addFunction(53, Menus.FUNC_NEXTPAGE);
 		
@@ -388,6 +520,15 @@ public class Menus
 		{
 			MENU_STOCK.addFunction(46, FUNC_NAVIGATION);
 			MENU_LISTINGS.addFunction(46, FUNC_NAVIGATION);
+
+			MENU_SERVER_LISTINGS.addFunction(47, FUNC_SERVER_LISTINGS_NAVIGATION);
+			MENU_SERVER_LISTINGS.addFunction(46, FUNC_NAVIGATION);
+
+			if (Core.instance.config().get(Defaults.ENABLE_INFINITE_LISTINGS))
+			{
+				MENU_STOCK.addFunction(47, FUNC_SERVER_LISTINGS_NAVIGATION);
+				MENU_LISTINGS.addFunction(47, FUNC_SERVER_LISTINGS_NAVIGATION);
+			}
 		}
 	}
 }
