@@ -35,7 +35,7 @@ public class ReloadCommand extends CommandContext
         catch(Exception e)
         {
             GMLogger.severe(e, "Caught exception while reloading config:");
-            sender.sendMessage(LocaleHandler.get().get("command__reload_failed"));
+            sender.sendMessage(LocaleHandler.get().get("command_reload_failed"));
         }
     }
 }

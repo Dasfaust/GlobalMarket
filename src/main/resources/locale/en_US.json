@@ -64,5 +64,7 @@
     "command_send_received": "&aYou have new stock from %s.",
     "command_createserverlisting_no_item": "&cHold an item and try again.",
     "command_createserverlisting_invalid_amount": "&cInvalid amount specified: %s",
-    "command_createserverlisting_listing_created": "&aInfinite listing created!"
+    "command_createserverlisting_listing_created": "&aInfinite listing created!",
+    "command_reload_complete": "&aReload complete.",
+    "command_reload_failed": "&cReload failed, check server console."
 }}

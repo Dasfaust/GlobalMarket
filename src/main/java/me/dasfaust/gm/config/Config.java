@@ -219,7 +219,7 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
             String[] id = value.split(":");
             if (id.length == 2)
             {
-                stack = new WrappedStack(new ItemStack(Material.getMaterial(id[0]), (short) Integer.parseInt(id[1])));
+                stack = new WrappedStack(new ItemStack(Material.getMaterial(id[0]))).setDamage(Integer.parseInt(id[1]));
             }
             else
             {
