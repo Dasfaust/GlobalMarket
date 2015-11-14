@@ -130,6 +130,12 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
                 "Bukkit/Spigot supports material values like CHEST:0 or PAPER:0.",
                 "Cauldron supports Forge item strings like ImmersiveEngineering:material:12"
         });
+
+        public static final ConfigDefault<Boolean> ENABLE_STORAGE = new ConfigDefault<Boolean>("enable_storage", false, new String[] {
+                "Just a feature to test capabilities of the menu system. Enable at your own discretion. (Default: false)"
+        });
+        public static final ConfigDefault<Double> STORAGE_STORE_AMOUNT = new ConfigDefault<Double>("storage_store_amount", 640D, null);
+        public static final ConfigDefault<Double> STORAGE_WITHDRAW_AMOUNT = new ConfigDefault<Double>("storage_withdraw_amount", 320D, null);
     }
     
     public static class ConfigDefault<T>

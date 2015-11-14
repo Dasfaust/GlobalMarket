@@ -14,10 +14,7 @@ import com.google.common.collect.Iterables;
 import com.google.gson.annotations.Expose;
 
 import me.dasfaust.gm.storage.SerializedStack;
-import me.dasfaust.gm.trade.MarketListing;
-import me.dasfaust.gm.trade.ServerListing;
-import me.dasfaust.gm.trade.StockedItem;
-import me.dasfaust.gm.trade.WrappedStack;
+import me.dasfaust.gm.trade.*;
 
 public abstract class StorageHandler
 {
@@ -29,6 +26,7 @@ public abstract class StorageHandler
 		classes.add(MarketListing.class);
 		classes.add(StockedItem.class);
 		classes.add(ServerListing.class);
+		classes.add(StoredItem.class);
 	}
 	
 	protected Map<Long, WrappedStack> items;

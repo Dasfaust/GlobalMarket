@@ -9,6 +9,7 @@ import com.google.common.collect.Iterables;
 import me.dasfaust.gm.config.Config.Defaults;
 import me.dasfaust.gm.trade.MarketListing;
 import me.dasfaust.gm.trade.StockedItem;
+import me.dasfaust.gm.trade.StoredItem;
 
 public class StorageHelper
 {
@@ -30,7 +31,19 @@ public class StorageHelper
 			}
 		};
 	}
-	
+
+	public static Predicate<StoredItem> allStorageFor(final UUID owner)
+	{
+		return new Predicate<StoredItem>()
+		{
+			@Override
+			public boolean apply(StoredItem input)
+			{
+				return (input.owner.equals(owner));
+			}
+		};
+	}
+
 	public static Predicate<StockedItem> allStockFor(final UUID owner, final long itemId)
 	{
 		return new Predicate<StockedItem>()

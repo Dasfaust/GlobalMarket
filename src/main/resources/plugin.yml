@@ -1,4 +1,4 @@
-name: GlobalMarket
+name: GlobalMarket2
 main: me.dasfaust.gm.Core
 version: '@version@'
 permissions:

@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import me.dasfaust.gm.config.Config;
-import me.dasfaust.gm.trade.ServerListing;
+import me.dasfaust.gm.trade.*;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -25,9 +26,6 @@ import me.dasfaust.gm.menus.MenuBase.FunctionButton;
 import me.dasfaust.gm.storage.abs.StorageHandler;
 import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.tools.LocaleHandler;
-import me.dasfaust.gm.trade.MarketListing;
-import me.dasfaust.gm.trade.StockedItem;
-import me.dasfaust.gm.trade.WrappedStack;
 
 public class Menus
 {	
@@ -235,6 +233,121 @@ public class Menus
 			return StockedItem.class;
 		}
 	};
+
+	public static MenuBase<StoredItem> MENU_STORAGE = new MenuBase<StoredItem>()
+	{
+		class StorageSlot extends StoredItem
+		{
+			public StorageSlot(long id)
+			{
+				this.id = id;
+			}
+
+			@Override
+			public WrappedStack getItemStack(MarketViewer viewer, StorageHandler storage)
+			{
+				return new WrappedStack(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 15));
+			}
+
+			@Override
+			public WrappedStack onItemCreated(MarketViewer viewer, WrappedStack stack)
+			{
+				double fee = Core.instance.config().get(Defaults.STORAGE_STORE_AMOUNT);
+				stack.setDisplayName(ChatColor.AQUA + "Open Storage Slot");
+				stack.addLoreLast(Arrays.asList(new String[] {
+						ChatColor.YELLOW + "<swap an item to store it>",
+						ChatColor.YELLOW + "Price: " + Core.instance.econ().format(fee)
+				}));
+				return stack.clone().tag();
+			}
+
+			@Override
+			public WrappedStack onClick(MarketViewer viewer, WrappedStack stack)
+			{
+				GMLogger.debug("StorageSlot onClick");
+				GMLogger.debug("Clicks: " + viewer.timesClicked);
+				if (viewer.lastStackOnCursor != null)
+				{
+					if (BlacklistHandler.check(viewer.lastStackOnCursor))
+					{
+						List<String> lore = stack.getLore();
+						lore.set(lore.size() - 2, LocaleHandler.get().get("general_item_blacklisted"));
+						stack.setLore(lore);
+						viewer.reset();
+						return stack;
+					}
+					Player player = viewer.player();
+					double fee = Core.instance.config().get(Defaults.STORAGE_STORE_AMOUNT);
+					if (Core.instance.econ().has(viewer.player(), fee))
+					{
+						Core.instance.econ().withdrawPlayer(viewer.player(), fee);
+						long itemId = Core.instance.storage().store(viewer.lastStackOnCursor);
+						StoredItem stored = new StoredItem();
+						stored.amount = viewer.lastStackOnCursor.getAmount();
+						stored.itemId = itemId;
+						stored.owner = viewer.uuid;
+						stored.creationTime = System.currentTimeMillis();
+						stored.world = viewer.player().getWorld().getUID();
+						Core.instance.storage().store(stored);
+						viewer.player().setItemOnCursor(new ItemStack(Material.AIR));
+						viewer.reset();
+						viewer.buildMenu();
+						return null;
+					}
+					List<String> lore = stack.getLore();
+					lore.set(lore.size() - 2, ChatColor.RED + "<don't have enough bits!>");
+					stack.setLore(lore);
+					viewer.reset();
+					return stack;
+				}
+				return stack;
+			}
+		}
+
+		@Override
+		public String getTitle()
+		{
+			return "Long Term Storage";
+		}
+
+		@Override
+		public boolean isStatic()
+		{
+			return false;
+		}
+
+		@Override
+		public ClickType getResetClick()
+		{
+			return ClickType.UNKNOWN;
+		}
+
+		@Override
+		public Map<Long, StoredItem> getObjects(MarketViewer viewer)
+		{
+			int maxStock = Core.instance.config().get(Defaults.STOCK_SLOTS);
+			Map<Long, StoredItem> map = new LinkedHashMap<Long, StoredItem>();
+			map.putAll(Core.instance.storage().getAll(StoredItem.class, StorageHelper.allStorageFor(viewer.uuid)));
+			map.put(-1L, new StorageSlot(-1));
+			return map;
+		}
+
+		@Override
+		public StoredItem getObject(long id)
+		{
+			if (id < 0)
+			{
+				return new StorageSlot(id);
+			}
+			return Core.instance.storage().get(StoredItem.class, id);
+		}
+
+		@Override
+		public Class<?> getObjectType()
+		{
+			return StockedItem.class;
+		}
+	};
 	
 	public static CreationMenu MENU_CREATION_LISTING = new CreationMenu();
 	
@@ -345,7 +458,7 @@ public class Menus
 		}
 
 		@Override
-		public WrappedStack onClick(final Player player, MarketViewer viewer) 
+		public WrappedStack onClick(final Player player, MarketViewer viewer)
 		{
 			if (viewer.menu == MENU_LISTINGS || viewer.menu == MENU_SERVER_LISTINGS)
 			{
@@ -373,7 +486,6 @@ public class Menus
 			}
 			return null;
 		}
-		
 	};
 
 	public static FunctionButton FUNC_SERVER_LISTINGS_NAVIGATION = new FunctionButton()
@@ -425,6 +537,73 @@ public class Menus
 					public void run()
 					{
 						Core.instance.handler().initViewer(player, MENU_SERVER_LISTINGS);
+					}
+				}.runTaskLater(Core.instance, 1);
+			}
+			else
+			{
+				Core.instance.handler().removeViewer(viewer);
+				new BukkitRunnable()
+				{
+					@Override
+					public void run()
+					{
+						Core.instance.handler().initViewer(player, MENU_LISTINGS);
+					}
+				}.runTaskLater(Core.instance, 1);
+			}
+			return null;
+		}
+	};
+
+	public static FunctionButton FUNC_STORAGE_NAVIGATION = new FunctionButton()
+	{
+		@Override
+		public String getItemId()
+		{
+			String configured = Core.instance.config().get(new Config.ConfigDefault<String>("menu_function_items.FUNC_STORAGE_NAVIGATION", null, null));
+			return configured != null ? configured : Core.isCauldron ? "minecraft:chest:0" : Material.CHEST.toString() + ":0";
+		}
+
+		@Override
+		public WrappedStack build(MarketViewer viewer)
+		{
+			WrappedStack stack = Config.functionItems.get("FUNC_STORAGE_NAVIGATION").clone();
+			if (viewer.menu == MENU_LISTINGS || viewer.menu == MENU_SERVER_LISTINGS)
+			{
+				stack.setDisplayName(ChatColor.AQUA + "Long Term Storage");
+				stack.setLore(Arrays.asList(new String[] {
+						ChatColor.GRAY + "Store items for a fee"
+				}));
+			}
+			else
+			{
+				stack.setDisplayName(LocaleHandler.get().get("menu_nav_listings"));
+				stack.setLore(Arrays.asList(new String[] {
+						LocaleHandler.get().get("menu_nav_listings_info")
+				}));
+			}
+			return stack.clone().tag();
+		}
+
+		@Override
+		public boolean showButton(MarketViewer viewer)
+		{
+			return true;
+		}
+
+		@Override
+		public WrappedStack onClick(final Player player, MarketViewer viewer)
+		{
+			if (viewer.menu == MENU_LISTINGS || viewer.menu == MENU_SERVER_LISTINGS)
+			{
+				Core.instance.handler().removeViewer(viewer);
+				new BukkitRunnable()
+				{
+					@Override
+					public void run()
+					{
+						Core.instance.handler().initViewer(player, MENU_STORAGE);
 					}
 				}.runTaskLater(Core.instance, 1);
 			}
@@ -505,12 +684,20 @@ public class Menus
 	{
 		MENU_LISTINGS.addFunction(45, FUNC_PREVPAGE);
 		MENU_LISTINGS.addFunction(53, Menus.FUNC_NEXTPAGE);
+		if (Core.instance.config().get(Defaults.ENABLE_STORAGE))
+		{
+			MENU_LISTINGS.addFunction(52, Menus.FUNC_STORAGE_NAVIGATION);
+		}
 
 		MENU_SERVER_LISTINGS.addFunction(45, FUNC_PREVPAGE);
 		MENU_SERVER_LISTINGS.addFunction(53, Menus.FUNC_NEXTPAGE);
 
 		MENU_STOCK.addFunction(45, FUNC_PREVPAGE);
 		MENU_STOCK.addFunction(53, Menus.FUNC_NEXTPAGE);
+
+		MENU_STORAGE.addFunction(45, FUNC_PREVPAGE);
+		MENU_STORAGE.addFunction(53, Menus.FUNC_NEXTPAGE);
+		MENU_STORAGE.addFunction(52, Menus.FUNC_STORAGE_NAVIGATION);
 		
 		if (Core.instance.config().get(Defaults.DISABLE_STOCK))
 		{
