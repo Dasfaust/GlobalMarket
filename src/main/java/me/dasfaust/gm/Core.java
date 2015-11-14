@@ -188,7 +188,7 @@ public class Core extends JavaPlugin
 	{
 		try
 		{
-			Class c = net.minecraftforge.common.ForgeHooks.class;
+			Class.forName("net.minecraftforge.common.ForgeHooks");
 		}
 		catch(Exception ignored)
 		{
