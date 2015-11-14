@@ -116,7 +116,7 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
                 "Adds a section to the Market menu where you can sell infinite listings. (Default: true)"
         });
 
-        public static final ConfigDefault<Boolean> ENABLE_DEBUG = new ConfigDefault<Boolean>("enable_debug", true, new String[] {
+        public static final ConfigDefault<Boolean> ENABLE_DEBUG = new ConfigDefault<Boolean>("enable_debug", false, new String[] {
             "Enables debug output. Warning: gets /VERY/ spammy. (Default: false)"
         });
         
