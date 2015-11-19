@@ -74,7 +74,7 @@ public class ServerListing extends MarketObject
                 stack.setLore(lore);
                 return stack;
             }
-            Core.instance.storage().removeObject(MarketListing.class, id);
+            Core.instance.storage().removeObject(ServerListing.class, id);
             player.playSound(player.getLocation(), Sound.FIZZ, 1, 1);
             Core.instance.handler().rebuildAllMenus(Menus.MENU_SERVER_LISTINGS);
         }
