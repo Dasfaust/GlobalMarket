@@ -1,11 +1,15 @@
 package me.dasfaust.gm.storage;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import redis.clients.jedis.Jedis;
@@ -21,6 +25,7 @@ import me.dasfaust.gm.storage.abs.MarketObject;
 import me.dasfaust.gm.storage.abs.StorageHandler;
 import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.trade.WrappedStack;
+import scala.actors.threadpool.Arrays;
 
 public class RedisStorage extends StorageHandler
 {
@@ -108,6 +113,16 @@ public class RedisStorage extends StorageHandler
 					catch (IOException e)
 					{
 						GMLogger.severe(e, "Couldn't load an ItemStack:");
+						items.put(stack.id, new WrappedStack(
+								new ItemStack(Material.STONE))
+								.setDisplayName("Material Not Found")
+								.setLore(Arrays.asList(new String[]{
+														"This ItemStack couldn't be loaded!",
+														String.format("Material %s is missing from the game.", stack.mat)
+												}
+										)
+								)
+						);
 					}
 				}
 				else
@@ -136,6 +151,16 @@ public class RedisStorage extends StorageHandler
 			catch (IOException e)
 			{
 				GMLogger.severe(e, "Couldn't load an ItemStack:");
+				items.put(id, new WrappedStack(
+						new ItemStack(Material.STONE))
+						.setDisplayName("Material Not Found")
+						.setLore(Arrays.asList(new String[]{
+												"This ItemStack couldn't be loaded!",
+												String.format("Material %s is missing from the game.", stack.mat)
+										}
+								)
+						)
+				);
 			}
 		}
 		else
@@ -424,5 +449,51 @@ public class RedisStorage extends StorageHandler
 		jedis.set(String.format("globalmarket_uuid_%s", uuid.toString()), username);
 		jedis.set(String.format("globalmarket_username_%s", username), uuid.toString());
 		pool.returnResource(jedis);
+	}
+
+	public void importFromJson(JsonStorage storage)
+	{
+		Jedis jedis = pool.getResource();
+		jedis.del(String.format("globalmarket_index_%s", SerializedStack.class.getName()));
+		for (Object ob : JOhm.getAll(SerializedStack.class))
+		{
+			JOhm.delete(SerializedStack.class, ((SerializedStack) ob).id);
+		}
+		for (SerializedStack stack : storage.itemStorage.values())
+		{
+			JOhm.save(stack);
+			jedis.incr(String.format("globalmarket_index_%s", SerializedStack.class.getName()));
+			GMLogger.debug("Item id is " + stack.id);
+			GMLogger.debug("Hashcode: " + stack.hashCode());
+		}
+		for (Entry<String, Map<Long, MarketObject>> entry : storage.cache.entrySet())
+		{
+			try
+			{
+				Class<?> c = Class.forName(entry.getKey());
+				for (Object ob : JOhm.getAll(c))
+				{
+					JOhm.delete(c, ((MarketObject) ob).id);
+				}
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+			jedis.del(String.format("globalmarket_index_%s", entry.getKey()));
+			for (MarketObject ob : entry.getValue().values())
+			{
+				if (!cache.containsKey(ob.getClass().getName()))
+				{
+					cache.put(ob.getClass().getName(), ob.createMap());
+				}
+				JOhm.save(ob, true);
+				jedis.incr(String.format("globalmarket_index_%s", entry.getKey()));
+				GMLogger.debug("Object id: " + ob.id);
+				cache.get(ob.getClass().getName()).put(ob.id, ob);
+			}
+		}
+		pool.returnResource(jedis);
+		this.items = storage.items;
 	}
 }

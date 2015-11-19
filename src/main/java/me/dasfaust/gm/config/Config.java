@@ -36,7 +36,8 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
     			"Persistence options. Valid options are 'flat' and 'redis' (Default: flat)",
 		        "Pointing two GlobalMarket instances at the same Redis server allows them to share data.",
 		        "If using a multi-server setup, set 'persistence.saveInterval' to zero on all but one server.",
-                "Changing this requires a server restart"
+                "If changed while the server is running, for example from flat to redis, GlobalMarket will /ERASE/",
+                "the new storage method and import all loaded data into it from the previous persistance method."
     	});
 
     	// TODO
@@ -229,6 +230,8 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
             }
             functionItems.put(key.replace("menu_function_items.", ""), stack);
         }
+
+
     }
     
     public void save() throws IOException

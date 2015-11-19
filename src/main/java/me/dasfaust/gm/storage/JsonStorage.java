@@ -15,7 +15,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.google.gson.Gson;
@@ -32,6 +34,7 @@ import me.dasfaust.gm.storage.abs.MarketObject;
 import me.dasfaust.gm.storage.abs.StorageHandler;
 import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.trade.WrappedStack;
+import scala.actors.threadpool.Arrays;
 
 public class JsonStorage extends StorageHandler implements JsonDeserializer<StorageHandler>
 {
@@ -300,15 +303,25 @@ public class JsonStorage extends StorageHandler implements JsonDeserializer<Stor
 							}
 						}
 						GMLogger.debug(String.format("Item loaded. Id: %s, type: %s", stack.id, stack.mat));
+						long id = Long.parseLong(child.getKey());
 						try
 						{
-							long id = Long.parseLong(child.getKey());
 							items.put(id, stack.buildStack());
 							itemStorage.put(id, stack);
 						}
 						catch(Exception e)
 						{
 							GMLogger.severe(e, "ItemStack can't be loaded:");
+							items.put(id, new WrappedStack(
+									new ItemStack(Material.STONE))
+									.setDisplayName("Material Not Found")
+									.setLore(Arrays.asList(new String[]{
+										"This ItemStack couldn't be loaded!",
+										String.format("Material %s is missing from the game.", stack.mat)
+									}
+								)
+							));
+							itemStorage.put(id, stack);
 						}
 					}
 				}

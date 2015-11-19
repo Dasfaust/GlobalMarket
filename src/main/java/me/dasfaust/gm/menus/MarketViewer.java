@@ -20,6 +20,7 @@ import me.dasfaust.gm.trade.WrappedStack;
 public class MarketViewer
 {
 	public UUID uuid;
+	public UUID player;
 	public MenuBase<? extends MarketObject> menu;
 	public Map<Integer, Long> objectMap;
 	public TreeMap<Long, MarketObject> objects;
@@ -46,10 +47,19 @@ public class MarketViewer
 		
 		objectMap = new HashMap<Integer, Long>();
 	}
+
+	public MarketViewer(MenuBase<? extends MarketObject> menu, UUID uuid, UUID player)
+	{
+		this.uuid = uuid;
+		this.player = player;
+		this.menu = menu;
+
+		objectMap = new HashMap<Integer, Long>();
+	}
 	
 	public Player player()
 	{
-		return Core.instance.getServer().getPlayer(uuid);
+		return player == null ? Core.instance.getServer().getPlayer(uuid) : Core.instance.getServer().getPlayer(player);
 	}
 	
 	public MarketViewer prepareInventory()

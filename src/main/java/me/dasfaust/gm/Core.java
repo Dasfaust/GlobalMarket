@@ -156,7 +156,25 @@ public class Core extends JavaPlugin
 	{
 		return storage;
 	}
-	
+
+	public void setStorage(StorageHandler storage)
+	{
+		if (!storage.init())
+		{
+			GMLogger.warning("New storage method couldn't be initialized, not changing.");
+			return;
+		}
+		// Import JSON to Redis storage
+		if (storage instanceof RedisStorage && this.storage instanceof JsonStorage)
+		{
+			((RedisStorage) storage).importFromJson(((JsonStorage) this.storage));
+		}
+		// TODO import redis to json storage
+		this.storage().save();
+		this.storage().close();
+		this.storage = storage;
+	}
+
 	/**
 	 * Get the MenuHandler
 	 * @return

@@ -1,7 +1,12 @@
 package me.dasfaust.gm.command.cmds;
 
 import me.dasfaust.gm.Core;
+import me.dasfaust.gm.StorageHelper;
 import me.dasfaust.gm.command.CommandContext;
+import me.dasfaust.gm.config.Config;
+import me.dasfaust.gm.storage.JsonStorage;
+import me.dasfaust.gm.storage.RedisStorage;
+import me.dasfaust.gm.storage.abs.StorageHandler;
 import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.tools.LocaleHandler;
 import org.bukkit.command.CommandSender;
@@ -29,7 +34,26 @@ public class ReloadCommand extends CommandContext
     {
         try
         {
+            String oldPersistance = Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD);
             Core.instance.config().load();
+            if (!oldPersistance.equals(Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD)))
+            {
+                StorageHandler storage;
+                if (Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD).equalsIgnoreCase("redis"))
+                {
+                    storage = new RedisStorage(
+                            Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD_REDIS_ADDRESS),
+                            Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD_REDIS_PASSWORD),
+                            Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD_REDIS_PORT),
+                            Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD_REDIS_POOLSIZE)
+                    );
+                }
+                else
+                {
+                    storage = new JsonStorage();
+                }
+                Core.instance.setStorage(storage);
+            }
             sender.sendMessage(LocaleHandler.get().get("command_reload_complete"));
         }
         catch(Exception e)

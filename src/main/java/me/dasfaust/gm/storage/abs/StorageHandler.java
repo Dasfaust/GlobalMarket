@@ -18,7 +18,7 @@ import me.dasfaust.gm.trade.*;
 
 public abstract class StorageHandler
 {
-	protected static List<Class<?>> classes = new ArrayList<Class<?>>();
+	public static List<Class<?>> classes = new ArrayList<Class<?>>();
 	
 	static
 	{
@@ -29,11 +29,11 @@ public abstract class StorageHandler
 		classes.add(StoredItem.class);
 	}
 	
-	protected Map<Long, WrappedStack> items;
+	public Map<Long, WrappedStack> items;
 	@Expose
-	protected Map<String, Map<Long, MarketObject>> cache;
+	public Map<String, Map<Long, MarketObject>> cache;
 	@Expose
-	protected Map<UUID, String> playerCache;
+	public Map<UUID, String> playerCache;
 	
 	protected UUID changed = UUID.randomUUID();
 	
