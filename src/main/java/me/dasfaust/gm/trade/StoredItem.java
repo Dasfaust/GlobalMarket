@@ -19,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import redis.clients.johm.Attribute;
 import redis.clients.johm.Model;
-import scala.tools.nsc.doc.model.Def;
 
 import java.util.*;
 
