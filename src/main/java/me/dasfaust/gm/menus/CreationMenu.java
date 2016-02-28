@@ -49,7 +49,7 @@ public class CreationMenu extends MenuBase<MarketObject>
 			.addLoreLast(Arrays.asList(Core.instance.config().get(
 				Defaults.DISABLE_STOCK) ?
 				new String[] {LocaleHandler.get().get("menu_creation_cancel_return_listings")} : new String[] {LocaleHandler.get().get("menu_creation_cancel_return_stock")})
-			);
+			).tag();
 		}
 
 		@Override
@@ -96,7 +96,7 @@ public class CreationMenu extends MenuBase<MarketObject>
 							sessions.get(viewer.uuid).stack.clone().setAmount(1) : Core.instance.storage().get(sessions.get(viewer.uuid).stock.itemId);
 			stack.setDisplayName(LocaleHandler.get().get("menu_creation_price"));
 			stack.addLoreLast(Arrays.asList(LocaleHandler.get().get("menu_creation_price_info", Core.instance.econ().format(sessions.get(viewer.uuid).price)).split("\n")));
-			return stack;
+			return stack.clone().tag();
 		}
 
 		@Override
@@ -149,7 +149,7 @@ public class CreationMenu extends MenuBase<MarketObject>
 			int amount = sessions.get(viewer.uuid).amount;
 			stack.addLoreLast(Arrays.asList(LocaleHandler.get().get("menu_creation_amount_info", amount).split("\n")));
 			stack.setAmount(amount);
-			return stack;
+			return stack.clone().tag();
 		}
 
 		@Override
@@ -212,7 +212,7 @@ public class CreationMenu extends MenuBase<MarketObject>
 		{
 			return Config.functionItems.get("FUNC_CREATE_LISTING_CREATE").clone()
 			.setDisplayName(LocaleHandler.get().get("menu_creation_create"))
-			.addLoreLast(Arrays.asList(new String[] {LocaleHandler.get().get("menu_creation_create_info")}));
+			.addLoreLast(Arrays.asList(new String[] {LocaleHandler.get().get("menu_creation_create_info")})).tag();
 		}
 
 		@Override
