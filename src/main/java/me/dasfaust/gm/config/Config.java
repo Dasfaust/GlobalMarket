@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 import com.comphenix.protocol.utility.MinecraftReflection;
+import me.dasfaust.gm.diamondexchange.DiamondExchangeHandler;
 import me.dasfaust.gm.menus.CreationMenu;
 import me.dasfaust.gm.menus.MenuBase;
 import me.dasfaust.gm.menus.Menus;
@@ -197,6 +198,17 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
             }
         }
         for(Field f : CreationMenu.class.getDeclaredFields())
+        {
+            if (f != null)
+            {
+                if (f.getName().startsWith("FUNC"))
+                {
+                    MenuBase.FunctionButton button = (MenuBase.FunctionButton) f.get(null);
+                    config.addDefault("menu_function_items." + f.getName(), button.getItemId());
+                }
+            }
+        }
+        for(Field f : DiamondExchangeHandler.class.getDeclaredFields())
         {
             if (f != null)
             {

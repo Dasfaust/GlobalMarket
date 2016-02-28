@@ -3,6 +3,7 @@ package me.dasfaust.gm.command;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import me.dasfaust.gm.Core;
 import me.dasfaust.gm.command.cmds.CreateSeverListingCommand;
@@ -15,6 +16,7 @@ import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.tools.LocaleHandler;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
@@ -45,8 +47,22 @@ public class CommandHandler implements Listener
 			{
 				if (sender instanceof Player)
 				{
-					Player player = (Player) sender;
-					Core.instance.handler().initViewer(player, Menus.MENU_LISTINGS);
+					if (args.length == 1 && sender.hasPermission("globalmarket.viewother"))
+					{
+						String player = args[0];
+						UUID uuid = Core.instance.storage().findPlayer(player);
+						if (uuid == null)
+						{
+							sender.sendMessage(ChatColor.RED + String.format("No player by the name of %s found.", player));
+							return true;
+						}
+						Core.instance.handler().initViewer((Player) sender, uuid, Menus.MENU_LISTINGS);
+					}
+					else
+					{
+						Player player = (Player) sender;
+						Core.instance.handler().initViewer(player, Menus.MENU_LISTINGS);
+					}
 				}
 				else
 				{

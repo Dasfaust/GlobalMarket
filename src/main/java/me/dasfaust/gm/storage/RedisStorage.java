@@ -1,6 +1,7 @@
 package me.dasfaust.gm.storage;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -25,7 +26,6 @@ import me.dasfaust.gm.storage.abs.MarketObject;
 import me.dasfaust.gm.storage.abs.StorageHandler;
 import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.trade.WrappedStack;
-import scala.actors.threadpool.Arrays;
 
 public class RedisStorage extends StorageHandler
 {

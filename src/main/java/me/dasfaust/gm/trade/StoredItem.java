@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import redis.clients.johm.Attribute;
 import redis.clients.johm.Model;
+import scala.tools.nsc.doc.model.Def;
 
 import java.util.*;
 
@@ -63,9 +64,9 @@ public class StoredItem extends MarketObject
         {
             return stack;
         }
-        if (Core.instance.econ().has(viewer.player(), 250))
+        if (Core.instance.econ().has(viewer.player(), Core.instance.config().get(Config.Defaults.STORAGE_WITHDRAW_AMOUNT)))
         {
-            Core.instance.econ().withdrawPlayer(viewer.player(), 250);
+            Core.instance.econ().withdrawPlayer(viewer.player(), Core.instance.config().get(Config.Defaults.STORAGE_WITHDRAW_AMOUNT));
             viewer.player().setItemOnCursor(Core.instance.storage().get(itemId).setAmount(amount).checkNbt().bukkit());
             Core.instance.storage().removeObject(StoredItem.class, id);
             viewer.reset();

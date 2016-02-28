@@ -39,7 +39,7 @@ public class MenuHandler implements Listener
 	public MarketViewer addViewer(MarketViewer viewer)
 	{
 		GMLogger.debug(String.format("Viewer added: %s (%s)", Core.instance.storage().findPlayer(viewer.uuid), viewer.uuid));
-		return viewers.put(viewer.uuid, viewer);
+		return viewers.put(viewer.player == null ? viewer.uuid : viewer.player, viewer);
 	}
 	
 	/**
@@ -57,7 +57,16 @@ public class MenuHandler implements Listener
 		viewer.open();
 		return viewer;
 	}
-	
+
+	public MarketViewer initViewer(Player player, UUID uuid, MenuBase<?> menu)
+	{
+		removeViewer(uuid);
+		MarketViewer viewer = new MarketViewer(menu, uuid, player.getUniqueId());
+		addViewer(viewer);
+		viewer.open();
+		return viewer;
+	}
+
 	public MarketViewer getViewer(UUID uuid)
 	{
 		return viewers.containsKey(uuid) ? viewers.get(uuid) : null;
@@ -65,8 +74,8 @@ public class MenuHandler implements Listener
 	
 	public void removeViewer(MarketViewer viewer)
 	{
-		if (viewers.containsKey(viewer.uuid)) viewers.remove(viewer.uuid);
-		Player player = Core.instance.getServer().getPlayer(viewer.uuid);
+		if (viewers.containsKey(viewer.player == null ? viewer.uuid : viewer.player)) viewers.remove(viewer.player == null ? viewer.uuid : viewer.player);
+		Player player = Core.instance.getServer().getPlayer(viewer.player == null ? viewer.uuid : viewer.player);
 		if (player != null)
 		{
 			player.closeInventory();
@@ -183,7 +192,7 @@ public class MenuHandler implements Listener
 						{
 							// Bug in CraftBukkit/Spigot. Messing with a swapped item on the same tick disconnects the player
 							
-							HashMap<Integer, ItemStack> map = player.getInventory().addItem(player.getItemOnCursor());
+							/*HashMap<Integer, ItemStack> map = player.getInventory().addItem(player.getItemOnCursor());
 							ItemStack cursorClone = event.getCursor().clone();
 							player.setItemOnCursor(new ItemStack(Material.AIR));
 							// Place item from cursor into their inventory. If it doesn't fit, don't let the click happen
@@ -204,8 +213,10 @@ public class MenuHandler implements Listener
 							{
 								viewerOb.lastStackOnCursor = new WrappedStack(s);
 								break;
-							}
-							
+							}*/
+
+							updateViewer(viewerOb, event);
+
 							final MarketViewer _viewer = viewerOb;
 							final int _raw = event.getRawSlot();
 							new BukkitRunnable()

@@ -1,12 +1,7 @@
 package me.dasfaust.gm.storage.abs;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.base.Predicate;
@@ -14,12 +9,23 @@ import com.google.common.collect.Iterables;
 import com.google.gson.annotations.Expose;
 
 import me.dasfaust.gm.storage.SerializedStack;
+import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.trade.*;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 public abstract class StorageHandler
 {
 	public static List<Class<?>> classes = new ArrayList<Class<?>>();
-	
+
+	public static WrappedStack BACKUP_STACK = new WrappedStack(new ItemStack(Material.STONE))
+			.setDisplayName("Internal Error")
+			.setLore(Arrays.asList(new String[]{
+					"Internal Market error.",
+					"Please report this!",
+					"Missing item ID."
+			}));
+
 	static
 	{
 		classes.add(SerializedStack.class);
@@ -112,7 +118,8 @@ public abstract class StorageHandler
 		{
 			return items.get(id).clone().setAmount(1);
 		}
-		throw new IllegalArgumentException(String.format("Item %s doesn't exist", id));
+		GMLogger.severe(new IllegalArgumentException(String.format("Item %s doesn't exist", id)), "Storage is not synced with memory:");
+		return BACKUP_STACK.clone();
 	}
 	
 	public List<WrappedStack> getStacks()

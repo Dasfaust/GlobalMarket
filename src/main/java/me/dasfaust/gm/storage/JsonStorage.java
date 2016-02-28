@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,7 +35,6 @@ import me.dasfaust.gm.storage.abs.MarketObject;
 import me.dasfaust.gm.storage.abs.StorageHandler;
 import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.trade.WrappedStack;
-import scala.actors.threadpool.Arrays;
 
 public class JsonStorage extends StorageHandler implements JsonDeserializer<StorageHandler>
 {
@@ -316,10 +316,10 @@ public class JsonStorage extends StorageHandler implements JsonDeserializer<Stor
 									new ItemStack(Material.STONE))
 									.setDisplayName("Material Not Found")
 									.setLore(Arrays.asList(new String[]{
-										"This ItemStack couldn't be loaded!",
-										String.format("Material %s is missing from the game.", stack.mat)
-									}
-								)
+															"This ItemStack couldn't be loaded!",
+															String.format("Material %s is missing from the game.", stack.mat)
+													}
+											)
 							));
 							itemStorage.put(id, stack);
 						}

@@ -68,6 +68,10 @@ public class SerializedStack
 	
 	public WrappedStack buildStack() throws IOException
 	{
+		if (mat == null || Material.getMaterial(mat) == null)
+		{
+			throw new IOException("Material not found!");
+		}
 		ItemStack base = new ItemStack(Material.getMaterial(mat), 1, (short) damage);
 		WrappedStack stack = new WrappedStack(base);
 		if (nbt != null)
