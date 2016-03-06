@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import me.dasfaust.gm.config.Config;
+import me.dasfaust.gm.diamondexchange.DiamondExchangeHandler;
 import me.dasfaust.gm.trade.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -740,7 +741,7 @@ public class Menus
 		MENU_STORAGE.addFunction(53, Menus.FUNC_NEXTPAGE);
 		MENU_STORAGE.addFunction(52, Menus.FUNC_STORAGE_NAVIGATION);
 
-		//MENU_LISTINGS.addFunction(51, DiamondExchangeHandler.FUNC_DE_NAVIGATION);
+		MENU_LISTINGS.addFunction(51, DiamondExchangeHandler.FUNC_DE_NAVIGATION);
 
 		if (Core.instance.config().get(Defaults.DISABLE_STOCK))
 		{
@@ -760,5 +761,10 @@ public class Menus
 				MENU_LISTINGS.addFunction(47, FUNC_SERVER_LISTINGS_NAVIGATION);
 			}
 		}
+	}
+
+	public static void addButton(MenuBase<?> menu, int slot, FunctionButton button)
+	{
+		menu.addFunction(slot, button);
 	}
 }

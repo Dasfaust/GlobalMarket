@@ -10,7 +10,6 @@ import me.dasfaust.gm.storage.abs.StorageHandler;
 import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.tools.LocaleHandler;
 import org.bukkit.ChatColor;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import redis.clients.johm.Attribute;
@@ -75,7 +74,7 @@ public class ServerListing extends MarketObject
                 return stack;
             }
             Core.instance.storage().removeObject(ServerListing.class, id);
-            player.playSound(player.getLocation(), Sound.FIZZ, 1, 1);
+            //player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_HIT, 1, 1);
             Core.instance.handler().rebuildAllMenus(Menus.MENU_SERVER_LISTINGS);
         }
         else if (viewer.lastClickType == ClickType.LEFT)
@@ -98,10 +97,10 @@ public class ServerListing extends MarketObject
                 lore.set(lore.size() - 2, ChatColor.RED + e.getLocalizedMessage());
                 stack.setLore(lore);
                 viewer.reset();
-                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                //player.playSound(player.getLocation(), Sound.BLOCK_WOOD_BREAK, 1, 1);
                 return stack;
             }
-            player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
+            //player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             if (Core.instance.config().get(Config.Defaults.DISABLE_STOCK))
             {
                 player.setItemOnCursor(Core.instance.storage().get(itemId).setAmount(amount).checkNbt().bukkit());

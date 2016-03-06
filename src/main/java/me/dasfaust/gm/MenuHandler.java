@@ -12,12 +12,8 @@ import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -101,7 +97,7 @@ public class MenuHandler implements Listener
 			}
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClick(InventoryClickEvent event)
@@ -318,9 +314,8 @@ public class MenuHandler implements Listener
 			if (stack != null && stack.getType() != Material.AIR && new WrappedStack(stack).hasTag())
 			{
 				GMLogger.debug("ItemStack is tagged");
-				contents[i] = null;
+				event.getPlayer().getInventory().setItem(i, null);
 			}
 		}
-		event.getPlayer().getInventory().setContents(contents);
 	}
 }

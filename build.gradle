@@ -76,7 +76,7 @@ configurations
 
 dependencies
 {
-    compile group: 'org.bukkit', name: 'bukkit', version: '1.8-R0.1-SNAPSHOT'
+    compile group: 'org.bukkit', name: 'bukkit', version: '1.9-R0.1-SNAPSHOT'
     compile group: 'net.milkbowl.vault', name: 'Vault', version: '1.5.0'
     compile group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '3.6.4'
     shade group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'

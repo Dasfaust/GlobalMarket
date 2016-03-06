@@ -19,8 +19,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class Config
 {
-public static String header = String.format("GlobalMarket config: v%s", Core.instance.getDescription().getVersion());
-
+    public static String header = String.format("GlobalMarket config: v%s", Core.instance.getDescription().getVersion());
+    private static boolean isLoading = true;
     public static Map<String, WrappedStack> functionItems = new HashMap<String, WrappedStack>();
 
     public static class Defaults
@@ -152,8 +152,8 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
         }
     }
     
-    public AnnotatedYamlConfiguration config;
-    public File configFile;
+    public static AnnotatedYamlConfiguration config;
+    public static File configFile;
     
     public void load() throws FileNotFoundException, IOException, InvalidConfigurationException, IllegalArgumentException, IllegalAccessException
     {
@@ -206,17 +206,6 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
                 }
             }
         }
-        /*for(Field f : DiamondExchangeHandler.class.getDeclaredFields())
-        {
-            if (f != null)
-            {
-                if (f.getName().startsWith("FUNC"))
-                {
-                    MenuBase.FunctionButton button = (MenuBase.FunctionButton) f.get(null);
-                    config.addDefault("menu_function_items." + f.getName(), button.getItemId());
-                }
-            }
-        }*/
 		config.options().copyDefaults(true);
 		
 		save();
@@ -241,10 +230,32 @@ public static String header = String.format("GlobalMarket config: v%s", Core.ins
             functionItems.put(key.replace("menu_function_items.", ""), stack);
         }
 
-
+        isLoading = false;
     }
-    
-    public void save() throws IOException
+
+    public static void addFunctionConfig(Class c) throws InvalidConfigurationException, IllegalAccessException, IOException
+    {
+        if (isLoading)
+        {
+            throw new InvalidConfigurationException("Can't add function config lines until the plugin is enabled. Please use PluginEnableEvent.");
+        }
+        for(Field f : c.getDeclaredFields())
+        {
+            if (f != null)
+            {
+                if (f.getName().startsWith("FUNC"))
+                {
+                    MenuBase.FunctionButton button = (MenuBase.FunctionButton) f.get(null);
+                    config.addDefault("menu_function_items." + f.getName(), button.getItemId());
+                }
+            }
+        }
+        config.options().copyDefaults(true);
+
+        save();
+    }
+
+    public static void save() throws IOException
     {
     	config.save(configFile);
     }

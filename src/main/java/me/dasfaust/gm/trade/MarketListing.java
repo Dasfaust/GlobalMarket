@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import com.google.gson.annotations.Expose;
@@ -85,7 +84,7 @@ public class MarketListing extends MarketObject
 				return stack;
 			}
 			Core.instance.storage().removeObject(MarketListing.class, id);
-			player.playSound(player.getLocation(), Sound.FIZZ, 1, 1);
+			//player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_HIT, 1, 1);
 			if (Core.instance.config().get(Defaults.DISABLE_STOCK))
 			{
 				player.setItemOnCursor(Core.instance.storage().get(itemId).setAmount(amount).checkNbt().bukkit());
@@ -120,10 +119,10 @@ public class MarketListing extends MarketObject
 				lore.set(lore.size() - 2, ChatColor.RED + e.getLocalizedMessage());
 				stack.setLore(lore);
 				viewer.reset();
-				player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+				//player.playSound(player.getLocation(), Sound.BLOCK_WOOD_BREAK, 1, 1);
 				return stack;
 			}
-			player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
+			//player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 			if (Core.instance.config().get(Defaults.DISABLE_STOCK))
 			{
 				player.setItemOnCursor(Core.instance.storage().get(itemId).setAmount(amount).checkNbt().bukkit());

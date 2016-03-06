@@ -7,14 +7,11 @@ import java.util.Map;
 import java.util.UUID;
 
 import me.dasfaust.gm.config.Config;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.dasfaust.gm.Core;
@@ -256,7 +253,7 @@ public class CreationMenu extends MenuBase<MarketObject>
 			listing.creationTime = System.currentTimeMillis();
 			Core.instance.storage().store(listing);
 			Core.instance.handler().removeViewer(viewer);
-			player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+			//player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 			new BukkitRunnable()
 			{
 				@Override
