@@ -13,7 +13,8 @@ public class GlobalMarketHooks
     {
         try
         {
-            if (!menu.getObjectType().isAssignableFrom(DummyObject.class)
+            if (menu.getObjectType() != null
+                    && !menu.getObjectType().isAssignableFrom(DummyObject.class)
                     && !menu.getObjectType().equals(MarketObject.class))
             {
                 StorageHandler.registerClass(menu.getObjectType());
