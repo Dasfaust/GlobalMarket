@@ -34,9 +34,9 @@ public class ReloadCommand extends CommandContext
     {
         try
         {
-            String oldPersistance = Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD);
+            String oldPersistence = Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD);
             Core.instance.config().load();
-            if (!oldPersistance.equals(Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD)))
+            if (!oldPersistence.equals(Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD)))
             {
                 StorageHandler storage;
                 if (Core.instance.config().get(Config.Defaults.PERSISTENCE_METHOD).equalsIgnoreCase("redis"))
@@ -54,6 +54,7 @@ public class ReloadCommand extends CommandContext
                 }
                 Core.instance.setStorage(storage);
             }
+            GMLogger.setDebug(Core.instance.config().get(Config.Defaults.ENABLE_DEBUG));
             sender.sendMessage(LocaleHandler.get().get("command_reload_complete"));
         }
         catch(Exception e)
