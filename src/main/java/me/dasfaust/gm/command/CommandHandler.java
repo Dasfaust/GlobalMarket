@@ -45,15 +45,15 @@ public class CommandHandler implements Listener
                 }
                 if (args.length > 0)
                 {
-                    String allArgs = StringUtils.join(args, " ");
+                    String allArgs = StringUtils.join(args, " ").trim();
                     contextLoop: for (CommandContext context : commands)
                     {
                         for (String cmd : context.command)
                         {
-                            if (allArgs.startsWith(cmd))
+                            if (allArgs.toLowerCase().startsWith(cmd))
                             {
                                 String _args = allArgs.replace(cmd, "");
-                                handleCommand(sender, context, _args.length() == 0 ? new String[0] : _args.split(" "));
+                                handleCommand(sender, context, _args.length() == 0 ? new String[0] : _args.trim().split(" "));
                                 break contextLoop;
                             }
                         }
@@ -101,6 +101,10 @@ public class CommandHandler implements Listener
 	
 	public void handleCommand(CommandSender sender, CommandContext context, String[] arguments)
 	{
+        for (String arg : arguments)
+        {
+            GMLogger.debug("HandleCommand: argument passed: " + arg);
+        }
 		if (context.requirePlayerInstance && !(sender instanceof Player))
 		{
 			sender.sendMessage(LocaleHandler.get().get("command_player_only"));
