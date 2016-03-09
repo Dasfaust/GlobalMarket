@@ -152,6 +152,7 @@ public class Menus
 						if (remaining < viewer.lastStackOnCursor.getAmount())
 						{
 							viewer.lastStackOnCursor.setAmount(viewer.lastStackOnCursor.getAmount() - remaining);
+							player.setItemOnCursor(viewer.lastStackOnCursor.bukkit());
 							StorageHelper.updateStockAmount(stock, stock.amount + remaining);
 						}
 						else
