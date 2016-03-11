@@ -5,10 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.dasfaust.gm.Core;
-import me.dasfaust.gm.command.cmds.CreateSeverListingCommand;
-import me.dasfaust.gm.command.cmds.HelpCommand;
-import me.dasfaust.gm.command.cmds.ReloadCommand;
-import me.dasfaust.gm.command.cmds.SendCommand;
+import me.dasfaust.gm.command.cmds.*;
 import me.dasfaust.gm.config.Config.Defaults;
 import me.dasfaust.gm.menus.Menus;
 import me.dasfaust.gm.tools.GMLogger;
@@ -96,6 +93,7 @@ public class CommandHandler implements Listener
 		commands.add(new HelpCommand());
 		commands.add(new ReloadCommand());
 		commands.add(new SendCommand());
+		commands.add(new CreateListingCommand());
 		commands.add(new CreateSeverListingCommand());
 	}
 	

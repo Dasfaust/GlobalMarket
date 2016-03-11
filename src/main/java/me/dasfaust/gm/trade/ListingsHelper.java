@@ -100,6 +100,10 @@ public class ListingsHelper
 				Core.instance.storage().removeObject(StockedItem.class, stock.id);
 				Core.instance.storage().removeObject(MarketListing.class, listing.id);
 			}
+			if (stock.amount > listing.amount)
+			{
+				Core.instance.storage().removeObject(MarketListing.class, listing.id);
+			}
 		}
 		else
 		{
@@ -181,22 +185,5 @@ public class ListingsHelper
 		public TransactionException(String message) {
 			super(message);
 		}	
-	}
-	
-	public static void createUnrestrictedListing(UUID seller, UUID world, WrappedStack stack, int amount, double price)
-	{
-		MarketListing listing = new MarketListing();
-		listing.seller = seller;
-		listing.world = world;
-		listing.itemId = Core.instance.storage().store(stack);
-		listing.amount = amount;
-		listing.price = price;
-		listing.creationTime = System.currentTimeMillis();
-		Core.instance.storage().store(listing);
-	}
-	
-	public static void createListing(UUID seller, UUID world, WrappedStack stack, int amount, double price) throws TransactionException
-	{
-		
 	}
 }
