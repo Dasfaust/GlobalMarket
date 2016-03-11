@@ -69,5 +69,6 @@
     "command_reload_complete": "&aReload complete.",
     "command_reload_failed": "&cReload failed, check server console.",
     "command_create_failed_stock_full": "&cCouldn't create listing: your stock is full.",
+    "command_create_failed_already_listed": "&cYou're already selling this item.",
     "command_create_success": "&aListing created!"
 }}
