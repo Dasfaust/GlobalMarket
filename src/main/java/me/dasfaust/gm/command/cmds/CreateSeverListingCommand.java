@@ -18,8 +18,8 @@ public class CreateSeverListingCommand extends CommandContext
     {
         super(
                 new String[] {
-                        "createserverlisting",
-                        "createinf"
+                        "createinf",
+                        "listinf"
                 },
                 "globalmarket.command.createserverlisting",
                 1,
