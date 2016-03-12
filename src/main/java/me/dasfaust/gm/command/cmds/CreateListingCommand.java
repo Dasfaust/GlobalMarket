@@ -78,7 +78,7 @@ public class CreateListingCommand extends CommandContext
         long storageId = Core.instance.storage().store(stack);
         if (!Core.instance.config().get(Config.Defaults.DISABLE_STOCK))
         {
-            if (Core.instance.storage().getAll(MarketListing.class, StorageHelper.allListingsFor(player.getUniqueId(), storageId)).size() >= 0)
+            if (Core.instance.storage().getAll(MarketListing.class, StorageHelper.allListingsFor(player.getUniqueId(), storageId)).size() > 0)
             {
                 sender.sendMessage(LocaleHandler.get().get("command_create_failed_already_listed"));
                 return;

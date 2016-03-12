@@ -3,9 +3,12 @@ package me.dasfaust.gm;
 import java.io.IOException;
 import java.util.UUID;
 
+import me.dasfaust.gm.api.GlobalMarketHooks;
 import me.dasfaust.gm.command.CommandHandler;
 import me.dasfaust.gm.config.Config;
 import me.dasfaust.gm.config.Config.Defaults;
+import me.dasfaust.gm.diamondexchange.DiamondExchangeHandler;
+import me.dasfaust.gm.menus.Menus;
 import me.dasfaust.gm.metrics.MetricsLite;
 import me.dasfaust.gm.storage.JsonStorage;
 import me.dasfaust.gm.storage.ObjectTicker;
@@ -134,7 +137,6 @@ public class Core extends JavaPlugin
 				GMLogger.severe(e, "Failed to start Plugin Metrics, please report this error:");
 			}
 		}
-		
 		postEnable = true;
 	}
 	
