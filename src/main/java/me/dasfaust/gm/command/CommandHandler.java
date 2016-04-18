@@ -47,7 +47,7 @@ public class CommandHandler implements Listener
                     {
                         for (String cmd : context.command)
                         {
-                            if (allArgs.toLowerCase().startsWith(cmd))
+                            if (allArgs.toLowerCase().startsWith(cmd + " "))
                             {
                                 String _args = allArgs.replace(cmd, "");
                                 handleCommand(sender, context, _args.length() == 0 ? new String[0] : _args.trim().split(" "));
