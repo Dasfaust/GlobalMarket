@@ -37,9 +37,11 @@ public class CommandHandler implements Listener
                 // Checking up on Bukkit
                 if (!sender.hasPermission("globalmarket.use"))
                 {
+					GMLogger.debug(String.format("Permissions check on %s for globalmarket.use has returned false", sender.getName()));
                     sender.sendMessage(LocaleHandler.get().get("command_no_permission"));
                     return true;
                 }
+				GMLogger.debug(String.format("Permissions check on %s for globalmarket.use has returned true", sender.getName()));
                 if (args.length > 0)
                 {
                     String allArgs = StringUtils.join(args, " ").trim();
@@ -110,9 +112,11 @@ public class CommandHandler implements Listener
 		}
 		if (context.permission != null && !sender.hasPermission(context.permission))
 		{
+			GMLogger.debug(String.format("Permissions check on %s for %s has returned false", sender.getName(), context.permission));
 			sender.sendMessage(LocaleHandler.get().get("command_no_permission"));
 			return;
 		}
+		GMLogger.debug(String.format("Permissions check on %s for %s has returned true", sender.getName(), context.permission));
 		GMLogger.debug(String.format("Context for %s called. Forcing arguments? %s Argument length: %s", context.command[0], context.forceArgumentCount, arguments.length));
 		if ((arguments == null && context.forceArgumentCount) || (context.forceArgumentCount && arguments.length < context.arguments))
 		{
