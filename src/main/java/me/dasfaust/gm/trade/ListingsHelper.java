@@ -100,7 +100,7 @@ public class ListingsHelper
 				Core.instance.storage().removeObject(StockedItem.class, stock.id);
 				Core.instance.storage().removeObject(MarketListing.class, listing.id);
 			}
-			if (stock.amount > listing.amount)
+			if (stock.amount < listing.amount)
 			{
 				Core.instance.storage().removeObject(MarketListing.class, listing.id);
 			}
