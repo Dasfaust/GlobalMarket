@@ -80,7 +80,7 @@ public class BlacklistHandler
 				all += cur;
 			}
 			in.close();
-			blacklist = Lists.newArrayList(gson.fromJson(all, String[].class));
+			blacklist = Lists.newArrayList(gson.fromJson(all.toLowerCase(), String[].class));
 			GMLogger.debug(String.format("Blacklist has %s entries", blacklist.size()));
 		}
 		catch (Exception e)
@@ -92,6 +92,7 @@ public class BlacklistHandler
 	
 	public static boolean check(WrappedStack stack)
 	{
+		GMLogger.debug(String.format("Checking item [%s:%s] against blacklist...", stack.getMaterial().toString(), stack.getDamage()));
 		if (cauldron)
 		{
 			Object nms = MinecraftReflection.getMinecraftItemStack(stack.bukkit());
@@ -103,6 +104,7 @@ public class BlacklistHandler
 			GMLogger.debug(id);
 			if (blacklist.contains(id) || blacklist.contains(idAny))
 			{
+				GMLogger.debug("Blacklist entry found via Forge identifier");
 				return true;
 			}
 			int[] ids = net.minecraftforge.oredict.OreDictionary.getOreIDs(is);
