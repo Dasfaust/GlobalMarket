@@ -54,7 +54,7 @@ public class Config
             "Locale files can be found and edited to your liking inside the plugin JAR.",
             "Be sure to migrate your edits when updating the plugin."
         });
-        
+
         public static final ConfigDefault<Boolean> DISABLE_STOCK = new ConfigDefault<Boolean>("disable_stock_system", false, new String[] {
     		"Disables the stock system entirely. Listings will function like",
     		" they did in previous versions, minus the mailbox. Items will",
@@ -97,6 +97,11 @@ public class Config
     		"The root prefix to all GlobalMarket commands. (Default: market)",
             "Changing this requires a server restart"
         });
+
+        public static final ConfigDefault<Boolean> MARKET_COMMAND_OPENS_GUI = new ConfigDefault<Boolean>("market_command_opens_gui", true, new String[] {
+            "Whether or not the base GlobalMarket command should open the GUI (Default: true)"
+        });
+
         
         public static final ConfigDefault<Object> NULL_CREATION_MENU_COMMENT = new ConfigDefault<Object>("creation_menu_increments", null, new String[] {
     		"How much to increment or decrement when a number button is pressed",

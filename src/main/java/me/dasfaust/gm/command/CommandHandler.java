@@ -6,6 +6,7 @@ import java.util.List;
 
 import me.dasfaust.gm.Core;
 import me.dasfaust.gm.command.cmds.*;
+import me.dasfaust.gm.config.Config;
 import me.dasfaust.gm.config.Config.Defaults;
 import me.dasfaust.gm.menus.Menus;
 import me.dasfaust.gm.tools.GMLogger;
@@ -62,7 +63,7 @@ public class CommandHandler implements Listener
                 }
                 else
                 {
-                    if (sender instanceof Player)
+                    if (sender instanceof Player && Core.instance.config().get(Defaults.MARKET_COMMAND_OPENS_GUI))
                     {
                         Player player = (Player) sender;
                         Core.instance.handler().initViewer(player, Menus.MENU_LISTINGS);
@@ -79,7 +80,6 @@ public class CommandHandler implements Listener
 		};
 		root.setDescription("GlobalMarket commands");
 		root.setUsage(String.format("/%s help", rootValue));
-		//root.setPermission("globalmarket.use");
 		root.setAliases(new ArrayList<String>());
 		try
 		{
@@ -95,6 +95,7 @@ public class CommandHandler implements Listener
 		
 		commands.clear();
 		commands.add(new HelpCommand());
+        commands.add(new BrowseCommand());
 		commands.add(new ReloadCommand());
 		commands.add(new SendCommand());
 		commands.add(new CreateListingCommand());

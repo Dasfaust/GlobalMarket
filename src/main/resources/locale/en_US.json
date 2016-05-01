@@ -57,6 +57,7 @@
     "command_helptext_send": "/%s send <player> <[amount]> [&7Send an item to another player&f]",
     "command_helptext_createinf": "/%s createinf <price> <[amount]> [&7Create an infinitely stocked listing&f]",
     "command_helptext_createlisting": "/%s create [list] <price> <[amount]> [&7List an item for sale&f]",
+    "command_helptext_browse": "/%s browse [listings] <[stock or serverlistings]> [&7Browse the Market&f]",
     "command_send_failed_no_stock": "&cYou can't send items to other players at this moment. Ask your server administrator to enable Stock Mode.",
     "command_send_failed_stock_full": "&cSending failed: %s doesn't have a free stock slot available.",
     "command_send_no_item": "&cNo item found! Hold an item and try again, if not this item is blacklisted from the Market.",
