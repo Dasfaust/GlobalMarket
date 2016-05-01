@@ -21,9 +21,9 @@ public class CreateSeverListingCommand extends CommandContext
                         "createinf",
                         "listinf"
                 },
-                "globalmarket.command.createserverlisting",
+                "globalmarket.command.createinf",
                 1,
-                "command_helptext_createserverlisting",
+                "command_helptext_createinf",
                 true,
                 true
         );
@@ -37,7 +37,7 @@ public class CreateSeverListingCommand extends CommandContext
         ItemStack inHand = player.getItemInHand();
         if (inHand == null || inHand.getType() == Material.AIR || BlacklistHandler.check(stack = new WrappedStack(inHand)))
         {
-            sender.sendMessage(LocaleHandler.get().get("command_createserverlisting_no_item"));
+            sender.sendMessage(LocaleHandler.get().get("command_createinf_no_item"));
             return;
         }
         double price;
@@ -51,7 +51,7 @@ public class CreateSeverListingCommand extends CommandContext
         }
         catch(Exception e)
         {
-            sender.sendMessage(LocaleHandler.get().get("command_createserverlisting_invalid_amount", e.getMessage()));
+            sender.sendMessage(LocaleHandler.get().get("command_createinf_invalid_amount", e.getMessage()));
             return;
         }
         int amount = stack.getAmount();
@@ -68,7 +68,7 @@ public class CreateSeverListingCommand extends CommandContext
             }
             catch(Exception e)
             {
-                sender.sendMessage(LocaleHandler.get().get("command_createserverlisting_invalid_amount", e.getMessage()));
+                sender.sendMessage(LocaleHandler.get().get("command_createinf_invalid_amount", e.getMessage()));
                 return;
             }
         }
@@ -81,6 +81,6 @@ public class CreateSeverListingCommand extends CommandContext
         listing.world = player.getWorld().getUID();
         Core.instance.storage().store(listing);
         Core.instance.handler().rebuildAllMenus(Menus.MENU_SERVER_LISTINGS);
-        sender.sendMessage(LocaleHandler.get().get("command_createserverlisting_listing_created"));
+        sender.sendMessage(LocaleHandler.get().get("command_createinf_listing_created"));
     }
 }

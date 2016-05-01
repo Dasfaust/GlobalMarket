@@ -44,15 +44,17 @@ public class CommandHandler implements Listener
 				GMLogger.debug(String.format("Permissions check on %s for globalmarket.use has returned true", sender.getName()));
                 if (args.length > 0)
                 {
-                    String allArgs = StringUtils.join(args, " ").trim();
+                    String allArgs = StringUtils.join(args, " ") + " ";
+					GMLogger.debug(String.format("Args: [%s]", allArgs));
                     contextLoop: for (CommandContext context : commands)
                     {
                         for (String cmd : context.command)
                         {
                             if (allArgs.toLowerCase().startsWith(cmd + " "))
                             {
-                                String _args = allArgs.replace(cmd, "");
-                                handleCommand(sender, context, _args.length() == 0 ? new String[0] : _args.trim().split(" "));
+                                String _args = allArgs.replace(cmd, "").trim();
+                                String[] argArray = _args.length() == 0 ? new String[0] : _args.trim().split(" ");
+                                handleCommand(sender, context, argArray);
                                 break contextLoop;
                             }
                         }
@@ -77,7 +79,7 @@ public class CommandHandler implements Listener
 		};
 		root.setDescription("GlobalMarket commands");
 		root.setUsage(String.format("/%s help", rootValue));
-		root.setPermission("globalmarket.use");
+		//root.setPermission("globalmarket.use");
 		root.setAliases(new ArrayList<String>());
 		try
 		{
