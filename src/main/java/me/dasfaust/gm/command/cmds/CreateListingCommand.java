@@ -71,7 +71,7 @@ public class CreateListingCommand extends CommandContext
             }
             catch(Exception e)
             {
-                sender.sendMessage(LocaleHandler.get().get("command_createserverlisting_invalid_amount", e.getMessage()));
+                sender.sendMessage(LocaleHandler.get().get("command_createinf_invalid_amount", e.getMessage()));
                 return;
             }
         }
