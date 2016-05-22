@@ -11,7 +11,7 @@
     "menu_action_remove_confirm": "&8<Shift-Klick nochmal um zu Bestätigen>&r",
     "menu_stock_title": "Lager-Verwaltung",
     "menu_stock_slot": "&fLager Platz",
-    "menu_stock_action_swap": "&e&o<Schiebe ein Item in diesen Platz um ihn zu lagern>",
+    "menu_stock_action_swap": "&e&o<Schiebe ein Item in diesen Platz um es zu lagern>",
     "menu_stock_action_withdraw": "&e&o<Links-Klick zum entnehmen>",
     "menu_stock_amount": "&8Lagert bis zu %s Stück des selben Items",
     "menu_stock_amount_stored": "&7Gelagert: %s",
