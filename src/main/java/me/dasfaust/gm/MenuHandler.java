@@ -270,19 +270,19 @@ public class MenuHandler implements Listener
 	@EventHandler
 	public void onItemDrag(InventoryDragEvent event)
 	{
-    GMLogger.debug("InventoryDragEvent");
+		GMLogger.debug("InventoryDragEvent");
 		HumanEntity ent = event.getWhoClicked();
-    if (ent instanceof Player)
-    {
-      Player player = (Player) ent;
-      UUID uuid = player.getUniqueId();
-      MarketViewer viewerOb = getViewer(uuid);
-      if (viewerOb != null) {
-        GMLogger.debug(String.format("%s has MarketViewer object", player.getName()));
-        event.setResult(Result.DENY);
-        event.setCancelled(true);
-      }
-    }
+		if (ent instanceof Player)
+		{
+			Player player = (Player) ent;
+			UUID uuid = player.getUniqueId();
+			MarketViewer viewerOb = getViewer(uuid);
+			if (viewerOb != null) {
+				GMLogger.debug(String.format("%s has MarketViewer object", player.getName()));
+				event.setResult(Result.DENY);
+				event.setCancelled(true);
+			}
+		}
 	}
 
 	@EventHandler
