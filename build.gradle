@@ -4,7 +4,7 @@ buildscript
 {
 	repositories
   	{ 
-  		mavenCentral()
+  		jcenter()
 	  	maven
 	    {
 	        name = "forge"
@@ -18,7 +18,7 @@ buildscript
   	}
   	dependencies
   	{
-      classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+		classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
   	}
 }
 
@@ -26,8 +26,12 @@ repositories
 {
     // Spigot
     maven
-    {
-    	url "https://hub.spigotmc.org/nexus/content/groups/public/"
+	{
+        url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+    }
+    maven
+	{
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
     }
     // ProtocolLib
     maven
@@ -37,7 +41,7 @@ repositories
     // Vault
     maven
     {
-    	url "http://nexus.theyeticave.net/content/repositories/pub_releases/"
+    	url "http://nexus.hc.to/content/repositories/pub_releases"
     }
     // jOhm
     maven
@@ -49,8 +53,8 @@ repositories
 apply plugin: 'java'
 apply plugin: 'forge'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 ext.env = System.getenv()
 ext.build = env.BUILD_NUMBER
@@ -58,12 +62,14 @@ if (ext.build == null)
 {
     build = "dev"
 }
-version = "2.0.0." + build
+version = "2.0.1." + build
 group = "me.dasfaust.gm"
 
 minecraft
 {
     version = "1.7.10-10.13.2.1236"
+    //runDir = "run"
+	//mappings = "snapshot_20161111"
     srgExtra "PK: redis/clients/jedis lib/jedis/jedis"
     srgExtra "PK: redis/clients/util lib/jedis/util"
 }
@@ -76,9 +82,10 @@ configurations
 
 dependencies
 {
-    compile group: 'org.bukkit', name: 'bukkit', version: '1.9-R0.1-SNAPSHOT'
-    compile group: 'net.milkbowl.vault', name: 'Vault', version: '1.5.0'
-    compile group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '3.6.4'
+    compile group: 'org.bukkit', name: 'bukkit', version: '1.11-R0.1-SNAPSHOT'
+	compile group: 'org.spigotmc', name: 'spigot-api', version: '1.11-R0.1-SNAPSHOT'
+    compile group: 'net.milkbowl.vault', name: 'Vault', version: '1.5.6'
+    compile group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '4.1.0'
     shade group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
     shade group: 'redis.clients', name: 'jedis', version: '2.7.2'
     shade group: 'redis', name: 'johm', version: '0.6.3'
@@ -86,7 +93,7 @@ dependencies
     shade group: 'commons-codec', name: 'commons-codec', version: '1.10'
     // Packaging this because CraftBukkit's package changed from 1.7 -> 1.8
     shade group: 'com.google.code.gson', name: 'gson', version: '2.3.1'
-    compile group: 'org.hsqldb', name: 'hsqldb', version: '2.3.2'
+    //compile group: 'org.hsqldb', name: 'hsqldb', version: '2.3.2'
 }
 
 jar

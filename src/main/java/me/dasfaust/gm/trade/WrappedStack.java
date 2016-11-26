@@ -24,11 +24,15 @@ public class WrappedStack
 	
 	public ItemStack base;
 	public NbtCompound nbt;
-	
-	@SuppressWarnings("deprecation")
+
 	public WrappedStack(ItemStack base)
 	{
-		this.base = MinecraftReflection.getBukkitItemStack(base);
+		if(base == null)
+		{
+			GMLogger.debug("WrappedStack was passed an empty ItemStack. Abort!");
+			base = new ItemStack(Material.STONE);
+		}
+		this.base = MinecraftReflection.getBukkitItemStack(MinecraftReflection.getMinecraftItemStack(base));
 		try
 		{
 			nbt = (NbtCompound) NbtFactory.fromItemTag(this.base);
