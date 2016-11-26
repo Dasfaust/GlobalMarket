@@ -32,6 +32,7 @@ public class WrappedStack
 			GMLogger.debug("WrappedStack was passed an empty ItemStack. Abort!");
 			base = new ItemStack(Material.STONE);
 		}
+        //TODO: support ProtocolLib versions < 1.11
 		this.base = MinecraftReflection.getBukkitItemStack(MinecraftReflection.getMinecraftItemStack(base));
 		try
 		{
