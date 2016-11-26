@@ -26,18 +26,18 @@ import me.dasfaust.gm.trade.WrappedStack;
 public class MenuHandler implements Listener
 {
 	public static Map<UUID, MarketViewer> viewers;
-	
+
 	public MenuHandler()
 	{
 		viewers = new HashMap<UUID, MarketViewer>();
 	}
-	
+
 	public MarketViewer addViewer(MarketViewer viewer)
 	{
 		GMLogger.debug(String.format("Viewer added: %s (%s)", Core.instance.storage().findPlayer(viewer.uuid), viewer.uuid));
 		return viewers.put(viewer.player == null ? viewer.uuid : viewer.player, viewer);
 	}
-	
+
 	/**
 	 * Create a MarketViewer and open the provided menu
 	 * @param player
@@ -67,7 +67,7 @@ public class MenuHandler implements Listener
 	{
 		return viewers.containsKey(uuid) ? viewers.get(uuid) : null;
 	}
-	
+
 	public void removeViewer(MarketViewer viewer)
 	{
 		if (viewers.containsKey(viewer.player == null ? viewer.uuid : viewer.player)) viewers.remove(viewer.player == null ? viewer.uuid : viewer.player);
@@ -77,12 +77,12 @@ public class MenuHandler implements Listener
 			player.closeInventory();
 		}
 	}
-	
+
 	public void removeViewer(UUID uuid)
 	{
 		if (viewers.containsKey(uuid)) viewers.remove(uuid);
 	}
-	
+
 	/**
 	 * Call when removing an object from storage that affects all players
 	 */
@@ -120,23 +120,23 @@ public class MenuHandler implements Listener
 					event.setResult(Result.DENY);
 					return;
 				}
-				
+
 				GMLogger.debug("Hotbar button: " + event.getHotbarButton());
-				
+
 				if (event.getRawSlot() <= viewerOb.menu.getSize() - 1
 						|| event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY)
 				{
 					event.setCancelled(true);
 					event.setResult(Result.DENY);
 				}
-				
+
 				if (!player.getOpenInventory().getTitle().equals(viewerOb.menu.getTitle()))
 				{
 					GMLogger.debug("Viewer doesn't have the correct inventory");
 					removeViewer(uuid);
 					return;
 				}
-				
+
 				if (event.getClick().equals(viewerOb.menu.getResetClick()))
 				{
 					if (viewerOb.lastSlotClicked > -1)
@@ -146,7 +146,7 @@ public class MenuHandler implements Listener
 					viewerOb.reset();
 					return;
 				}
-				
+
 				if (!viewerOb.menu.isStatic() && viewerOb.objectMap.containsKey(event.getRawSlot()))
 				{
 					MarketObject ob = viewerOb.objects.get(viewerOb.objectMap.get(event.getRawSlot()));
@@ -183,11 +183,11 @@ public class MenuHandler implements Listener
 						{
 							viewerOb.timesClicked = 0;
 						}
-						
+
 						if (event.getCursor() != null && event.getCursor().getType() != Material.AIR)
 						{
 							// Bug in CraftBukkit/Spigot. Messing with a swapped item on the same tick disconnects the player
-							
+
 							/*HashMap<Integer, ItemStack> map = player.getInventory().addItem(player.getItemOnCursor());
 							ItemStack cursorClone = event.getCursor().clone();
 							player.setItemOnCursor(new ItemStack(Material.AIR));
@@ -268,6 +268,24 @@ public class MenuHandler implements Listener
 	}
 
 	@EventHandler
+	public void onItemDrag(InventoryDragEvent event)
+	{
+		GMLogger.debug("InventoryDragEvent");
+		HumanEntity ent = event.getWhoClicked();
+		if (ent instanceof Player)
+		{
+			Player player = (Player) ent;
+			UUID uuid = player.getUniqueId();
+			MarketViewer viewerOb = getViewer(uuid);
+			if (viewerOb != null) {
+				GMLogger.debug(String.format("%s has MarketViewer object", player.getName()));
+				event.setResult(Result.DENY);
+				event.setCancelled(true);
+			}
+		}
+	}
+
+	@EventHandler
 	public void onItemDrop(PlayerDropItemEvent event)
 	{
 		// Clean up after certain Forge mods who ignore Bukkit events (*cough* InvTweaks *cough*)
@@ -294,7 +312,7 @@ public class MenuHandler implements Listener
 			viewer.lastStackOnCursor = new WrappedStack(event.getCursor());
 		}
 	}
-	
+
 	@EventHandler
 	private void onInventoryClose(InventoryCloseEvent event)
 	{
