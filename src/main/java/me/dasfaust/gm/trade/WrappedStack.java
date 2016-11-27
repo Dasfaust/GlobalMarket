@@ -32,8 +32,14 @@ public class WrappedStack
 			GMLogger.debug("WrappedStack was passed an empty ItemStack. Abort!");
 			base = new ItemStack(Material.STONE);
 		}
-        //TODO: support ProtocolLib versions < 1.11
-		this.base = MinecraftReflection.getBukkitItemStack(MinecraftReflection.getMinecraftItemStack(base));
+		if (Material.getMaterial("BLACK_SHULKER_BOX") != null)
+        {
+            this.base = MinecraftReflection.getBukkitItemStack(MinecraftReflection.getMinecraftItemStack(base));
+        }
+        else
+        {
+            this.base = MinecraftReflection.getBukkitItemStack(base);
+        }
 		try
 		{
 			nbt = (NbtCompound) NbtFactory.fromItemTag(this.base);
