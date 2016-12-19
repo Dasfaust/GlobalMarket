@@ -32,9 +32,10 @@ public class WrappedStack
 			GMLogger.debug("WrappedStack was passed an empty ItemStack. Abort!");
 			base = new ItemStack(Material.STONE);
 		}
+
 		if (Material.getMaterial("BLACK_SHULKER_BOX") != null)
         {
-            this.base = MinecraftReflection.getBukkitItemStack(MinecraftReflection.getMinecraftItemStack(base));
+            this.base = MinecraftReflection.getBukkitItemStack(MinecraftReflection.getMinecraftItemStack(base.clone()));
         }
         else
         {
