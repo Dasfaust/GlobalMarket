@@ -10,12 +10,15 @@ import com.comphenix.protocol.utility.MinecraftReflection;
 import me.dasfaust.gm.menus.CreationMenu;
 import me.dasfaust.gm.menus.MenuBase;
 import me.dasfaust.gm.menus.Menus;
+import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.trade.WrappedStack;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 
 import me.dasfaust.gm.Core;
 import org.bukkit.inventory.ItemStack;
+
+import javax.annotation.Nullable;
 
 public class Config
 {
@@ -233,31 +236,44 @@ public class Config
                 stack = new WrappedStack(itemStack).setDamage(Integer.parseInt(id[2]));
             }
             functionItems.put(key.replace("menu_function_items.", ""), stack);
+            GMLogger.debug(String.format("Function ItemStack built: %s:%s", key, stack.getMaterial().toString()));
         }
 
         isLoading = false;
     }
 
-    public static void addFunctionConfig(Class c) throws InvalidConfigurationException, IllegalAccessException, IOException
+    public void addFunctionConfig(Class c, @Nullable Class parent) throws InvalidConfigurationException, IllegalAccessException, IOException
     {
         if (isLoading)
         {
             throw new InvalidConfigurationException("Can't add function config lines until the plugin is enabled. Please use PluginEnableEvent.");
         }
+        GMLogger.debug(String.format("Registering function button config for class %s...", c.getName()));
         for(Field f : c.getDeclaredFields())
         {
-            if (f != null)
+            if (f.getName().startsWith("FUNC"))
+            {
+                MenuBase.FunctionButton button = (MenuBase.FunctionButton) f.get(null);
+                config.addDefault("menu_function_items." + f.getName(), button.getItemId());
+                GMLogger.debug(String.format("Added config: %s, item ID: %s", "menu_function_items." + f.getName(), button.getItemId()));
+            }
+        }
+        if (parent != null)
+        {
+            for(Field f : parent.getDeclaredFields())
             {
                 if (f.getName().startsWith("FUNC"))
                 {
                     MenuBase.FunctionButton button = (MenuBase.FunctionButton) f.get(null);
                     config.addDefault("menu_function_items." + f.getName(), button.getItemId());
+                    GMLogger.debug(String.format("Added config: %s, item ID: %s", "menu_function_items." + f.getName(), button.getItemId()));
                 }
             }
         }
         config.options().copyDefaults(true);
-
+        GMLogger.debug("Functions registered, saving and reloading config.");
         save();
+        load();
     }
 
     public static void save() throws IOException

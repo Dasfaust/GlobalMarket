@@ -1,9 +1,6 @@
 package me.dasfaust.gm.menus;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import me.dasfaust.gm.config.Config;
 import me.dasfaust.gm.trade.*;
@@ -27,9 +24,17 @@ import me.dasfaust.gm.tools.GMLogger;
 import me.dasfaust.gm.tools.LocaleHandler;
 
 public class Menus
-{	
+{
+	public static List<MenuBase> menus = new ArrayList<>();
+
 	public static MenuBase<MarketListing> MENU_LISTINGS = new MenuBase<MarketListing>()
 	{
+		@Override
+		public String getName()
+		{
+			return "listings";
+		}
+
 		@Override
 		public String getTitle()
 		{
@@ -64,6 +69,12 @@ public class Menus
 	public static MenuBase<ServerListing> MENU_SERVER_LISTINGS = new MenuBase<ServerListing>()
 	{
 		@Override
+		public String getName()
+		{
+			return "serverlistings";
+		}
+
+		@Override
 		public String getTitle()
 		{
 			return LocaleHandler.get().get("menu_serverlistings_title");
@@ -95,7 +106,13 @@ public class Menus
 	};
 	
 	public static MenuBase<StockedItem> MENU_STOCK = new MenuBase<StockedItem>()
-	{	
+	{
+		@Override
+		public String getName()
+		{
+			return "stock";
+		}
+
 		class StockSlot extends StockedItem
 		{
 			public StockSlot(long id)
@@ -236,6 +253,12 @@ public class Menus
 
 	public static MenuBase<StoredItem> MENU_STORAGE = new MenuBase<StoredItem>()
 	{
+		@Override
+		public String getName()
+		{
+			return "storage";
+		}
+
 		class StorageSlot extends StoredItem
 		{
 			public StorageSlot(long id)
@@ -724,6 +747,12 @@ public class Menus
 	
 	static
 	{
+		menus.add(MENU_CREATION_LISTING);
+		menus.add(MENU_LISTINGS);
+		menus.add(MENU_SERVER_LISTINGS);
+		menus.add(MENU_STOCK);
+		menus.add(MENU_STORAGE);
+
 		MENU_LISTINGS.addFunction(45, FUNC_PREVPAGE);
 		MENU_LISTINGS.addFunction(53, Menus.FUNC_NEXTPAGE);
 		if (Core.instance.config().get(Defaults.ENABLE_STORAGE))

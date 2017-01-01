@@ -86,5 +86,13 @@ public class LocaleHandler
         {
             return locale.containsKey(path) ? ChatColor.translateAlternateColorCodes('&', String.format(locale.get(path), args)) : path;
         }
+
+        public void registerString(String path, String string)
+        {
+            if (!locale.containsKey(path))
+            {
+                locale.put(path, string);
+            }
+        }
     }
 }

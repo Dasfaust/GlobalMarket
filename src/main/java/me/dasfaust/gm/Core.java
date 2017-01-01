@@ -134,6 +134,7 @@ public class Core extends JavaPlugin
 				GMLogger.severe(e, "Failed to start Plugin Metrics, please report this error:");
 			}
 		}
+
 		postEnable = true;
 	}
 	
@@ -199,6 +200,11 @@ public class Core extends JavaPlugin
 	public Economy econ()
 	{
 		return economy;
+	}
+
+	public CommandHandler command()
+	{
+		return command;
 	}
 
 	private static boolean isCauldron()

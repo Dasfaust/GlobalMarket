@@ -53,8 +53,8 @@ repositories
 apply plugin: 'java'
 apply plugin: 'forge'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 ext.env = System.getenv()
 ext.build = env.BUILD_NUMBER

@@ -14,7 +14,9 @@ import me.dasfaust.gm.trade.WrappedStack;
 public abstract class MenuBase<T extends MarketObject>
 {
 	public Map<Integer, FunctionButton> functions = new HashMap<Integer, FunctionButton>();
-	
+
+	public abstract String getName();
+
 	public abstract String getTitle();
 	
 	public abstract boolean isStatic();
