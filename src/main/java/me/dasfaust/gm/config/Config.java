@@ -42,7 +42,7 @@ public class Config
                 "the new storage method and import all loaded data into it from the previous persistance method."
     	});
 
-    	// TODO
+        // TODO
         public static final ConfigDefault<Integer> AUTO_CLICKER_DEFENSE_THRESHOLD = new ConfigDefault<Integer>("autoclicker_defense_threshold", 20, new String[] {
             "Minimum time in between click events in miliseconds before",
             "closing an inventory and logging the player. (Default: 20)"

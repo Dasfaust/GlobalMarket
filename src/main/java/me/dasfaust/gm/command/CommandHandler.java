@@ -39,7 +39,7 @@ public class CommandHandler implements Listener
                 if (!sender.hasPermission("globalmarket.use"))
                 {
 					GMLogger.debug(String.format("Permissions check on %s for globalmarket.use has returned false", sender.getName()));
-                    sender.sendMessage(LocaleHandler.get().get("command_no_permission"));
+					sender.sendMessage(LocaleHandler.get().get("command_no_permission"));
                     return true;
                 }
 				GMLogger.debug(String.format("Permissions check on %s for globalmarket.use has returned true", sender.getName()));

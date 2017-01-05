@@ -37,9 +37,6 @@ public class BlacklistHandler
 		}
 		
 		blacklist = new ArrayList<String>();
-		blacklist.add(Material.APPLE.toString().toLowerCase() + ":-1");
-		blacklist.add("minecraft:cobblestone:-1");
-		blacklist.add("oredict:ingotSteel");
 		
 		reload();
 	}

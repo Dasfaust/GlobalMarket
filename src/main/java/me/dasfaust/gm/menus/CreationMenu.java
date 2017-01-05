@@ -280,6 +280,11 @@ public class CreationMenu extends MenuBase<MarketObject>
 		functions.put(14, AMOUNT);
 		functions.put(16, FUNC_CREATE_LISTING_CREATE);
 	}
+
+	public String getName()
+	{
+		return "creation";
+	}
 	
 	@Override
 	public ClickType getResetClick()
