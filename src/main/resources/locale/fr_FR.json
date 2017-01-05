@@ -36,7 +36,6 @@
     "menu_creation_price": "&fPrix",
     "menu_creation_price_info": "&7Survolez à la souris et touches 1 à 9 pour ajouter.\n &7<click-gauche> pour soustraire\n &7le dernier ajout.\n&fPrix: %s",
     "menu_creation_amount": "&fQuantité",
-    "menu_creation_price_info": "&7Survolez à la souris et touches 1 à 9 pour ajouter.\n &7<click-gauche> pour soustraire\n &7le dernier ajout.\n&fPrix: %s",
     "menu_creation_create": "&aCréer",
     "menu_creation_create_info": "&fCréer une annonce",
     "general_no_space": "&c<plus d'espace libre>",
